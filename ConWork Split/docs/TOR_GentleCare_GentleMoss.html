@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ร่างบันทึกข้อความและ TOR - ทีม GentleCare (GentleMoss)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm 15mm 20mm 15mm;
+        }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #1f2937;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+        }
+        .page-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px 50px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 8px;
+        }
+        .header-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #111827;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 15px;
+        }
+        .memo-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 8px 15px;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+        .memo-label {
+            font-weight: 600;
+            color: #374151;
+        }
+        .section-header {
+            background-color: #1e3a8a;
+            color: #ffffff;
+            padding: 8px 15px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 4px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .sub-header {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e40af;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #dbeafe;
+            padding-bottom: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 10px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+        ol, ul {
+            padding-left: 22px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+        .highlight-box {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 12px 16px;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .signature-section {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            text-align: center;
+        }
+        .signature-space {
+            height: 50px;
+        }
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2563eb;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .print-btn:hover {
+            background: #1d4ed8;
+        }
+        @media print {
+            body { background: white; padding: 0; }
+            .page-container { box-shadow: none; padding: 0; width: 100%; max-width: 100%; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="print-btn" onclick="window.print()">🖨️ พิมพ์เอกสาร / บันทึกเป็น PDF</button>
+
+    <div class="page-container">
+        
+        <div class="header-title">บันทึกข้อความ</div>
+
+        <div class="memo-grid">
+            <div class="memo-label">ส่วนราชการ:</div>
+            <div>สำนักงานอธิการบดี อุทยานวิทยาศาสตร์มหาวิทยาลัยนเรศวร งานบ่มเพาะธุรกิจ โทร. 8719</div>
+
+            <div class="memo-label">ที่:</div>
+            <div>อว 0603.01.19(3)/.......... วันที่: กรกฎาคม 2569</div>
+
+            <div class="memo-label">เรื่อง:</div>
+            <div>ขออนุมัติตัวจ้างเหมาผลิตผลิตภัณฑ์ต้นแบบ (ทีม GentleCare) จำนวน 1 งาน ของอุทยานวิทยาศาสตร์มหาวิทยาลัยนเรศวร โดยวิธีเฉพาะเจาะจง</div>
+
+            <div class="memo-label">เรียน:</div>
+            <div>อธิการบดี</div>
+        </div>
+
+        <p>
+            ด้วย อุทยานวิทยาศาสตร์มหาวิทยาลัยนเรศวร มีความประสงค์ขออนุมัติตัวจ้างเหมาผลิตผลิตภัณฑ์ต้นแบบ ให้กับทีม GentleCare จำนวน 1 งาน ของอุทยานวิทยาศาสตร์มหาวิทยาลัยนเรศวร โดยวิธีเฉพาะเจาะจง เพื่อนำผลิตภัณฑ์ต้นแบบไปใช้ในการทดสอบตลาด ให้กับทีม GentleCare ผู้ประกอบการที่อยู่ภายใต้แผนงานการสร้างผู้ประกอบการรายใหม่ในภูมิภาค ประจำปีงบประมาณ พ.ศ. 2569 รายละเอียด ดังนี้
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 8%; text-align: center;">ลำดับ</th>
+                    <th style="width: 50%;">รายการ</th>
+                    <th style="width: 15%; text-align: center;">จำนวนหน่วย</th>
+                    <th style="width: 27%; text-align: right;">วงเงินงบประมาณ (บาท)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="text-align: center;">1</td>
+                    <td>จ้างเหมาผลิตผลิตภัณฑ์ต้นแบบ (ทีม GentleCare)</td>
+                    <td style="text-align: center;">1 งาน</td>
+                    <td style="text-align: right;">20,000.00</td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="text-align: right; font-weight: bold;">รวมทั้งสิ้น (สองหมื่นบาทถ้วน)</td>
+                    <td style="text-align: right; font-weight: bold; color: #1e40af;">20,000.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>
+            โดยขออนุมัติแต่งตั้งให้ <strong>นายสุระกิจ กันเกตุ</strong> เป็นผู้รับผิดชอบในการจัดทำร่างขอบเขตของงาน ตามระเบียบกระทรวงการคลังว่าด้วยการจัดซื้อจัดจ้างและการบริหารพัสดุภาครัฐ พ.ศ. 2560 ข้อ 21 และขอเสนอให้ <strong>ผศ.ดร.ภก.วรวุฒิ เกษตรสง</strong> เป็นผู้ตรวจรับพัสดุ
+        </p>
+
+        <p>
+            ทั้งนี้ โดยเบิกจ่ายจากเงินรับฝากรายได้อุทยานวิทยาศาสตร์มหาวิทยาลัยนเรศวร ประจำปีงบประมาณ 2569 กองทุนเงินนอกงบประมาณ แผนงานบริการวิชาการแก่สังคม งานบริการวิชาการแก่ชุมชนอุดหนุนโครงการยกระดับความสามารถของเทคโนโลยีและส่งเสริมระบบนิเวศสำหรับสร้างผู้ประกอบการรุ่นใหม่เพื่อตอบโจทย์การพัฒนานวัตกรรมของประเทศ ประจำปีงบประมาณ พ.ศ. 2569 (ตามสัญญาเลขที่ RSP.020/2569) (7P ปี 2569)
+        </p>
+
+        <!-- SECTION TOR -->
+        <div class="section-header">รายละเอียดขอบเขตงานวิจัยและพัฒนาผลิตภัณฑ์พร้อมบรรจุภัณฑ์ต้นแบบ (TOR)</div>
+
+        <div class="sub-header">1. วิจัยและพัฒนาผลิตภัณฑ์ "GentleMoss" สบู่ทำความสะอาดจุดซ่อนเร้น ผู้ชาย จำนวน 1 ผลิตภัณฑ์</div>
+        
+        <p><strong>1.1 พัฒนาสูตรต้นแบบผลิตภัณฑ์ "GentleMoss" สบู่ทำความสะอาดจุดซ่อนเร้น ผู้ชาย</strong></p>
+        <ol>
+            <li>ผลิตภัณฑ์สบู่ทำความสะอาดจุดซ่อนเร้น ผู้ชาย มีคุณสมบัติจากชาเขียว ให้ความเย็นสบายมีกลิ่นหอมจากน้ำมันหอมระเหยเพิ่มความมั่นใจในชีวิตประจำวัน</li>
+            <li>มีกลิ่นหอมจากน้ำมันหอมระเหยธรรมชาติ เช่น ชาเขียว ที่ให้ความรู้สึกสะอาด กลิ่นหอมและสดชื่น</li>
+            <li>มีส่วนผสมหลักจากสารสกัดธรรมชาติ และสารบำรุงผิวที่ได้รับรองความปลอดภัย ไม่ก่อให้เกิดความระคายเคือง</li>
+            <li>เนื้อโฟมมีลักษณะเนียนละเอียด กระจายตัวได้ดี ลดการเสียดสี ทำความสะอาดและล้างออกได้ง่าย</li>
+            <li>มีค่า pH อยู่ในช่วงที่เหมาะสม ความรู้สึกเย็นสดชื่นจากกลุ่ม โซเดียมเลวูลินิก/ลาอุริก/โซเดียมเลวูลิเนต, แอลกอฮอล์ และสารสังเคราะห์ ให้เหมาะสมในมาตรฐาน</li>
+        </ol>
+
+        <p><strong>1.2 ดำเนินการพัฒนาและวิเคราะห์ส่วนประกอบของผลิตภัณฑ์ต้นแบบ</strong></p>
+        <ol>
+            <li>จัดส่งตัวอย่างผลิตภัณฑ์ต้นแบบที่บรรจุในบรรจุภัณฑ์ตัวอย่าง (Tester) ให้ผู้ว่าจ้าง จำนวน 1 ตัวอย่างต่อรอบการทดสอบ เพื่อใช้ประกอบการพิจารณาและประเมินความพึงพอใจ</li>
+            <li>จัดทำรายชื่อสารประกอบ (Ingredient List) ของผลิตภัณฑ์ พร้อมระบุชื่อทางเคมี (INCI Name) หน้าที่ของสารแต่ละชนิด แหล่งที่มาของวัตถุดิบ เพื่อให้ผู้ว่าจ้างตรวจสอบความถูกต้องและความปลอดภัยของสูตร</li>
+            <li>สามารถปรับปรุงและแก้ไขสูตรต้นแบบได้ตามข้อเสนอแนะของผู้ว่าจ้างจำนวน <strong>ไม่เกิน 3 ครั้ง</strong> เพื่อให้ได้สูตรที่มีคุณสมบัติเป็นไปตามข้อกำหนด</li>
+        </ol>
+
+        <p><strong>1.3 การควบคุมคุณภาพวัตถุดิบ</strong></p>
+        <p>ผู้รับจ้างต้องดำเนินการและรับรองคุณภาพวัตถุดิบตลอดจนควบคุมคุณภาพของผลิตภัณฑ์ต้นแบบให้เป็นไปตามข้อกำหนดมาตรฐาน และกฎหมายที่เกี่ยวข้องเพื่อให้มั่นใจว่าผลิตภัณฑ์มีคุณภาพ ความปลอดภัย และมีความเหมาะสมต่อการใช้งานตามวัตถุประสงค์ของผู้ว่าจ้าง</p>
+
+        <p><strong>1.4 ข้อกำหนดบรรจุภัณฑ์ต้นแบบ</strong></p>
+        <ul>
+            <li>บรรจุในขวดแบบลูกกลิ้ง พร้อมฝาปิด สามารถหมุนกลิ้งได้ราบรื่น ไม่รั่ว ซึม</li>
+            <li>หัวลูกกลิ้งทำจากสแตนเลสหรือพลาสติกเกรดปลอดภัย เช่น Food Grade และ Medical Grade</li>
+            <li>ขวดผลิตจากพลาสติก PET หรือ PE เกรดปลอดภัย ทนต่อแอลกอฮอล์และน้ำมันหอมระเหย</li>
+            <li>ขนาดบรรจุ 10 มิลลิลิตรขึ้นไป</li>
+            <li>ฉลากผลิตภัณฑ์พิมพ์ด้วยหมึกกันน้ำ และระบุข้อมูลครบถ้วนตามประกาศกระทรวงสาธารณสุข</li>
+        </ul>
+
+        <p><strong>1.5 การดำเนินการผลิตและการขึ้นทะเบียนผลิตภัณฑ์</strong></p>
+        <ul>
+            <li>ดำเนินการขอขึ้นทะเบียนผลิตภัณฑ์เครื่องสำอางตามขั้นตอนและหลักเกณฑ์ที่กฎหมายกำหนด เพื่อให้สามารถจำหน่ายผลิตภัณฑ์ได้อย่างถูกต้องตามกฎหมาย</li>
+            <li>คำนวณต้นทุนการผลิตเป็นจำนวนเงิน (บาท) ต่อหนึ่งชิ้นผลิตภัณฑ์ โดยแสดงรายละเอียดของวัตถุดิบบรรจุภัณฑ์และค่าใช้จ่ายอื่นที่เกี่ยวข้องอย่างโปร่งใส</li>
+            <li>จัดทำผลิตภัณฑ์ต้นแบบพร้อมบรรจุภัณฑ์และฉลาก <strong>จำนวน 425 ชุด</strong> เพื่อใช้ในการทดสอบคุณภาพ การตลาด หรือกิจกรรมส่งเสริมอื่น ๆ</li>
+        </ul>
+
+        <div class="sub-header">2. ออกแบบฉลากผลิตภัณฑ์และบรรจุภัณฑ์</div>
+        <ul>
+            <li>ใช้ข้อความตรงต่อความเป็นจริง ไม่เกิดความเข้าใจผิด ขัดต่อศีลธรรมหรือวัฒนธรรมอันดีงาม</li>
+            <li>ข้อความภาษาไทยชัดเจน ระบุ: ชื่อเครื่องสำอาง, ชื่อผู้ผลิต, ปริมาณสุทธิ, วิธีใช้, คำเตือน, วันผลิต/หมดอายุ, เลขครั้งที่ผลิต, Ingredient List</li>
+            <li>แก้ไขแบบฉลากได้ <strong>ไม่เกิน 3 ครั้ง</strong></li>
+        </ul>
+
+        <div class="sub-header">3. กำหนดส่งมอบงาน (ภายใน 40 วัน นับถัดจากวันที่ลงนามในสัญญา)</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%; text-align: center;">ข้อเสนอ</th>
+                    <th style="width: 60%;">รายการสิ่งส่งมอบ</th>
+                    <th style="width: 25%; text-align: center;">จำนวน / รูปแบบ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="text-align: center; font-weight: bold;">3.1</td>
+                    <td>ไฟล์แบบร่างฉลากบรรจุภัณฑ์</td>
+                    <td style="text-align: center;">ไฟล์ .AI (1 ไฟล์)</td>
+                </tr>
+                <tr>
+                    <td style="text-align: center; font-weight: bold;">3.2</td>
+                    <td>ผลิตภัณฑ์ต้นแบบพร้อมบรรจุภัณฑ์และฉลาก (Prototype)</td>
+                    <td style="text-align: center;">425 ชิ้น</td>
+                </tr>
+                <tr>
+                    <td style="text-align: center; font-weight: bold;">3.3</td>
+                    <td>สำเนาเอกสารรายงานการจดแจ้งผลิตภัณฑ์เครื่องสำอาง (อย.)</td>
+                    <td style="text-align: center;">ไฟล์ PDF (1 ไฟล์)</td>
+                </tr>
+                <tr>
+                    <td style="text-align: center; font-weight: bold;">3.4</td>
+                    <td>สำเนาเอกสารการขึ้นทะเบียนผู้ประกอบการ</td>
+                    <td style="text-align: center;">ไฟล์ PDF (1 ไฟล์)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="signature-section">
+            <div>
+                <div class="signature-space"></div>
+                <p>(นายสุระกิจ กันเกตุ)<br>เจ้าหน้าที่บริหารงานทั่วไป<br>ผู้จัดทำร่าง</p>
+            </div>
+            <div>
+                <div class="signature-space"></div>
+                <p>(นางสาวทิพวรรณ ทองน้อย)<br>รักษาการในตำแหน่งหัวหน้างานบ่มเพาะธุรกิจ</p>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
