@@ -274,6 +274,32 @@ function checkSignupPassword(showErrors) {
     });
 });
 
+// Test shortcut: typing the keyword from js/config.js (TEST_LOGIN_KEYWORD) as the email signs in a local test account.
+// Runs on the button click, before the browser checks the email format and the required password.
+(function () {
+    const keyword = String((window.CONWORK_CONFIG && window.CONWORK_CONFIG.TEST_LOGIN_KEYWORD) || '').trim().toLowerCase();
+    const btn = document.getElementById('btn-auth-continue');
+    if (!keyword || !btn) return;
+    btn.addEventListener('click', function (e) {
+        const email = document.getElementById('auth-email');
+        if (!email || email.value.trim().toLowerCase() !== keyword) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const testUser = {
+            id: 'test-user', user_id: 'test-user',
+            name: 'Test User', username: 'test', first_name: 'Test', last_name: 'User',
+            email: 'test@conwork.local', role: 'admin', department: 'ผู้บริหาร', status: 'online',
+            avatar: 'https://ui-avatars.com/api/?name=Test&background=3B82F6&color=fff',
+            workspaceId: 'W-1', workspaceName: 'ConWork (Test)'
+        };
+        try {
+            sessionStorage.setItem('conwork_user', JSON.stringify(testUser));
+            sessionStorage.setItem('conwork_personal_info_later', '1');
+        } catch (err) { }
+        location.href = 'app.html';
+    }, true);
+})();
+
 // STEP 1: Authentication Base
 document.getElementById('form-auth')?.addEventListener('submit', async function(e) {
     e.preventDefault();

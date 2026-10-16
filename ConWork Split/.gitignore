@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Local Environment & Logs
+.env
+.env.local
+*.log
+
+# System & OS Files
+.DS_Store
+Thumbs.db
+
+# Temp & Scratch Files
+scratch/
+.idea/
+.vscode/
+Project-*/
+"Project-* (Final)"/
+Project-076 (Final)/

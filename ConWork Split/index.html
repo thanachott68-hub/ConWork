@@ -9,7 +9,7 @@
     <link rel="icon" type="image/jpeg" href="img/logo.jpg">
     <!-- Fonts -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Kanit:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Kanit:wght@500;600;700&family=Nunito:wght@600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap"
         rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,54 +20,62 @@
             darkMode: 'class',
             theme: {
                 extend: {
+                    /* Skylearn design system: sky / sun / leaf palette, legible type, soft rounded shapes */
                     fontFamily: {
-                        sans: ['Kanit', 'Inter', 'sans-serif'],
+                        sans: ['"Atkinson Hyperlegible Next"', '"Atkinson Hyperlegible"', '"IBM Plex Sans Thai"', 'Nunito Sans', 'sans-serif'],
+                        display: ['Nunito', 'Kanit', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    fontSize: {
+                        xs: ['14px', '20px'],
+                        sm: ['16px', '24px'],
+                        base: ['18px', '28px'],
+                        lg: ['19px', '28px'],
                     },
                     colors: {
-                        primary: '#4193FA',
-                        secondary: '#66CBAA',
-                        accent: '#f7759c',
-                        cream: '#FEF8F1',
-                        blue: {
-                            50: '#F0F6FF',
-                            100: '#E0EDFF',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#4193FA',
-                            600: '#267DF0',
-                            700: '#1E65CC'
+                        primary: '#3B82F6',
+                        secondary: '#22C55E',
+                        accent: '#F87171',
+                        cream: '#F8FAFC',
+                        sky: { DEFAULT: '#3B82F6', bright: '#60A5FA', deep: '#1D4ED8', soft: '#DBEAFE' },
+                        sun: { DEFAULT: '#FBBF24', bright: '#FCD34D', deep: '#D97706' },
+                        leaf: { DEFAULT: '#22C55E', soft: '#DCFCE7', deep: '#16A34A' },
+                        coral: { DEFAULT: '#F87171', soft: '#FEE2E2' },
+                        berry: '#A855F7',
+                        ink: { DEFAULT: '#0F172A', muted: '#475569', subtle: '#94A3B8', faint: '#CBD5E1' },
+                        outline: { DEFAULT: '#E2E8F0', strong: '#94A3B8' },
+                        gray: {
+                            50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1', 400: '#94A3B8',
+                            500: '#64748B', 600: '#475569', 700: '#334155', 800: '#1E293B', 900: '#0F172A'
                         },
-                        emerald: {
-                            50: '#F0Fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            300: '#86efac',
-                            400: '#66CBAA',
-                            500: '#4BAF8E',
-                            600: '#359071',
-                            700: '#15803d'
-                        },
-                        green: {
-                            50: '#F0Fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            300: '#86efac',
-                            400: '#66CBAA',
-                            500: '#4BAF8E',
-                            600: '#359071',
-                            700: '#15803d'
+                        red: {
+                            50: '#FEF2F2', 100: '#FEE2E2', 200: '#FECACA', 300: '#FCA5A5', 400: '#F87171',
+                            500: '#F87171', 600: '#DC2626', 700: '#B91C1C', 800: '#991B1B', 900: '#7F1D1D'
                         }
-                    }
+                    },
+                    borderRadius: {
+                        xl: '16px',
+                        '2xl': '20px',
+                        '3xl': '28px',
+                    },
+                    boxShadow: {
+                        sm: '0 1px 2px rgba(15, 23, 42, 0.04)',
+                        DEFAULT: '0 2px 8px rgba(15, 23, 42, 0.05)',
+                        md: '0 8px 24px rgba(15, 23, 42, 0.06)',
+                        lg: '0 12px 32px rgba(15, 23, 42, 0.08)',
+                        xl: '0 24px 48px rgba(15, 23, 42, 0.12)',
+                        '2xl': '0 24px 48px rgba(15, 23, 42, 0.12)',
+                    },
+                    transitionDuration: { DEFAULT: '240ms' },
                 }
             }
         }
     </script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/work-report.css?v=2">
-    <link id="dark-mode-styles" rel="stylesheet" href="css/dark-mode.css">
-    <link rel="stylesheet" href="css/login-flow.css">
+    <link rel="stylesheet" href="css/work-report.css?v=3">
+    <link id="dark-mode-styles" rel="stylesheet" href="css/dark-mode.css?v=3">
+    <link rel="stylesheet" href="css/login-flow.css?v=2">
     <style>
         /* Rich Text Editor Tailwind Resets Reverter */
         [contenteditable="true"] b,
@@ -128,13 +136,15 @@
             /* text-blue-300 */
         }
     </style>
+    <!-- Skylearn theme (loaded last so it wins over the older styles) -->
+    <link rel="stylesheet" href="css/skylearn.css?v=1">
 </head>
 
 <body data-page="landing" class="text-gray-800 antialiased h-screen overflow-hidden flex flex-col font-sans bg-cream">
 
     <!-- ================= LANDING SCREEN ================= -->
     <div id="landing-screen" class="absolute inset-0 z-50 overflow-x-hidden overflow-y-auto"
-        style="position: absolute; inset: 0; z-index: 50; overflow-x: hidden; overflow-y: auto; background: #FBF8F1">
+        style="position: absolute; inset: 0; z-index: 50; overflow-x: hidden; overflow-y: auto; background: #F8FAFC">
         <link rel="stylesheet"
             href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=DM+Sans:wght@400;500;600&family=Kanit:wght@600;700&display=swap">
         <style>
@@ -147,7 +157,7 @@
             @property --c2 {
                 syntax: '<color>';
                 inherits: false;
-                initial-value: #0D9C94
+                initial-value: #1D4ED8
             }
 
             .cwx-j2 .lp {
@@ -167,8 +177,8 @@
             }
 
             .cwx-j2 .ha {
-                --c1: #4285F4;
-                --c2: #0D9C94;
+                --c1: #3B82F6;
+                --c2: #1D4ED8;
                 background: linear-gradient(90deg, var(--c1), var(--c2));
                 -webkit-background-clip: text;
                 background-clip: text;
@@ -279,7 +289,7 @@
 
             .cwx-j2 .cta:hover {
                 padding-inline: 35px !important;
-                box-shadow: 0 16px 32px rgba(25, 103, 210, .38) !important;
+                box-shadow: 0 16px 32px rgba(29, 78, 216, .38) !important;
                 color: #fff
             }
 
@@ -297,18 +307,18 @@
             }
 
             .cwx-j2 .signin:hover {
-                background: #2C3832 !important;
+                background: #1E293B !important;
                 color: #fff
             }
 
             .cwx-j2 .navlink:hover {
-                color: #1967D2 !important
+                color: #1D4ED8 !important
             }
 
             .cwx-j2 .cta:focus-visible,
             .cwx-j2 .signin:focus-visible,
             .cwx-j2 .navlink:focus-visible {
-                outline: 3px solid #17201C;
+                outline: 3px solid #0F172A;
                 outline-offset: 3px
             }
 
@@ -348,13 +358,13 @@
 
             @keyframes cwj-tint {
                 from {
-                    --c1: #8FA596;
-                    --c2: #8FA596
+                    --c1: #94A3B8;
+                    --c2: #94A3B8
                 }
 
                 to {
-                    --c1: #4285F4;
-                    --c2: #0D9C94
+                    --c1: #3B82F6;
+                    --c2: #1D4ED8
                 }
             }
 
@@ -480,7 +490,7 @@
             @property --cw-c2 {
                 syntax: '<color>';
                 inherits: false;
-                initial-value: #0D9C94
+                initial-value: #1D4ED8
             }
 
             #cw-hero1 .hero {
@@ -530,8 +540,8 @@
             }
 
             #cw-hero1 .ha {
-                --cw-c1: #4285F4;
-                --cw-c2: #0D9C94;
+                --cw-c1: #3B82F6;
+                --cw-c2: #1D4ED8;
                 background: linear-gradient(90deg, var(--cw-c1), var(--cw-c2));
                 -webkit-background-clip: text;
                 background-clip: text;
@@ -634,7 +644,7 @@
 
             #cw-hero1 .cta:hover {
                 padding-inline: 35px !important;
-                box-shadow: 0 16px 32px rgba(25, 103, 210, .38) !important;
+                box-shadow: 0 16px 32px rgba(29, 78, 216, .38) !important;
                 color: #fff
             }
 
@@ -648,14 +658,14 @@
             }
 
             #cw-hero1 .navcta:hover {
-                background: #2C3832 !important;
+                background: #1E293B !important;
                 color: #fff
             }
 
             #cw-hero1 .cta:focus-visible,
             #cw-hero1 .btn:focus-visible,
             #cw-hero1 .navcta:focus-visible {
-                outline: 3px solid #17201C;
+                outline: 3px solid #0F172A;
                 outline-offset: 3px
             }
 
@@ -700,7 +710,7 @@
             }
 
             #cw-hero1 .mhit:focus-visible {
-                outline: 3px solid #17201C;
+                outline: 3px solid #0F172A;
                 outline-offset: 2px
             }
 
@@ -740,13 +750,13 @@
 
             @keyframes cw-tint {
                 from {
-                    --cw-c1: #8FA596;
-                    --cw-c2: #8FA596
+                    --cw-c1: #94A3B8;
+                    --cw-c2: #94A3B8
                 }
 
                 to {
-                    --cw-c1: #4285F4;
-                    --cw-c2: #0D9C94
+                    --cw-c1: #3B82F6;
+                    --cw-c2: #1D4ED8
                 }
             }
 
@@ -930,7 +940,7 @@
             /* nav text: bold, in the same typeface the app uses */
             #cw-hero1 .nav .navlinks,
             #cw-hero1 .nav>:last-child {
-                font-family: 'Kanit', 'Inter', sans-serif !important;
+                font-family: 'Atkinson Hyperlegible Next', 'IBM Plex Sans Thai', sans-serif !important;
                 font-weight: 700 !important
             }
 
@@ -940,7 +950,7 @@
             }
 
             #cw-hero1 .card[data-preview]:focus-visible {
-                outline: 3px solid #17201C;
+                outline: 3px solid #0F172A;
                 outline-offset: 3px
             }
 
@@ -953,11 +963,11 @@
                 padding: 16px;
                 border-radius: 16px;
                 background: #FFFFFF;
-                border: 1px solid #E9E4D8;
-                box-shadow: 0 24px 48px rgba(23, 32, 28, .16);
+                border: 1px solid #E2E8F0;
+                box-shadow: 0 24px 48px rgba(15, 23, 42, .16);
                 font-size: 13px;
                 line-height: 1.4;
-                color: #17201C;
+                color: #0F172A;
                 opacity: 0;
                 transform: translate3d(0, 8px, 0) scale(.97);
                 pointer-events: none;
@@ -980,7 +990,7 @@
 
             #cw-hero1 .cwprev h3 {
                 margin: 0 28px 10px 0;
-                font: 700 16px 'Bricolage Grotesque', sans-serif;
+                font: 700 16px 'Nunito', 'Kanit', sans-serif;
                 letter-spacing: -0.01em
             }
 
@@ -989,7 +999,7 @@
                 align-items: center;
                 gap: 9px;
                 padding: 7px 0;
-                border-top: 1px solid #F0ECE2
+                border-top: 1px solid #E2E8F0
             }
 
             #cw-hero1 .cwprev .row .lab {
@@ -1001,19 +1011,19 @@
                 width: 16px;
                 height: 16px;
                 border-radius: 50%;
-                border: 2px solid #C9C3B4;
+                border: 2px solid #CBD5E1;
                 box-sizing: border-box
             }
 
             #cw-hero1 .cwprev .dot.done {
-                border-color: #1E8E4E;
-                background: #1E8E4E url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7.5 6 10.5 11 4'/%3E%3C/svg%3E") center/11px no-repeat
+                border-color: #16A34A;
+                background: #16A34A url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7.5 6 10.5 11 4'/%3E%3C/svg%3E") center/11px no-repeat
             }
 
             #cw-hero1 .cwprev .dot.now {
-                border-color: #1967D2;
+                border-color: #1D4ED8;
                 box-shadow: inset 0 0 0 3px #fff;
-                background: #1967D2
+                background: #1D4ED8
             }
 
             #cw-hero1 .cwprev .tag {
@@ -1022,36 +1032,36 @@
                 border-radius: 999px;
                 font-size: 11px;
                 font-weight: 600;
-                background: #EEF0EC;
-                color: #4A5650
+                background: #F1F5F9;
+                color: #475569
             }
 
             #cw-hero1 .cwprev .tag.g {
-                background: #DCF3E3;
-                color: #17663A
+                background: #DCFCE7;
+                color: #15803D
             }
 
             #cw-hero1 .cwprev .tag.b {
-                background: #E6EFFD;
-                color: #174EA6
+                background: #DBEAFE;
+                color: #1E40AF
             }
 
             #cw-hero1 .cwprev .doc {
                 padding: 10px 12px;
                 border-radius: 10px;
-                background: #FAF8F2;
-                border: 1px solid #F0ECE2
+                background: #F8FAFC;
+                border: 1px solid #E2E8F0
             }
 
             #cw-hero1 .cwprev del {
-                color: #A0483C;
-                background: #FBE6E1;
+                color: #B91C1C;
+                background: #FEE2E2;
                 text-decoration: line-through
             }
 
             #cw-hero1 .cwprev ins {
-                color: #17663A;
-                background: #DCF3E3;
+                color: #15803D;
+                background: #DCFCE7;
                 text-decoration: none
             }
 
@@ -1064,14 +1074,14 @@
                 border: 0;
                 border-radius: 50%;
                 background: transparent;
-                color: #5B6660;
+                color: #475569;
                 font-size: 18px;
                 line-height: 1;
                 cursor: pointer
             }
 
             #cw-hero1 .cwprev .x:hover {
-                background: #F0ECE2
+                background: #E2E8F0
             }
 
             @media (min-width:861px) {
@@ -1128,7 +1138,7 @@
                 height: 100dvh;
                 min-height: 520px;
                 overflow: hidden;
-                background: #FBF8F1
+                background: #F8FAFC
             }
 
             .cwx-stage2 {
@@ -1222,8 +1232,8 @@
                 background-color: rgba(255, 255, 255, .88);
                 -webkit-backdrop-filter: blur(14px);
                 backdrop-filter: blur(14px);
-                border-color: #E9E4D8;
-                box-shadow: 0 6px 24px rgba(23, 32, 28, .06)
+                border-color: #E2E8F0;
+                box-shadow: 0 6px 24px rgba(15, 23, 42, .06)
             }
 
             @media (min-width:600px) {
@@ -1277,12 +1287,12 @@
                 <div class="cwx-pin">
                     <div class="cwx-j2 cwx-stage2">
                         <div class="lp play" data-lp
-                            style="position: relative; overflow: hidden; background: #FBF8F1; color: #17201C; font-family: 'DM Sans', system-ui, sans-serif; display: flex; flex-direction: column">
+                            style="position: relative; overflow: hidden; background: #F8FAFC; color: #0F172A; font-family: 'Atkinson Hyperlegible Next', 'IBM Plex Sans Thai', system-ui, sans-serif; display: flex; flex-direction: column">
 
                             <canvas data-dots aria-hidden="true"
                                 style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block"></canvas>
                             <div data-dotsfallback aria-hidden="true"
-                                style="position: absolute; inset: 0; background-image: radial-gradient(circle, #BCD0EE 1.4px, transparent 1.6px), radial-gradient(circle, #C9D8CC 1.4px, transparent 1.6px); background-size: 32px 32px, 32px 32px; background-position: 0 0, 16px 16px">
+                                style="position: absolute; inset: 0; background-image: radial-gradient(circle, #BFDBFE 1.4px, transparent 1.6px), radial-gradient(circle, #BBF7D0 1.4px, transparent 1.6px); background-size: 32px 32px, 32px 32px; background-position: 0 0, 16px 16px">
                             </div>
                             <div class="blob" aria-hidden="true"
                                 style="position: absolute; left: 24%; top: 14%; width: 46%; height: 62%; border-radius: 50%; background: radial-gradient(closest-side, rgba(186,214,250,.42), rgba(186,214,250,0))">
@@ -2552,15 +2562,15 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                             <div class="copy"
                                 style="position: absolute; z-index: 3; left: clamp(24px, 5vw, 80px); top: 50%; transform: translateY(-50%); width: min(320px, 18.5vw); display: flex; flex-direction: column; align-items: flex-start; gap: 20px">
                                 <h1 class="h1in"
-                                    style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: clamp(28px, 2.9vw, 50px); line-height: 1.04; letter-spacing: -0.035em">
+                                    style="margin: 0; font-family: 'Nunito', 'Kanit', sans-serif; font-weight: 700; font-size: clamp(28px, 2.9vw, 50px); line-height: 1.04; letter-spacing: -0.035em">
                                     The OS for<br><span class="ha">human-agent</span><br>teams</h1>
                                 <p class="sub"
-                                    style="margin: 0; font-size: clamp(15px, 1.15vw, 18px); line-height: 1.5; color: #4A5650">
+                                    style="margin: 0; font-size: clamp(15px, 1.15vw, 18px); line-height: 1.5; color: #475569">
                                     Supercharge your teams to get things done</p>
                                 <div class="ctaWrap" style="padding-top: 4px">
                                     <a class="cta" href="login.html?mode=login"
                                         onclick="showLoginScreen('login'); return false;" data-signup
-                                        style="display: inline-flex; align-items: center; gap: 10px; min-height: 52px; box-sizing: border-box; padding: 0 32px; border-radius: 999px; background: #1967D2; color: #FFFFFF; font-size: 17px; font-weight: 600; text-decoration: none; box-shadow: 0 8px 20px rgba(25,103,210,.25)">
+                                        style="display: inline-flex; align-items: center; gap: 10px; min-height: 52px; box-sizing: border-box; padding: 0 32px; border-radius: 999px; background: #1D4ED8; color: #FFFFFF; font-size: 17px; font-weight: 600; text-decoration: none; box-shadow: 0 8px 20px rgba(29, 78, 216,.25)">
                                         <span class="flare" aria-hidden="true"></span>
                                         <span style="position: relative">Get started</span>
                                         <svg style="position: relative" width="18" height="18" viewBox="0 0 18 18"
@@ -2577,12 +2587,12 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                 <div class="slot">
                                     <div class="float" style="--dur: 1.8s; --amp: 10px">
                                         <div class="card"
-                                            style="width: 232px; box-sizing: border-box; padding: 18px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E9E4D8; display: flex; flex-direction: column; gap: 12px">
+                                            style="width: 232px; box-sizing: border-box; padding: 18px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 12px">
                                             <div
-                                                style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 19px; line-height: 1.2">
+                                                style="font-family: 'Nunito', 'Kanit', sans-serif; font-weight: 700; font-size: 19px; line-height: 1.2">
                                                 Product launched!</div>
                                             <span
-                                                style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: #DCF3E3; color: #17663A; font-size: 13px; font-weight: 600">
+                                                style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: #DCFCE7; color: #15803D; font-size: 13px; font-weight: 600">
                                                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none"
                                                     stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                                     stroke-linejoin="round" aria-hidden="true">
@@ -2594,12 +2604,12 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                 <div class="slot s2" style="margin-right: 28px">
                                     <div class="float" style="--dur: 2.3s; --amp: 8px">
                                         <div class="card"
-                                            style="width: 220px; box-sizing: border-box; padding: 16px 18px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E9E4D8; display: flex; flex-direction: column; gap: 12px">
+                                            style="width: 220px; box-sizing: border-box; padding: 16px 18px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 12px">
                                             <div style="display: flex; align-items: center; gap: 10px">
                                                 <span
-                                                    style="display: flex; width: 32px; height: 32px; border-radius: 10px; background: #EAF1EC; align-items: center; justify-content: center">
+                                                    style="display: flex; width: 32px; height: 32px; border-radius: 10px; background: #F0FDF4; align-items: center; justify-content: center">
                                                     <svg width="17" height="17" viewBox="0 0 18 18" fill="none"
-                                                        stroke="#3F6B4F" stroke-width="1.8" stroke-linecap="round"
+                                                        stroke="#15803D" stroke-width="1.8" stroke-linecap="round"
                                                         stroke-linejoin="round" aria-hidden="true">
                                                         <path d="M3 4.5h12M3 9h12M3 13.5h7"></path>
                                                     </svg>
@@ -2607,9 +2617,9 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                                 <span style="font-weight: 600; font-size: 16px">Enablement</span>
                                             </div>
                                             <span
-                                                style="align-self: flex-start; display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; background: #E6EFFD; color: #174EA6; font-size: 13px; font-weight: 600">
+                                                style="align-self: flex-start; display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; background: #DBEAFE; color: #1E40AF; font-size: 13px; font-weight: 600">
                                                 <span
-                                                    style="width: 7px; height: 7px; border-radius: 50%; background: #1967D2"></span>Pricing
+                                                    style="width: 7px; height: 7px; border-radius: 50%; background: #1D4ED8"></span>Pricing
                                                 Strategist</span>
                                         </div>
                                     </div>
@@ -2621,11 +2631,11 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                     <div class="cwx-white" data-cwx-white aria-hidden="true"></div>
                     <div id="cw-hero1" data-cwx-hero1>
                         <div class="hero play" data-hero
-                            style="position: relative; overflow: hidden; background: #FFFFFF; color: #17201C; font-family: 'DM Sans', system-ui, sans-serif; display: flex; flex-direction: column">
+                            style="position: relative; overflow: hidden; background: #FFFFFF; color: #0F172A; font-family: 'Atkinson Hyperlegible Next', 'IBM Plex Sans Thai', system-ui, sans-serif; display: flex; flex-direction: column">
                             <canvas data-dots aria-hidden="true"
                                 style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block"></canvas>
                             <div class="grid" aria-hidden="true"
-                                style="position: absolute; inset: -24px; background-image: radial-gradient(circle, #BCD0EE 1.4px, transparent 1.6px), radial-gradient(circle, #C9D8CC 1.4px, transparent 1.6px); background-size: 32px 32px, 32px 32px; background-position: 0 0, 16px 16px">
+                                style="position: absolute; inset: -24px; background-image: radial-gradient(circle, #BFDBFE 1.4px, transparent 1.6px), radial-gradient(circle, #BBF7D0 1.4px, transparent 1.6px); background-size: 32px 32px, 32px 32px; background-position: 0 0, 16px 16px">
                             </div>
                             <div class="blob" aria-hidden="true"
                                 style="position: absolute; left: 22%; top: 12%; width: 46%; height: 62%; border-radius: 50%; background: radial-gradient(closest-side, rgba(186,214,250,.42), rgba(186,214,250,0))">
@@ -2639,38 +2649,38 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                     <img data-logo src="img/logo.jpg" alt="ConWork Logo"
                                         style="height: 48px; width: auto; display: block">
                                     <span
-                                        style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: #1967D2">ConWork</span>
+                                        style="font-family: 'Nunito', 'Kanit', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: #1D4ED8">ConWork</span>
                                 </div>
                                 <div class="navlinks"
                                     style="display: flex; align-items: center; gap: 24px; font-size: 14px; font-weight: 500">
                                     <a href="#"
-                                        style="color: #2A332E; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Products
+                                        style="color: #1E293B; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Products
                                         <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
                                             stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
                                             stroke-linejoin="round" aria-hidden="true">
                                             <path d="M2 3.5 5 6.5 8 3.5"></path>
                                         </svg></a>
                                     <a href="#"
-                                        style="color: #2A332E; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Solutions
+                                        style="color: #1E293B; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Solutions
                                         <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
                                             stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
                                             stroke-linejoin="round" aria-hidden="true">
                                             <path d="M2 3.5 5 6.5 8 3.5"></path>
                                         </svg></a>
                                     <a href="#"
-                                        style="color: #2A332E; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Learning
+                                        style="color: #1E293B; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Learning
                                         &amp; support <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
                                             stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
                                             stroke-linejoin="round" aria-hidden="true">
                                             <path d="M2 3.5 5 6.5 8 3.5"></path>
                                         </svg></a>
                                     <a href="#"
-                                        style="color: #2A332E; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Pricing</a>
+                                        style="color: #1E293B; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Pricing</a>
                                 </div>
                                 <div
                                     style="display: flex; align-items: center; gap: 22px; font-size: 14px; font-weight: 500">
                                     <a class="navx" href="#" aria-label="Language"
-                                        style="color: #2A332E; display: inline-flex; padding: 12px 0">
+                                        style="color: #1E293B; display: inline-flex; padding: 12px 0">
                                         <svg width="17" height="17" viewBox="0 0 18 18" fill="none"
                                             stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                                             aria-hidden="true">
@@ -2679,15 +2689,15 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                         </svg>
                                     </a>
                                     <a class="navx" href="#"
-                                        style="color: #2A332E; text-decoration: none; padding: 12px 0; white-space: nowrap">Contact
+                                        style="color: #1E293B; text-decoration: none; padding: 12px 0; white-space: nowrap">Contact
                                         sales</a>
                                     <a data-was="landing-login-btn" href="login.html?mode=login"
                                         onclick="showLoginScreen('login'); return false;"
-                                        style="color: #2A332E; text-decoration: none; padding: 12px 0; white-space: nowrap">Sign
+                                        style="color: #1E293B; text-decoration: none; padding: 12px 0; white-space: nowrap">Sign
                                         in</a>
                                     <a data-was="landing-signup-btn" class="navcta" href="login.html?mode=login"
                                         onclick="showLoginScreen('login'); return false;"
-                                        style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 999px; background: #17201C; color: #FFFFFF; text-decoration: none; white-space: nowrap">Get
+                                        style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 999px; background: #0F172A; color: #FFFFFF; text-decoration: none; white-space: nowrap">Get
                                         started</a>
                                     <div data-was="landing-auth-user-container"
                                         style="display: none; align-items: center; gap: 16px;">
@@ -2698,7 +2708,7 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                                 class="font-semibold text-gray-700 max-w-[120px] truncate">ผู้ใช้</span>
                                         </span>
                                         <a href="#"
-                                            style="color: #5B6660; text-decoration: none; padding: 10px 0; white-space: nowrap; font-size: 13px;"
+                                            style="color: #475569; text-decoration: none; padding: 10px 0; white-space: nowrap; font-size: 13px;"
                                             class="hover:text-red-500 transition-colors" title="Sign out">Sign out</a>
                                     </div>
                                 </div>
@@ -2709,17 +2719,17 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                     style="max-width: min(860px, 58vw); display: flex; flex-direction: column; align-items: center; gap: 26px; text-align: center">
                                     <div class="tilt">
                                         <h1 class="h1in"
-                                            style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: clamp(36px, min(5.6vw, 11vh), 90px); line-height: 1.02; letter-spacing: -0.035em; text-wrap: balance">
+                                            style="margin: 0; font-family: 'Nunito', 'Kanit', sans-serif; font-weight: 700; font-size: clamp(36px, min(5.6vw, 11vh), 90px); line-height: 1.02; letter-spacing: -0.035em; text-wrap: balance">
                                             The OS for<br><span class="h1l2"><span class="ha">human-agent</span>
                                                 teams</span></h1>
                                     </div>
                                     <p class="sub"
-                                        style="margin: 0; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.5; color: #4A5650">
+                                        style="margin: 0; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.5; color: #475569">
                                         Supercharge your teams to get things done</p>
                                     <div class="ctaWrap" style="padding-top: 6px">
                                         <a id="landing-hero-signup-btn" class="cta" href="login.html?mode=login"
                                             onclick="showLoginScreen('login'); return false;"
-                                            style="display: inline-flex; align-items: center; gap: 10px; min-height: 52px; box-sizing: border-box; padding: 0 32px; border-radius: 999px; background: #1967D2; color: #FFFFFF; font-size: 17px; font-weight: 600; text-decoration: none; box-shadow: 0 8px 20px rgba(25,103,210,.25)">
+                                            style="display: inline-flex; align-items: center; gap: 10px; min-height: 52px; box-sizing: border-box; padding: 0 32px; border-radius: 999px; background: #1D4ED8; color: #FFFFFF; font-size: 17px; font-weight: 600; text-decoration: none; box-shadow: 0 8px 20px rgba(29, 78, 216,.25)">
                                             <span class="flare" aria-hidden="true"></span>
                                             <span style="position: relative">Get started</span>
                                             <svg style="position: relative" width="18" height="18" viewBox="0 0 18 18"
@@ -2730,7 +2740,7 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                         </a>
                                         <a id="landing-hero-app-btn" class="cta" href="app.html"
                                             onclick="goToAppScreen(); return false;"
-                                            style="display: none; align-items: center; gap: 10px; min-height: 52px; box-sizing: border-box; padding: 0 34px; border-radius: 999px; background: #1967D2; color: #FFFFFF; font-size: 17px; font-weight: 600; text-decoration: none; box-shadow: 0 8px 20px rgba(25,103,210,.25)">
+                                            style="display: none; align-items: center; gap: 10px; min-height: 52px; box-sizing: border-box; padding: 0 34px; border-radius: 999px; background: #1D4ED8; color: #FFFFFF; font-size: 17px; font-weight: 600; text-decoration: none; box-shadow: 0 8px 20px rgba(29, 78, 216,.25)">
                                             <span class="flare" aria-hidden="true"></span>
                                             <span style="position: relative">Go to Workspace</span>
                                             <svg style="position: relative" width="18" height="18" viewBox="0 0 18 18"
@@ -2747,19 +2757,19 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                     <div class="float" style="--dur: 1.9s; --amp: 10px">
                                         <div class="card" data-magnet data-preview="goal" tabindex="0" role="button"
                                             aria-haspopup="dialog"
-                                            style="width: 264px; box-sizing: border-box; padding: 18px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E9E4D8; display: flex; flex-direction: column; gap: 12px">
+                                            style="width: 264px; box-sizing: border-box; padding: 18px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 12px">
                                             <span class="shine" aria-hidden="true"></span>
                                             <div
-                                                style="font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #5B6660">
+                                                style="font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #475569">
                                                 Goal</div>
                                             <div
-                                                style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 19px; line-height: 1.2">
+                                                style="font-family: 'Nunito', 'Kanit', sans-serif; font-weight: 700; font-size: 19px; line-height: 1.2">
                                                 Launch product in 4 weeks</div>
                                             <div style="display: flex; gap: 6px" aria-hidden="true">
                                                 <span
-                                                    style="flex-grow: 1; height: 6px; border-radius: 3px; background: #1967D2"></span>
+                                                    style="flex-grow: 1; height: 6px; border-radius: 3px; background: #1D4ED8"></span>
                                                 <span
-                                                    style="flex-grow: 1; height: 6px; border-radius: 3px; background: #1967D2"></span>
+                                                    style="flex-grow: 1; height: 6px; border-radius: 3px; background: #1D4ED8"></span>
                                                 <span
                                                     style="flex-grow: 1; height: 6px; border-radius: 3px; background: #E4E9F2"></span>
                                                 <span
@@ -2772,13 +2782,13 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                     <div class="float" style="--dur: 2.5s; --amp: 7px">
                                         <div class="card" data-magnet data-preview="enable" tabindex="0" role="button"
                                             aria-haspopup="dialog"
-                                            style="width: 236px; box-sizing: border-box; padding: 16px 18px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E9E4D8; display: flex; flex-direction: column; gap: 12px">
+                                            style="width: 236px; box-sizing: border-box; padding: 16px 18px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 12px">
                                             <span class="shine" aria-hidden="true"></span>
                                             <div style="display: flex; align-items: center; gap: 10px">
                                                 <span
-                                                    style="display: flex; width: 32px; height: 32px; border-radius: 10px; background: #EAF1EC; align-items: center; justify-content: center">
+                                                    style="display: flex; width: 32px; height: 32px; border-radius: 10px; background: #F0FDF4; align-items: center; justify-content: center">
                                                     <svg width="17" height="17" viewBox="0 0 18 18" fill="none"
-                                                        stroke="#3F6B4F" stroke-width="1.8" stroke-linecap="round"
+                                                        stroke="#15803D" stroke-width="1.8" stroke-linecap="round"
                                                         stroke-linejoin="round" aria-hidden="true">
                                                         <path d="M3 4.5h12M3 9h12M3 13.5h7"></path>
                                                     </svg>
@@ -2786,9 +2796,9 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                                 <span style="font-weight: 600; font-size: 16px">Enablement</span>
                                             </div>
                                             <span class="pill"
-                                                style="align-self: flex-start; display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; background: #E6EFFD; color: #174EA6; font-size: 13px; font-weight: 600; cursor: default">
+                                                style="align-self: flex-start; display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; background: #DBEAFE; color: #1E40AF; font-size: 13px; font-weight: 600; cursor: default">
                                                 <span
-                                                    style="width: 7px; height: 7px; border-radius: 50%; background: #1967D2"></span>Pricing
+                                                    style="width: 7px; height: 7px; border-radius: 50%; background: #1D4ED8"></span>Pricing
                                                 Strategist</span>
                                         </div>
                                     </div>
@@ -2797,13 +2807,13 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                     <div class="float" style="--dur: 1.6s; --amp: 12px">
                                         <div class="card" data-magnet data-preview="launched" tabindex="0" role="button"
                                             aria-haspopup="dialog"
-                                            style="width: 244px; box-sizing: border-box; padding: 18px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E9E4D8; display: flex; flex-direction: column; gap: 12px">
+                                            style="width: 244px; box-sizing: border-box; padding: 18px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 12px">
                                             <span class="shine" aria-hidden="true"></span>
                                             <div
-                                                style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 19px; line-height: 1.2">
+                                                style="font-family: 'Nunito', 'Kanit', sans-serif; font-weight: 700; font-size: 19px; line-height: 1.2">
                                                 Product launched!</div>
                                             <span class="pill"
-                                                style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: #DCF3E3; color: #17663A; font-size: 13px; font-weight: 600; cursor: default">
+                                                style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: #DCFCE7; color: #15803D; font-size: 13px; font-weight: 600; cursor: default">
                                                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none"
                                                     stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                                     stroke-linejoin="round" aria-hidden="true">
@@ -2816,13 +2826,13 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                     <div class="float" style="--dur: 2.2s; --amp: 8px">
                                         <div class="card" data-magnet data-preview="approve" tabindex="0" role="button"
                                             aria-haspopup="dialog"
-                                            style="width: 252px; box-sizing: border-box; padding: 18px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E9E4D8; display: flex; flex-direction: column; gap: 14px">
+                                            style="width: 252px; box-sizing: border-box; padding: 18px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 14px">
                                             <span class="shine" aria-hidden="true"></span>
                                             <div style="display: flex; align-items: center; gap: 10px">
                                                 <span
-                                                    style="display: flex; width: 32px; height: 32px; border-radius: 10px; background: #FFF1D6; align-items: center; justify-content: center">
+                                                    style="display: flex; width: 32px; height: 32px; border-radius: 10px; background: #FEF3C7; align-items: center; justify-content: center">
                                                     <svg width="17" height="17" viewBox="0 0 18 18" fill="none"
-                                                        stroke="#8A5A00" stroke-width="1.8" stroke-linecap="round"
+                                                        stroke="#B45309" stroke-width="1.8" stroke-linecap="round"
                                                         stroke-linejoin="round" aria-hidden="true">
                                                         <path d="M11.5 3.5 14.5 6.5 6.5 14.5H3.5V11.5Z"></path>
                                                     </svg>
@@ -2831,9 +2841,9 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                             </div>
                                             <div style="display: flex; gap: 8px">
                                                 <button class="btn" type="button"
-                                                    style="flex-grow: 1; min-height: 44px; border: 0; border-radius: 12px; background: #17201C; color: #FFFFFF; font: 600 14px 'DM Sans', sans-serif; cursor: pointer">Approve</button>
+                                                    style="flex-grow: 1; min-height: 44px; border: 0; border-radius: 12px; background: #0F172A; color: #FFFFFF; font: 600 14px 'Atkinson Hyperlegible Next', 'IBM Plex Sans Thai', sans-serif; cursor: pointer">Approve</button>
                                                 <button class="btn" type="button"
-                                                    style="flex-grow: 1; min-height: 44px; border: 1px solid #D8D2C4; border-radius: 12px; background: #FFFFFF; color: #17201C; font: 600 14px 'DM Sans', sans-serif; cursor: pointer">Review</button>
+                                                    style="flex-grow: 1; min-height: 44px; border: 1px solid #CBD5E1; border-radius: 12px; background: #FFFFFF; color: #0F172A; font: 600 14px 'Atkinson Hyperlegible Next', 'IBM Plex Sans Thai', sans-serif; cursor: pointer">Review</button>
                                             </div>
                                         </div>
                                     </div>
@@ -2881,7 +2891,7 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                             4</ins>, with
                                         pricing <ins>reviewed by the Pricing Strategist</ins> before release.</div>
                                     <div class="row" style="border-top: 0; padding-bottom: 0"><span class="lab"
-                                            style="color: #5B6660">2
+                                            style="color: #475569">2
                                             suggested edits waiting for you</span></div>
                                 </div>
                             </div>
@@ -2889,7 +2899,7 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                 style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 3; pointer-events: none; overflow: hidden">
                                 <img data-atlas alt="" style="display: none">
                                 <span data-mascot-shadow aria-hidden="true"
-                                    style="position: absolute; left: 0; bottom: 1px; width: 120px; height: 18px; border-radius: 50%; opacity: 0; background: radial-gradient(closest-side, rgba(23,32,28,.26), rgba(23,32,28,0)); will-change: transform"></span>
+                                    style="position: absolute; left: 0; bottom: 1px; width: 120px; height: 18px; border-radius: 50%; opacity: 0; background: radial-gradient(closest-side, rgba(15, 23, 42,.26), rgba(15, 23, 42,0)); will-change: transform"></span>
                                 <div data-mascot-hit
                                     style="position: absolute; left: 0; bottom: 0; width: 120px; height: 190px; opacity: 0; will-change: transform">
                                     <button class="mhit" type="button" aria-label="ConWork mascot" data-mascot-btn
@@ -2898,7 +2908,7 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                 <canvas data-mascot aria-hidden="true"
                                     style="position: absolute; left: 0; bottom: 0; width: 342px; height: 261px; will-change: transform"></canvas>
                                 <span class="mbubble" data-mascot-bubble aria-hidden="true"
-                                    style="position: absolute; left: 0; bottom: 0; padding: 6px 12px; border-radius: 14px 14px 14px 4px; background: #17201C; color: #FFFFFF; font: 700 15px 'Bricolage Grotesque', sans-serif; white-space: nowrap; will-change: transform">Ouch!</span>
+                                    style="position: absolute; left: 0; bottom: 0; padding: 6px 12px; border-radius: 14px 14px 14px 4px; background: #0F172A; color: #FFFFFF; font: 700 15px 'Nunito', 'Kanit', sans-serif; white-space: nowrap; will-change: transform">Ouch!</span>
                             </div>
                         </div>
                     </div>
@@ -2909,46 +2919,46 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                 <img src="img/logo.jpg" alt="ConWork Logo"
                                     style="height: 44px; width: auto; display: block"
                                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span
-                                    style="display: none; width: 36px; height: 36px; border-radius: 11px; background: #17201C; align-items: center; justify-content: center">
-                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#FBF8F1"
+                                    style="display: none; width: 36px; height: 36px; border-radius: 11px; background: #0F172A; align-items: center; justify-content: center">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#F8FAFC"
                                         stroke-width="2" stroke-linecap="round">
                                         <circle cx="7.5" cy="10" r="4.5"></circle>
-                                        <circle cx="12.5" cy="10" r="4.5" stroke="#7FB0FA"></circle>
+                                        <circle cx="12.5" cy="10" r="4.5" stroke="#93C5FD"></circle>
                                     </svg>
                                 </span>
                                 <span
-                                    style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: #1967D2">ConWork</span>
+                                    style="font-family: 'Nunito', 'Kanit', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: #1D4ED8">ConWork</span>
                             </div>
                             <div class="navlinks"
-                                style="display: flex; align-items: center; gap: 24px; margin-left: 16px; font-family: 'Kanit', 'DM Sans', sans-serif; font-size: 15px; font-weight: 600">
+                                style="display: flex; align-items: center; gap: 24px; margin-left: 16px; font-family: 'Kanit', 'Atkinson Hyperlegible Next', 'IBM Plex Sans Thai', sans-serif; font-size: 15px; font-weight: 600">
                                 <a class="navlink" href="#"
-                                    style="color: #2A332E; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Products
+                                    style="color: #1E293B; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Products
                                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"
                                         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
                                         aria-hidden="true">
                                         <path d="M2 3.5 5 6.5 8 3.5"></path>
                                     </svg></a>
                                 <a class="navlink" href="#"
-                                    style="color: #2A332E; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Solutions
+                                    style="color: #1E293B; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Solutions
                                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"
                                         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
                                         aria-hidden="true">
                                         <path d="M2 3.5 5 6.5 8 3.5"></path>
                                     </svg></a>
                                 <a class="navlink" href="#"
-                                    style="color: #2A332E; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Learning
+                                    style="color: #1E293B; text-decoration: none; padding: 12px 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap">Learning
                                     &amp; support <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
                                         stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
                                         stroke-linejoin="round" aria-hidden="true">
                                         <path d="M2 3.5 5 6.5 8 3.5"></path>
                                     </svg></a>
                                 <a class="navlink" href="#"
-                                    style="color: #2A332E; text-decoration: none; padding: 12px 0; white-space: nowrap">Pricing</a>
+                                    style="color: #1E293B; text-decoration: none; padding: 12px 0; white-space: nowrap">Pricing</a>
                             </div>
                             <div style="margin-left: auto; display: flex; align-items: center; gap: 16px">
                                 <a id="landing-login-btn" class="signin" href="login.html?mode=login"
                                     onclick="showLoginScreen('login'); return false;"
-                                    style="align-items: center; min-height: 44px; padding: 0 22px; border-radius: 999px; background: #17201C; color: #FFFFFF; font-family: 'Kanit', 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; text-decoration: none; white-space: nowrap">Sign
+                                    style="align-items: center; min-height: 44px; padding: 0 22px; border-radius: 999px; background: #0F172A; color: #FFFFFF; font-family: 'Kanit', 'Atkinson Hyperlegible Next', 'IBM Plex Sans Thai', sans-serif; font-size: 15px; font-weight: 600; text-decoration: none; white-space: nowrap">Sign
                                     in</a>
                                 <a id="landing-signup-btn" href="login.html?mode=login"
                                     onclick="showLoginScreen('login'); return false;" aria-hidden="true" tabindex="-1"
@@ -2956,13 +2966,13 @@ ul0k+QSOcoMfcqbfqt3/mwvJWc6+3ADJWYUbE4CrhXtKurmC0ac6NRiQcKiqPb7L740/p4S3mhpXSomn
                                 <div id="landing-auth-user-container"
                                     style="display: none; align-items: center; gap: 16px;">
                                     <span id="landing-user-badge"
-                                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #6B7280; font-weight: 500; background: rgba(255,255,255,.8); border: 1px solid #E7E2D8; padding: 6px 12px; border-radius: 999px">
-                                        <i class="fa-solid fa-circle-user" style="color: #1967D2; font-size: 14px"></i>
+                                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #64748B; font-weight: 500; background: rgba(255,255,255,.8); border: 1px solid #E2E8F0; padding: 6px 12px; border-radius: 999px">
+                                        <i class="fa-solid fa-circle-user" style="color: #1D4ED8; font-size: 14px"></i>
                                         <span id="landing-user-name"
-                                            style="font-weight: 600; color: #374151; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">ผู้ใช้</span>
+                                            style="font-weight: 600; color: #334155; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">ผู้ใช้</span>
                                     </span>
                                     <a href="#" onclick="logout(); return false;"
-                                        style="color: #5B6660; text-decoration: none; padding: 10px 0; white-space: nowrap; font-family: 'Kanit', 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;"
+                                        style="color: #475569; text-decoration: none; padding: 10px 0; white-space: nowrap; font-family: 'Kanit', 'Atkinson Hyperlegible Next', 'IBM Plex Sans Thai', sans-serif; font-size: 14px; font-weight: 600;"
                                         title="Sign out">Sign out</a>
                                 </div>
                             </div>
@@ -3972,7 +3982,7 @@ gDCYMMkwmTCDMJowjDCDMJkwqTCMMJkwhDCaMIMwmjB2MJwwmzCaMJwwrDCfMIYwkDCjMK8wtjCNMLQw
                                 if (x1 <= x0 || y1 <= y0) { d.px = d.x; d.py = d.y; d.pk = d.k; return; }
                             }
                             ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, x1 - x0, y1 - y0); ctx.clip(); ctx.clearRect(x0, y0, x1 - x0, y1 - y0);
-                            var layers = [[0, '#BCD0EE', '#6FA2EE'], [16, '#C9D8CC', '#7FC2A4']];
+                            var layers = [[0, '#BFDBFE', '#60A5FA'], [16, '#BBF7D0', '#86EFAC']];
                             for (var li = 0; li < 2; li++) {
                                 var off = layers[li][0];
                                 for (var pass = 0; pass < 2; pass++) {
@@ -4103,7 +4113,7 @@ gDCYMMkwmTCDMJowjDCDMJkwqTCMMJkwhDCaMIMwmjB2MJwwmzCaMJwwrDCfMIYwkDCjMK8wtjCNMLQw
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=8"></script>
+    <script src="js/config.js?v=10"></script>
     <script src="js/supabaseClient.js?v=1"></script>
     <!-- ===== ConWork landing: language flag + theme icon (top-right) and dark theme ===== -->
     <style id="cwx-extras-style">
@@ -4117,25 +4127,25 @@ gDCYMMkwmTCDMJowjDCDMJkwqTCMMJkwhDCaMIMwmjB2MJwwmzCaMJwwrDCfMIYwkDCjMK8wtjCNMLQw
             width: 40px;
             height: 40px;
             border-radius: 999px;
-            border: 1px solid #E7E2D8;
+            border: 1px solid #E2E8F0;
             background: rgba(255, 255, 255, .85);
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             padding: 0;
-            color: #2A332E;
+            color: #1E293B;
             transition: background .2s ease, border-color .2s ease, transform .15s ease
         }
 
         .cwx-tool:hover {
             background: #fff;
-            border-color: #C9D3E3;
+            border-color: #CBD5E1;
             transform: translateY(-1px)
         }
 
         .cwx-tool:focus-visible {
-            outline: 2px solid #1967D2;
+            outline: 2px solid #1D4ED8;
             outline-offset: 2px
         }
 
@@ -4163,24 +4173,24 @@ gDCYMMkwmTCDMJowjDCDMJkwqTCMMJkwhDCaMIMwmjB2MJwwmzCaMJwwrDCfMIYwkDCjMK8wtjCNMLQw
             display: none
         }
 
-        /* ---- dark theme (navy palette #010736 · #0D1C42 · #22396F) ---- */
+        /* ---- dark theme (navy palette #0B1120 · #0F172A · #1E293B) ---- */
         html.dark #landing-screen,
         html.dark #landing-screen .cwx-pin {
-            background: #0D1C42 !important
+            background: #0F172A !important
         }
 
         html.dark #landing-screen .cwx-white {
-            background: #0D1C42
+            background: #0F172A
         }
 
         html.dark #landing-screen [data-hero] {
-            background: #0D1C42 !important;
-            color: #F1F5FF !important
+            background: #0F172A !important;
+            color: #F8FAFC !important
         }
 
         html.dark #landing-screen .cwx-navwrap.cwx-band .nav {
             background-color: rgba(1, 7, 54, .9) !important;
-            border-color: #22396F !important;
+            border-color: #1E293B !important;
             box-shadow: 0 6px 24px rgba(0, 0, 0, .35) !important
         }
 
@@ -4192,144 +4202,144 @@ gDCYMMkwmTCDMJowjDCDMJkwqTCMMJkwhDCaMIMwmjB2MJwwmzCaMJwwrDCfMIYwkDCjMK8wtjCNMLQw
             opacity: .35
         }
 
-        html.dark #landing-screen [style*="color: #2A332E"],
-        html.dark #landing-screen [style*="color: #17201C"],
-        html.dark #landing-screen [style*="color:#17201C"],
+        html.dark #landing-screen [style*="color: #1E293B"],
+        html.dark #landing-screen [style*="color: #0F172A"],
+        html.dark #landing-screen [style*="color:#0F172A"],
         html.dark #landing-screen [style*="color: rgb(42, 51, 46)"],
-        html.dark #landing-screen [style*="color: rgb(23, 32, 28)"] {
-            color: #F1F5FF !important
+        html.dark #landing-screen [style*="color: rgb(15, 23, 42)"] {
+            color: #F8FAFC !important
         }
 
-        html.dark #landing-screen [style*="color: #5B6660"],
-        html.dark #landing-screen [style*="color: #4A5650"],
-        html.dark #landing-screen [style*="color: #6B7280"],
-        html.dark #landing-screen [style*="color: #374151"],
+        html.dark #landing-screen [style*="color: #475569"],
+        html.dark #landing-screen [style*="color: #475569"],
+        html.dark #landing-screen [style*="color: #64748B"],
+        html.dark #landing-screen [style*="color: #334155"],
         html.dark #landing-screen [style*="color: rgb(91, 102, 96)"],
         html.dark #landing-screen [style*="color: rgb(74, 86, 80)"],
         html.dark #landing-screen [style*="color: rgb(107, 114, 128)"],
         html.dark #landing-screen [style*="color: rgb(55, 65, 81)"] {
-            color: #B5C3E3 !important
+            color: #CBD5E1 !important
         }
 
-        html.dark #landing-screen [style*="color: #1967D2"],
-        html.dark #landing-screen [style*="color: #174EA6"],
-        html.dark #landing-screen [style*="color: rgb(25, 103, 210)"],
+        html.dark #landing-screen [style*="color: #1D4ED8"],
+        html.dark #landing-screen [style*="color: #1E40AF"],
+        html.dark #landing-screen [style*="color: rgb(29, 78, 216)"],
         html.dark #landing-screen [style*="color: rgb(23, 78, 166)"] {
-            color: #8FB4FF !important
+            color: #93C5FD !important
         }
 
         html.dark #landing-screen [style*="background: #FFFFFF"],
-        html.dark #landing-screen [style*="background: #FBF8F1"],
-        html.dark #landing-screen [style*="background: #FAF8F2"],
+        html.dark #landing-screen [style*="background: #F8FAFC"],
+        html.dark #landing-screen [style*="background: #F8FAFC"],
         html.dark #landing-screen [style*="background: rgba(255,255,255"],
         html.dark #landing-screen [style*="background: rgb(255, 255, 255)"],
         html.dark #landing-screen [style*="background: rgb(251, 248, 241)"],
         html.dark #landing-screen [style*="background: rgb(250, 248, 242)"] {
-            background: #22396F !important
+            background: #1E293B !important
         }
 
-        html.dark #landing-screen [style*="background: #EAF1EC"],
+        html.dark #landing-screen [style*="background: #F0FDF4"],
         html.dark #landing-screen [style*="background: #E4E9F2"],
-        html.dark #landing-screen [style*="background: #EEF0EC"],
-        html.dark #landing-screen [style*="background: #F0ECE2"],
+        html.dark #landing-screen [style*="background: #F1F5F9"],
+        html.dark #landing-screen [style*="background: #E2E8F0"],
         html.dark #landing-screen [style*="background: rgb(234, 241, 236)"],
         html.dark #landing-screen [style*="background: rgb(228, 233, 242)"],
         html.dark #landing-screen [style*="background: rgb(238, 240, 236)"],
         html.dark #landing-screen [style*="background: rgb(240, 236, 226)"] {
-            background: #1A2D5A !important
+            background: #172033 !important
         }
 
-        html.dark #landing-screen [style*="border: 1px solid #E9E4D8"],
-        html.dark #landing-screen [style*="border: 1px solid #E7E2D8"],
-        html.dark #landing-screen [style*="border-color: #E9E4D8"],
+        html.dark #landing-screen [style*="border: 1px solid #E2E8F0"],
+        html.dark #landing-screen [style*="border: 1px solid #E2E8F0"],
+        html.dark #landing-screen [style*="border-color: #E2E8F0"],
         html.dark #landing-screen [style*="border-color: rgb(233, 228, 216)"] {
-            border-color: #2E4A86 !important
+            border-color: #334155 !important
         }
 
-        html.dark #landing-screen [style*="background: #17201C"],
+        html.dark #landing-screen [style*="background: #0F172A"],
         html.dark #landing-screen .signin,
         html.dark #landing-screen .navcta,
-        html.dark #landing-screen [style*="background: rgb(23, 32, 28)"] {
-            background: #3B6FD8 !important;
+        html.dark #landing-screen [style*="background: rgb(15, 23, 42)"] {
+            background: #3B82F6 !important;
             color: #fff !important
         }
 
         html.dark #landing-screen .signin:hover,
         html.dark #landing-screen .navcta:hover {
-            background: #4D80E8 !important
+            background: #3B82F6 !important
         }
 
         html.dark #landing-screen #cw-hero1 .cwprev {
-            background: #22396F;
-            border-color: #2E4A86;
-            color: #F1F5FF
+            background: #1E293B;
+            border-color: #334155;
+            color: #F8FAFC
         }
 
         html.dark #landing-screen #cw-hero1 .cwprev .doc {
-            background: #1A2D5A;
-            border-color: #2E4A86
+            background: #172033;
+            border-color: #334155
         }
 
         html.dark #landing-screen #cw-hero1 .cwprev .x {
-            color: #B5C3E3
+            color: #CBD5E1
         }
 
         html.dark #landing-screen #cw-hero1 .cwprev .x:hover {
-            background: #2A4580
+            background: #273449
         }
 
         html.dark #landing-screen #cw-hero1 .cwprev .tag {
-            background: #1A2D5A;
-            color: #B5C3E3
+            background: #172033;
+            color: #CBD5E1
         }
 
         html.dark #landing-screen #cw-hero1 .cwprev .tag.g {
-            background: rgba(16, 185, 129, .18);
-            color: #6EE7B7
+            background: rgba(34, 197, 94, .18);
+            color: #86EFAC
         }
 
         html.dark #landing-screen #cw-hero1 .cwprev .tag.b {
-            background: rgba(110, 155, 255, .18);
-            color: #A9C4FF
+            background: rgba(96, 165, 250, .18);
+            color: #BFDBFE
         }
 
         html.dark #landing-screen .cwx-tool {
-            background: rgba(34, 57, 111, .85);
-            border-color: #2E4A86;
-            color: #F1F5FF
+            background: rgba(30, 41, 59, .85);
+            border-color: #334155;
+            color: #F8FAFC
         }
 
         html.dark #landing-screen .cwx-tool:hover {
-            background: #2A4580;
-            border-color: #4D6DB0
+            background: #273449;
+            border-color: #3B82F6
         }
 
         html.dark #landing-screen .ha {
-            --c1: #6E9BFF;
+            --c1: #60A5FA;
             --c2: #2DD4BF
         }
 
         html.dark #landing-screen #cw-hero1 .ha {
-            --cw-c1: #6E9BFF;
+            --cw-c1: #60A5FA;
             --cw-c2: #2DD4BF
         }
 
-        html.dark #landing-screen [style*="background: #E6EFFD"],
+        html.dark #landing-screen [style*="background: #DBEAFE"],
         html.dark #landing-screen [style*="background: rgb(230, 239, 253)"] {
-            background: rgba(110, 155, 255, .18) !important
+            background: rgba(96, 165, 250, .18) !important
         }
 
-        html.dark #landing-screen [style*="background: #DCF3E3"],
+        html.dark #landing-screen [style*="background: #DCFCE7"],
         html.dark #landing-screen [style*="background: rgb(220, 243, 227)"] {
-            background: rgba(16, 185, 129, .18) !important
+            background: rgba(34, 197, 94, .18) !important
         }
 
-        html.dark #landing-screen [style*="color: #17663A"],
+        html.dark #landing-screen [style*="color: #15803D"],
         html.dark #landing-screen [style*="color: rgb(23, 102, 58)"] {
-            color: #6EE7B7 !important
+            color: #86EFAC !important
         }
 
-        html.dark #landing-screen [style*="background: #FFF1D6"],
+        html.dark #landing-screen [style*="background: #FEF3C7"],
         html.dark #landing-screen [style*="background: rgb(255, 241, 214)"] {
             background: rgba(245, 158, 11, .18) !important
         }
@@ -4347,7 +4357,7 @@ gDCYMMkwmTCDMJowjDCDMJkwqTCMMJkwhDCaMIMwmjB2MJwwmzCaMJwwrDCfMIYwkDCjMK8wtjCNMLQw
             /* the landing was written in English: show English until Thai is chosen */
             var lang = function () { var l = read().language; return l === 'th' ? 'th' : 'en'; };
 
-            var FLAG_TH = '<svg class="cwx-flag" viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#A51931"/><rect y="3.33" width="30" height="13.34" fill="#F4F5F8"/><rect y="6.67" width="30" height="6.66" fill="#2D2A4A"/></svg>';
+            var FLAG_TH = '<svg class="cwx-flag" viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#A51931"/><rect y="3.33" width="30" height="13.34" fill="#F8FAFC"/><rect y="6.67" width="30" height="6.66" fill="#2D2A4A"/></svg>';
             var FLAG_EN = '<svg class="cwx-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0 60 40M60 0 0 40" stroke="#fff" stroke-width="8"/><path d="M0 0 60 40M60 0 0 40" stroke="#C8102E" stroke-width="3"/><path d="M30 0v40M0 20h60" stroke="#fff" stroke-width="12"/><path d="M30 0v40M0 20h60" stroke="#C8102E" stroke-width="7"/></svg>';
             var MOON = '<svg class="cwx-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
             var SUN = '<svg class="cwx-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>';
@@ -4428,8 +4438,8 @@ gDCYMMkwmTCDMJowjDCDMJkwqTCMMJkwhDCaMIMwmjB2MJwwmzCaMJwwrDCfMIYwkDCjMK8wtjCNMLQw
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
         })();
     </script>
-    <script src="js/i18n.js?v=7"></script>
-    <script src="js/nav.js?v=5"></script>
+    <script src="js/i18n.js?v=8"></script>
+    <script src="js/nav.js?v=6"></script>
 </body>
 
 </html>

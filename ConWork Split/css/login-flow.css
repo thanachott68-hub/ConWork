@@ -1,12 +1,12 @@
 .auth-flow-wrapper {
     --primary: #000000;
-    --primary-hover: #333333;
+    --primary-hover: #334155;
     --bg-color: #ffffff;
     --card-bg: #ffffff;
-    --text-main: #1e1e24;
-    --text-muted: #6d6e71;
-    --border-color: #e8e8e9;
-    --success: #10b981;
+    --text-main: #0F172A;
+    --text-muted: #475569;
+    --border-color: #E2E8F0;
+    --success: #22C55E;
     --error: #ef4444;
 
     background-color: var(--bg-color);
@@ -17,13 +17,13 @@
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Atkinson Hyperlegible Next', 'IBM Plex Sans Thai', sans-serif;
     z-index: 50; /* Above ConWork */
 }
 
 .auth-flow-wrapper * {
     box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Atkinson Hyperlegible Next', 'IBM Plex Sans Thai', sans-serif;
 }
 
 /* Background Gradients removed for clean look */
@@ -365,5 +365,5 @@
     border: 1px solid #ddd;
 }
 .auth-flow-wrapper .btn-google:hover {
-    background: #f1f1f1;
+    background: #F1F5F9;
 }

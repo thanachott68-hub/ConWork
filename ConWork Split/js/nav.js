@@ -14,6 +14,7 @@
         return code ? 'code=' + encodeURIComponent(code) : '';
     }
     function go(target, query) {
+        if (target === 'team' && window.CONWORK_CONFIG && window.CONWORK_CONFIG.SKIP_TEAM_PAGE) target = 'app';
         const q = [query, inviteQuery()].filter(Boolean).join('&');
         location.href = PAGES[target] + (q ? '?' + q : '') + (target === 'app' ? location.hash : '');
     }
@@ -183,10 +184,10 @@
         if (recovering) { location.replace('login.html' + location.search + location.hash); return; }
         if (!stay) {
             if (getLoggedInUser()) {
-                location.replace(PAGES.team + location.search);
+                go('team');
             } else if (supa()) {
                 supa().client.auth.getSession().then(({ data }) => {
-                    if (data && data.session && !loggingOut) location.replace(PAGES.team + location.search);
+                    if (data && data.session && !loggingOut) go('team');
                 }).catch(() => { });
             }
         }

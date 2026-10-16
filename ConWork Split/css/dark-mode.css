@@ -1,8 +1,8 @@
 /* ============================================================
    PALETTE (New Image)
-   #050a1a = Near-black navy  |  #4d6070 = Slate gray
-   #b8ccda = Powder blue      |  #2557a7 = Royal blue (accent)
-   #d2d2d2 = Silver gray (light bg)
+   #0B1120 = Near-black navy  |  #475569 = Slate gray
+   #CBD5E1 = Powder blue      |  #1D4ED8 = Royal blue (accent)
+   #E2E8F0 = Silver gray (light bg)
    ============================================================ */
 
 /* ── LIGHT MODE ── */
@@ -10,7 +10,7 @@
 /* Sidebar → White / Light tone */
 #app-sidebar {
     background-color: #ffffff !important;
-    border-right: 1px solid #e0e6ed !important;
+    border-right: 1px solid #E2E8F0 !important;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08) !important;
 }
 
@@ -21,27 +21,27 @@
 
 /* Logo icon color */
 #app-sidebar .logo-blue {
-    color: #4278c2 !important;
+    color: #2563EB !important;
 }
 
 /* Nav item default state */
 #app-sidebar .nav-item {
-    color: #4a6070 !important;
+    color: #475569 !important;
 }
 
 #app-sidebar .nav-item i {
-    color: #4a6070 !important;
+    color: #475569 !important;
 }
 
 /* Nav item hover */
 #app-sidebar .nav-item:hover {
-    background-color: #f0f4f8 !important;
+    background-color: #F1F5F9 !important;
     color: #1e293b !important;
 }
 
 /* Nav item active (selected) */
 #app-sidebar .nav-item.bg-blue-600 {
-    background-color: #4278c2 !important;
+    background-color: #2563EB !important;
     color: #ffffff !important;
 }
 
@@ -51,12 +51,12 @@
 
 /* Profile section at bottom */
 #sidebar-profile-section {
-    background-color: #f4f7fa !important;
-    border-top: 1px solid #e0e6ed !important;
+    background-color: #F8FAFC !important;
+    border-top: 1px solid #E2E8F0 !important;
 }
 
 #sidebar-profile-section:hover {
-    background-color: #e8eef5 !important;
+    background-color: #F1F5F9 !important;
 }
 
 /* Profile name text */
@@ -70,7 +70,7 @@
 
 /* Sidebar top border divider */
 #app-sidebar .border-white\/10 {
-    border-color: #e0e6ed !important;
+    border-color: #E2E8F0 !important;
 }
 
 /* Project filter tab bar */
@@ -80,49 +80,49 @@
 
 /* Active / inactive filter text */
 .proj-filter-active {
-    color: #4278c2;
+    color: #2563EB;
     font-weight: 700;
 }
 
 .proj-filter-inactive {
-    color: #3a5070;
+    color: #475569;
 }
 
 /* Primary accent → Soft Royal Blue */
 .bg-blue-600 {
-    background-color: #4278c2 !important;
+    background-color: #2563EB !important;
 }
 
 .hover\:bg-blue-700:hover,
 .hover\:bg-blue-500:hover {
-    background-color: #3568b5 !important;
+    background-color: #1D4ED8 !important;
 }
 
 .bg-blue-600.hover\:bg-blue-700:hover {
-    background-color: #3568b5 !important;
+    background-color: #1D4ED8 !important;
 }
 
 /* Chat message area */
 .bg-\[\#f8fafc\] {
-    background-color: #e4eaf0 !important;
+    background-color: #F1F5F9 !important;
 }
 
-/* ── DARK MODE ── (navy palette: #010736 frame · #0D1C42 background · #22396F cards) */
+/* ── DARK MODE ── (navy palette: #0B1120 frame · #0F172A background · #1E293B cards) */
 
 /* Ultra-deep near-black body */
 html.dark body {
-    background-color: #0D1C42 !important;
-    color: #C9D6F0 !important;
+    background-color: #0F172A !important;
+    color: #E2E8F0 !important;
 }
 
 /* Override inline style on main element */
 html.dark main {
-    background-color: #0D1C42 !important;
+    background-color: #0F172A !important;
 }
 
 /* Cards / panels */
 html.dark .bg-white {
-    background-color: #22396F !important;
+    background-color: #1E293B !important;
 }
 
 /* Secondary panels */
@@ -134,23 +134,23 @@ html.dark .bg-gray-50\/50,
 html.dark .bg-gray-50\/80,
 html.dark .bg-gray-50\/95,
 html.dark .bg-\[\#f8fafc\] {
-    background-color: #1A2D5A !important;
+    background-color: #172033 !important;
 }
 
 html.dark .bg-gray-200,
 html.dark .bg-gray-300,
 html.dark .bg-gray-200\/50 {
-    background-color: #1e2f42 !important;
+    background-color: #1E293B !important;
 }
 
 /* Sidebar → deepest near-black */
 html.dark #app-sidebar {
-    background-color: #010736 !important;
-    border-right: 1px solid #22396F !important;
+    background-color: #0B1120 !important;
+    border-right: 1px solid #1E293B !important;
 }
 
 html.dark #app-sidebar>div.border-b {
-    border-bottom-color: #22396F !important;
+    border-bottom-color: #1E293B !important;
 }
 
 html.dark #app-sidebar h2 {
@@ -160,13 +160,13 @@ html.dark #app-sidebar h2 {
 /* Sidebar nav items */
 html.dark #app-sidebar .nav-item,
 html.dark #app-sidebar .nav-item i {
-    color: #C9D6F0 !important;
+    color: #E2E8F0 !important;
 }
 
 html.dark #app-sidebar .nav-item:hover,
 html.dark #app-sidebar .nav-item:hover i {
     color: #ffffff !important;
-    background-color: #22396F !important;
+    background-color: #1E293B !important;
 }
 
 html.dark #app-sidebar .nav-item.bg-blue-600,
@@ -176,20 +176,20 @@ html.dark #app-sidebar .nav-item.bg-blue-600 i {
 
 /* Sidebar profile section */
 html.dark #sidebar-profile-section {
-    background-color: #0D1C42 !important;
-    border-top: 1px solid #22396F !important;
+    background-color: #0F172A !important;
+    border-top: 1px solid #1E293B !important;
 }
 
 html.dark #sidebar-profile-section:hover {
-    background-color: #22396F !important;
+    background-color: #1E293B !important;
 }
 
 html.dark #current-user-name {
-    color: #f0f6fc !important;
+    color: #F8FAFC !important;
 }
 
 html.dark #current-user-dept {
-    color: #B5C3E3 !important;
+    color: #CBD5E1 !important;
 }
 
 /* Text hierarchy */
@@ -198,36 +198,36 @@ html.dark .text-gray-900,
 html.dark .text-black,
 html.dark .text-slate-800,
 html.dark .text-slate-900 {
-    color: #f0f6fc !important;
+    color: #F8FAFC !important;
 }
 
 html.dark .text-gray-700,
 html.dark .text-slate-700 {
-    color: #cdddec !important;
+    color: #DBEAFE !important;
 }
 
 html.dark .text-gray-600,
 html.dark .text-slate-600 {
-    color: #B5C3E3 !important;
+    color: #CBD5E1 !important;
 }
 
 html.dark .text-gray-500,
 html.dark .text-gray-400,
 html.dark .text-slate-500,
 html.dark .text-slate-400 {
-    color: #93A6D0 !important;
+    color: #94A3B8 !important;
 }
 
 /* Borders */
 html.dark .border-gray-50,
 html.dark .border-white {
-    border-color: #22396F !important;
+    border-color: #1E293B !important;
 }
 
 html.dark .border-gray-100,
 html.dark .border-gray-200,
 html.dark .border-gray-300 {
-    border-color: #2E4A86 !important;
+    border-color: #334155 !important;
 }
 
 /* Shadows */
@@ -244,7 +244,7 @@ html.dark .hover\:bg-gray-50:hover,
 html.dark .hover\:bg-gray-100:hover,
 html.dark .hover\:bg-gray-200:hover,
 html.dark .hover\:bg-blue-50:hover {
-    background-color: #2E4A86 !important;
+    background-color: #334155 !important;
 }
 
 html.dark .hover\:bg-red-50:hover {
@@ -306,9 +306,9 @@ html.dark input[type="radio"]:checked::after {
 html.dark input:not([type="checkbox"]):not([type="radio"]),
 html.dark textarea,
 html.dark select {
-    background-color: #1A2D5A !important;
-    color: #C9D6F0 !important;
-    border-color: #2E4A86 !important;
+    background-color: #172033 !important;
+    color: #E2E8F0 !important;
+    border-color: #334155 !important;
 }
 
 html.dark input.bg-transparent:not([type="checkbox"]):not([type="radio"]),
@@ -319,7 +319,7 @@ html.dark select.bg-transparent {
 
 html.dark input::placeholder,
 html.dark textarea::placeholder {
-    color: #93A6D0 !important;
+    color: #94A3B8 !important;
 }
 
 /* Fix gradients in message view */
@@ -328,8 +328,8 @@ html.dark [class*="from-blue-50"],
 html.dark [class*="from-green-50"],
 html.dark [class*="from-orange-50"] {
     background-image: none !important;
-    background-color: #1A2D5A !important;
-    border-color: #2E4A86 !important;
+    background-color: #172033 !important;
+    border-color: #334155 !important;
 }
 
 /* Pastel opacity variants */
@@ -350,29 +350,29 @@ html.dark .border-blue-100\/60,
 html.dark .border-green-100\/60,
 html.dark .border-orange-100\/60,
 html.dark .border-purple-100\/60 {
-    border-color: #2E4A86 !important;
+    border-color: #334155 !important;
 }
 
 /* Blue accent → Royal Blue tinted */
 html.dark .bg-blue-50,
 html.dark .bg-blue-100 {
     background-color: rgba(37, 87, 167, 0.18) !important;
-    color: #4b85c2 !important;
+    color: #2563EB !important;
 }
 
 html.dark .text-blue-600:not(.keep-dark-blue):not(.logo-blue),
 html.dark .text-blue-500:not(.keep-dark-blue):not(.logo-blue),
 html.dark .text-blue-700:not(.keep-dark-blue):not(.logo-blue),
 html.dark .text-blue-800:not(.keep-dark-blue):not(.logo-blue) {
-    color: #4b85c2 !important;
+    color: #2563EB !important;
 }
 
 html.dark .keep-dark-blue {
-    color: #2557a7 !important;
+    color: #1D4ED8 !important;
 }
 
 html.dark .logo-blue {
-    color: #4278c2 !important;
+    color: #2563EB !important;
 }
 
 /* Status colors */
@@ -510,15 +510,15 @@ html.dark .bg-yellow-100 {
 
 /* Scrollbar */
 html.dark ::-webkit-scrollbar-track {
-    background: #0D1C42 !important;
+    background: #0F172A !important;
 }
 
 html.dark ::-webkit-scrollbar-thumb {
-    background: #2E4A86 !important;
+    background: #334155 !important;
 }
 
 html.dark ::-webkit-scrollbar-thumb:hover {
-    background: #2557a7 !important;
+    background: #1D4ED8 !important;
 }
 
 html.dark .backdrop-blur-sm {
@@ -527,11 +527,11 @@ html.dark .backdrop-blur-sm {
 
 /* Project Filter Buttons */
 html.dark .proj-filter-active {
-    color: #4b85c2 !important;
+    color: #2563EB !important;
 }
 
 html.dark .proj-filter-inactive {
-    color: #cdddec !important;
+    color: #DBEAFE !important;
 }
 
 /* Transparent Buttons (Dark Mode) - Chat & Calendar Filters */
@@ -553,7 +553,7 @@ html.dark #cal-view-month.text-gray-500:hover,
 html.dark #cal-view-week.text-gray-500:hover,
 html.dark #cal-view-day.text-gray-500:hover {
     background-color: rgba(255, 255, 255, 0.05) !important;
-    color: #cdddec !important;
+    color: #DBEAFE !important;
 }
 
 /* Create Event, Project & Primary Buttons Transparency (Dark Mode) */
@@ -577,63 +577,63 @@ html.dark div[id$="-modal"] button.bg-blue-600:hover {
 
 /* ── Profile Modal Dark Mode ── */
 html.dark #user-profile-modal>div {
-    background-color: #1A2D5A !important;
-    border-color: #2E4A86 !important;
+    background-color: #172033 !important;
+    border-color: #334155 !important;
 }
 
 /* Profile header section */
 html.dark #user-profile-modal .bg-white {
-    background-color: #22396F !important;
-    border-color: #2E4A86 !important;
+    background-color: #1E293B !important;
+    border-color: #334155 !important;
 }
 
 /* Profile content grid background */
 html.dark #user-profile-modal>div>div:last-child {
-    background-color: #1A2D5A !important;
+    background-color: #172033 !important;
 }
 
 /* Profile info boxes */
 html.dark #user-profile-modal .bg-white.p-4 {
-    background-color: #22396F !important;
-    border-color: #2E4A86 !important;
+    background-color: #1E293B !important;
+    border-color: #334155 !important;
 }
 
 /* Profile row dividers */
 html.dark #user-profile-modal .border-gray-50 {
-    border-color: #2E4A86 !important;
+    border-color: #334155 !important;
 }
 
 /* Close button */
 html.dark #user-profile-modal .hover\:bg-gray-100 {
-    color: #C9D6F0 !important;
+    color: #E2E8F0 !important;
 }
 
 html.dark #user-profile-modal .hover\:bg-gray-100:hover {
-    background-color: #2E4A86 !important;
+    background-color: #334155 !important;
 }
 
 /* Context menu in dark */
 html.dark #up-context-menu {
-    background-color: #22396F !important;
-    border-color: #2E4A86 !important;
+    background-color: #1E293B !important;
+    border-color: #334155 !important;
 }
 
 /* Edit profile modal dark */
 html.dark #edit-profile-modal>div {
-    background-color: #1A2D5A !important;
-    border-color: #2E4A86 !important;
+    background-color: #172033 !important;
+    border-color: #334155 !important;
 }
 
 html.dark #edit-profile-modal .bg-white {
-    background-color: #22396F !important;
-    border-color: #2E4A86 !important;
+    background-color: #1E293B !important;
+    border-color: #334155 !important;
 }
 
 /* Share / Report profile modals */
 html.dark #share-profile-modal>div,
 html.dark #report-profile-modal>div {
-    background-color: #22396F !important;
-    border-color: #2E4A86 !important;
+    background-color: #1E293B !important;
+    border-color: #334155 !important;
 }
 
 /* English Language Layout Adjustments */
@@ -667,7 +667,7 @@ body.lang-en #header-btn-create-event {
 }
 
 html.dark option {
-    background-color: #1A2D5A !important;
+    background-color: #172033 !important;
     color: #e2e8f0 !important;
 }
 
@@ -675,8 +675,8 @@ html.dark option {
 /* top bar: dark like the sidebar, separated from the page by a line */
 html.dark main>header,
 html.dark .bg-cream {
-    background-color: #010736 !important;
-    border-color: #22396F !important;
+    background-color: #0B1120 !important;
+    border-color: #1E293B !important;
 }
 
 html.dark main>header {
@@ -686,12 +686,12 @@ html.dark main>header {
 /* sidebar stands apart from the page */
 html.dark #app-sidebar {
     box-shadow: 4px 0 18px rgba(0, 0, 0, 0.35) !important;
-    border-right-color: #22396F !important;
+    border-right-color: #1E293B !important;
 }
 
 html.dark #app-sidebar .nav-item.bg-blue-600,
 html.dark #app-sidebar .subnav-item.bg-blue-600 {
-    background-color: #3B6FD8 !important;
+    background-color: #3B82F6 !important;
 }
 
 /* status chips used on the team / member pages */
@@ -706,9 +706,9 @@ html.dark .text-amber-800 {
 }
 
 html.dark .bg-emerald-50 {
-    background-color: rgba(16, 185, 129, 0.16) !important;
+    background-color: rgba(34, 197, 94, 0.16) !important;
 }
 
 html.dark .text-emerald-700 {
-    color: #6EE7B7 !important;
+    color: #86EFAC !important;
 }

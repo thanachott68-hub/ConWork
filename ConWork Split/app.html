@@ -9,7 +9,7 @@
     <link rel="icon" type="image/jpeg" href="img/logo.jpg">
     <!-- Fonts -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Kanit:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Kanit:wght@500;600;700&family=Nunito:wght@600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap"
         rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,54 +20,62 @@
             darkMode: 'class',
             theme: {
                 extend: {
+                    /* Skylearn design system: sky / sun / leaf palette, legible type, soft rounded shapes */
                     fontFamily: {
-                        sans: ['Kanit', 'Inter', 'sans-serif'],
+                        sans: ['"Atkinson Hyperlegible Next"', '"Atkinson Hyperlegible"', '"IBM Plex Sans Thai"', 'Nunito Sans', 'sans-serif'],
+                        display: ['Nunito', 'Kanit', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    fontSize: {
+                        xs: ['14px', '20px'],
+                        sm: ['16px', '24px'],
+                        base: ['18px', '28px'],
+                        lg: ['19px', '28px'],
                     },
                     colors: {
-                        primary: '#4193FA',
-                        secondary: '#66CBAA',
-                        accent: '#f7759c',
-                        cream: '#FEF8F1',
-                        blue: {
-                            50: '#F0F6FF',
-                            100: '#E0EDFF',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#4193FA',
-                            600: '#267DF0',
-                            700: '#1E65CC'
+                        primary: '#3B82F6',
+                        secondary: '#22C55E',
+                        accent: '#F87171',
+                        cream: '#F8FAFC',
+                        sky: { DEFAULT: '#3B82F6', bright: '#60A5FA', deep: '#1D4ED8', soft: '#DBEAFE' },
+                        sun: { DEFAULT: '#FBBF24', bright: '#FCD34D', deep: '#D97706' },
+                        leaf: { DEFAULT: '#22C55E', soft: '#DCFCE7', deep: '#16A34A' },
+                        coral: { DEFAULT: '#F87171', soft: '#FEE2E2' },
+                        berry: '#A855F7',
+                        ink: { DEFAULT: '#0F172A', muted: '#475569', subtle: '#94A3B8', faint: '#CBD5E1' },
+                        outline: { DEFAULT: '#E2E8F0', strong: '#94A3B8' },
+                        gray: {
+                            50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1', 400: '#94A3B8',
+                            500: '#64748B', 600: '#475569', 700: '#334155', 800: '#1E293B', 900: '#0F172A'
                         },
-                        emerald: {
-                            50: '#F0Fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            300: '#86efac',
-                            400: '#66CBAA',
-                            500: '#4BAF8E',
-                            600: '#359071',
-                            700: '#15803d'
-                        },
-                        green: {
-                            50: '#F0Fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            300: '#86efac',
-                            400: '#66CBAA',
-                            500: '#4BAF8E',
-                            600: '#359071',
-                            700: '#15803d'
+                        red: {
+                            50: '#FEF2F2', 100: '#FEE2E2', 200: '#FECACA', 300: '#FCA5A5', 400: '#F87171',
+                            500: '#F87171', 600: '#DC2626', 700: '#B91C1C', 800: '#991B1B', 900: '#7F1D1D'
                         }
-                    }
+                    },
+                    borderRadius: {
+                        xl: '16px',
+                        '2xl': '20px',
+                        '3xl': '28px',
+                    },
+                    boxShadow: {
+                        sm: '0 1px 2px rgba(15, 23, 42, 0.04)',
+                        DEFAULT: '0 2px 8px rgba(15, 23, 42, 0.05)',
+                        md: '0 8px 24px rgba(15, 23, 42, 0.06)',
+                        lg: '0 12px 32px rgba(15, 23, 42, 0.08)',
+                        xl: '0 24px 48px rgba(15, 23, 42, 0.12)',
+                        '2xl': '0 24px 48px rgba(15, 23, 42, 0.12)',
+                    },
+                    transitionDuration: { DEFAULT: '240ms' },
                 }
             }
         }
     </script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/work-report.css?v=2">
-    <link id="dark-mode-styles" rel="stylesheet" href="css/dark-mode.css?v=2">
-    <link rel="stylesheet" href="css/login-flow.css">
+    <link rel="stylesheet" href="css/work-report.css?v=3">
+    <link id="dark-mode-styles" rel="stylesheet" href="css/dark-mode.css?v=3">
+    <link rel="stylesheet" href="css/login-flow.css?v=2">
     <style>
         /* Rich Text Editor Tailwind Resets Reverter */
         [contenteditable="true"] b,
@@ -128,6 +136,13 @@
             /* text-blue-300 */
         }
     </style>
+    <style>
+        #view-accounting table:has(tbody tr)+.finance-empty {
+            display: none
+        }
+    </style>
+    <!-- Skylearn theme (loaded last so it wins over the older styles) -->
+    <link rel="stylesheet" href="css/skylearn.css?v=1">
 </head>
 
 <body data-page="app" class="text-gray-800 antialiased h-screen overflow-hidden flex flex-col font-sans bg-cream">
@@ -451,7 +466,7 @@
                                 </div>
                                 <div class="flex-1">
                                     <h3 class="text-gray-500 text-xs font-semibold mb-1">งบประมาณที่วางแผน</h3>
-                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿20,000</div>
+                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿0</div>
                                     <div
                                         class="text-blue-600 text-[10px] font-bold bg-blue-50 inline-block px-2 py-0.5 rounded mb-2">
                                         Credit</div>
@@ -470,7 +485,7 @@
                                 </div>
                                 <div class="flex-1">
                                     <h3 class="text-gray-500 text-xs font-semibold mb-1">ใช้จริง</h3>
-                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿8,450</div>
+                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿0</div>
                                     <div
                                         class="text-green-600 text-[10px] font-bold bg-green-50 inline-block px-2 py-0.5 rounded mb-2">
                                         Cash</div>
@@ -489,7 +504,7 @@
                                 </div>
                                 <div class="flex-1">
                                     <h3 class="text-gray-500 text-xs font-semibold mb-1">เงินสดคงเหลือ</h3>
-                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿6,000</div>
+                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿0</div>
                                     <div
                                         class="text-green-600 text-[10px] font-bold bg-green-50 inline-block px-2 py-0.5 rounded mb-2">
                                         Cash</div>
@@ -508,7 +523,7 @@
                                 </div>
                                 <div class="flex-1">
                                     <h3 class="text-gray-500 text-xs font-semibold mb-1">รออนุมัติ</h3>
-                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿5,400</div>
+                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿0</div>
                                     <div
                                         class="text-orange-500 text-[10px] font-bold bg-orange-50 inline-block px-2 py-0.5 rounded mb-2">
                                         Pending Requests</div>
@@ -527,7 +542,7 @@
                                 </div>
                                 <div class="flex-1">
                                     <h3 class="text-gray-500 text-xs font-semibold mb-1">อนุมัติแล้ว</h3>
-                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿4,000</div>
+                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿0</div>
                                     <div
                                         class="text-gray-600 text-[10px] font-bold bg-gray-100 inline-block px-2 py-0.5 rounded mb-2">
                                         Approved</div>
@@ -547,14 +562,14 @@
                                     title="Credit = แผนงบประมาณที่ตั้งไว้ หรือได้รับอนุมัติแล้ว&#10;Cash = เงินที่จ่ายออกไปจริงๆ"></i>
                             </div>
                             <div class="text-xs text-gray-500">งบประมาณคงเหลือ <span
-                                    class="font-bold text-gray-800 ml-1">฿11,550</span></div>
+                                    class="font-bold text-gray-800 ml-1">฿0</span></div>
                         </div>
 
                         <div class="flex w-full h-8 rounded-lg overflow-hidden bg-gray-100">
-                            <div class="bg-indigo-500 h-full flex items-center px-4 text-xs text-white font-medium shadow-inner"
-                                style="width: 42%;">ใช้จริง 42% (฿8,450)</div>
+                            <div class="hidden bg-indigo-500 h-full flex items-center px-4 text-xs text-white font-medium shadow-inner"
+                                style="width: 0%;"></div>
                             <div class="bg-gray-200 h-full flex items-center justify-end px-4 text-xs text-gray-500 font-medium"
-                                style="width: 58%;">คงเหลือ 58% (฿11,550)</div>
+                                style="width: 100%;">ยังไม่มีข้อมูลงบประมาณ</div>
                         </div>
                     </div>
 
@@ -573,58 +588,18 @@
 
                             <div class="flex-1 flex flex-col items-center justify-center">
                                 <div class="relative w-52 h-52 mb-8">
-                                    <div class="absolute inset-0 rounded-full"
-                                        style="background: conic-gradient(#818cf8 0% 27%, #a78bfa 27% 47%, #c084fc 47% 77%, #38bdf8 77% 90%, #94a3b8 90% 100%);">
+                                    <div class="absolute inset-0 rounded-full" style="background: #E2E8F0;">
                                     </div>
                                     <div
                                         class="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
-                                        <span class="text-2xl font-bold text-gray-800">฿20,000</span>
+                                        <span class="text-2xl font-bold text-gray-800">฿0</span>
                                         <span
                                             class="text-[10px] text-gray-500 text-center px-2 leading-tight mt-1">งบที่วางแผน<br>ทั้งหมด</span>
                                     </div>
                                 </div>
 
                                 <div class="w-full space-y-3.5">
-                                    <div class="flex items-center justify-between text-xs">
-                                        <div class="flex items-center gap-2.5">
-                                            <div class="w-3 h-3 rounded-full bg-[#818cf8]"></div><span
-                                                class="text-gray-700">สวัสดิการอาหารและเบรก</span>
-                                        </div>
-                                        <span class="font-medium text-gray-800">฿5,400 <span
-                                                class="text-gray-400 font-normal ml-1 w-8 inline-block text-right">(27%)</span></span>
-                                    </div>
-                                    <div class="flex items-center justify-between text-xs">
-                                        <div class="flex items-center gap-2.5">
-                                            <div class="w-3 h-3 rounded-full bg-[#a78bfa]"></div><span
-                                                class="text-gray-700">พัสดุ</span>
-                                        </div>
-                                        <span class="font-medium text-gray-800">฿4,000 <span
-                                                class="text-gray-400 font-normal ml-1 w-8 inline-block text-right">(20%)</span></span>
-                                    </div>
-                                    <div class="flex items-center justify-between text-xs">
-                                        <div class="flex items-center gap-2.5">
-                                            <div class="w-3 h-3 rounded-full bg-[#c084fc]"></div><span
-                                                class="text-gray-700">กิจกรรม</span>
-                                        </div>
-                                        <span class="font-medium text-gray-800">฿6,000 <span
-                                                class="text-gray-400 font-normal ml-1 w-8 inline-block text-right">(30%)</span></span>
-                                    </div>
-                                    <div class="flex items-center justify-between text-xs">
-                                        <div class="flex items-center gap-2.5">
-                                            <div class="w-3 h-3 rounded-full bg-[#38bdf8]"></div><span
-                                                class="text-gray-700">เดินทาง</span>
-                                        </div>
-                                        <span class="font-medium text-gray-800">฿2,600 <span
-                                                class="text-gray-400 font-normal ml-1 w-8 inline-block text-right">(13%)</span></span>
-                                    </div>
-                                    <div class="flex items-center justify-between text-xs">
-                                        <div class="flex items-center gap-2.5">
-                                            <div class="w-3 h-3 rounded-full bg-[#94a3b8]"></div><span
-                                                class="text-gray-700">อื่น ๆ</span>
-                                        </div>
-                                        <span class="font-medium text-gray-800">฿2,000 <span
-                                                class="text-gray-400 font-normal ml-1 w-8 inline-block text-right">(10%)</span></span>
-                                    </div>
+                                    <p class="text-xs text-gray-400 text-center">ยังไม่มีหมวดงบ</p>
                                 </div>
 
                                 <button
@@ -645,11 +620,10 @@
 
                             <div class="flex-1 flex flex-col items-center justify-center">
                                 <div class="relative w-52 h-52 mb-8">
-                                    <div class="absolute inset-0 rounded-full"
-                                        style="background: conic-gradient(#22c55e 0% 75%, #e2e8f0 75% 100%);"></div>
+                                    <div class="absolute inset-0 rounded-full" style="background: #E2E8F0;"></div>
                                     <div
                                         class="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
-                                        <span class="text-2xl font-bold text-gray-800">฿6,000</span>
+                                        <span class="text-2xl font-bold text-gray-800">฿0</span>
                                         <span
                                             class="text-[10px] text-gray-500 text-center px-2 leading-tight mt-1">เงินสด<br>คงเหลือ</span>
                                     </div>
@@ -661,26 +635,26 @@
                                             <div class="w-3 h-3 rounded-full bg-[#22c55e]"></div><span
                                                 class="text-gray-700">เงินสดตั้งต้น (Opening)</span>
                                         </div>
-                                        <span class="font-medium text-gray-800">฿8,000</span>
+                                        <span class="font-medium text-gray-800">฿0</span>
                                     </div>
                                     <div class="flex items-center justify-between text-xs">
                                         <div class="flex items-center gap-2.5">
-                                            <div class="w-3 h-3 rounded-full bg-[#10b981]"></div><span
+                                            <div class="w-3 h-3 rounded-full bg-[#22C55E]"></div><span
                                                 class="text-gray-700">รับเข้า (Inflow)</span>
                                         </div>
-                                        <span class="font-medium text-gray-800">฿2,000</span>
+                                        <span class="font-medium text-gray-800">฿0</span>
                                     </div>
                                     <div class="flex items-center justify-between text-xs">
                                         <div class="flex items-center gap-2.5">
                                             <div class="w-3 h-3 rounded-full bg-[#f43f5e]"></div><span
                                                 class="text-gray-700">จ่ายออก (Actual Expenses)</span>
                                         </div>
-                                        <span class="font-medium text-red-600">- ฿4,000</span>
+                                        <span class="font-medium text-red-600">฿0</span>
                                     </div>
                                     <div
                                         class="pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold">
                                         <span class="text-gray-800">เงินสดคงเหลือปัจจุบัน</span>
-                                        <span class="text-green-600">฿6,000</span>
+                                        <span class="text-green-600">฿0</span>
                                     </div>
                                 </div>
 
@@ -714,140 +688,16 @@
                             </div>
 
                             <div class="space-y-5 overflow-y-auto flex-1 pr-1 custom-scrollbar">
-                                <div>
-                                    <div class="flex items-center justify-between text-[11px] mb-2 cursor-pointer group hover:bg-gray-50 p-1 -mx-1 rounded transition-colors"
-                                        onclick="this.nextElementSibling.nextElementSibling.nextElementSibling.classList.toggle('hidden');">
-                                        <div class="w-2/5 flex items-center gap-2.5 font-medium text-gray-700">
-                                            <div
-                                                class="w-6 h-6 rounded bg-orange-100 flex items-center justify-center shrink-0">
-                                                <i class="fa-solid fa-utensils text-orange-500 text-[10px]"></i>
-                                            </div>
-                                            <span class="truncate">สวัสดิการฯ</span>
-                                            <i class="fa-solid fa-angle-down text-gray-300 ml-auto"></i>
-                                        </div>
-                                        <div class="w-1/5 text-right text-gray-500">฿5,400</div>
-                                        <div class="w-1/5 text-right text-gray-500">฿2,000</div>
-                                        <div class="w-1/5 text-right font-bold text-gray-800">฿3,400</div>
-                                    </div>
-                                    <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden flex">
-                                        <div class="bg-green-500 h-full" style="width: 37%;"></div>
-                                        <div class="bg-blue-400 h-full opacity-30" style="width: 63%;"></div>
-                                    </div>
-                                    <div class="text-[9px] text-gray-400 text-right mt-1">ใช้ไปแล้ว 37%</div>
-
-                                    <!-- Expandable Details -->
-                                    <div
-                                        class="hidden mt-2 bg-gray-50 p-2 rounded-lg border border-gray-100 space-y-1.5">
-                                        <div class="flex justify-between text-[10px] text-gray-600">
-                                            <span class="pl-2">อาหารกลางวัน</span>
-                                            <div class="flex gap-4">
-                                                <span class="text-blue-500 w-10 text-right">฿3,000</span>
-                                                <span class="text-green-500 w-10 text-right">฿1,500</span>
-                                                <span class="text-gray-800 font-bold w-10 text-right">฿1,500</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex justify-between text-[10px] text-gray-600">
-                                            <span class="pl-2">เครื่องดื่ม/เบรก</span>
-                                            <div class="flex gap-4">
-                                                <span class="text-blue-500 w-10 text-right">฿2,400</span>
-                                                <span class="text-green-500 w-10 text-right">฿500</span>
-                                                <span class="text-gray-800 font-bold w-10 text-right">฿1,900</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div class="flex items-center justify-between text-[11px] mb-2 cursor-pointer group hover:bg-gray-50 p-1 -mx-1 rounded transition-colors"
-                                        onclick="this.nextElementSibling.nextElementSibling.nextElementSibling.classList.toggle('hidden');">
-                                        <div class="w-2/5 flex items-center gap-2.5 font-medium text-gray-700">
-                                            <div
-                                                class="w-6 h-6 rounded bg-purple-100 flex items-center justify-center shrink-0">
-                                                <i class="fa-solid fa-box text-purple-500 text-[10px]"></i>
-                                            </div>
-                                            <span class="truncate">พัสดุ</span>
-                                            <i class="fa-solid fa-angle-down text-gray-300 ml-auto"></i>
-                                        </div>
-                                        <div class="w-1/5 text-right text-gray-500">฿4,000</div>
-                                        <div class="w-1/5 text-right text-gray-500">฿2,350</div>
-                                        <div class="w-1/5 text-right font-bold text-gray-800">฿1,650</div>
-                                    </div>
-                                    <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden flex">
-                                        <div class="bg-green-500 h-full" style="width: 59%;"></div>
-                                        <div class="bg-blue-400 h-full opacity-30" style="width: 41%;"></div>
-                                    </div>
-                                    <div class="text-[9px] text-gray-400 text-right mt-1">ใช้ไปแล้ว 59%</div>
-
-                                    <div
-                                        class="hidden mt-2 bg-gray-50 p-2 rounded-lg border border-gray-100 space-y-1.5">
-                                        <div class="flex justify-between text-[10px] text-gray-600">
-                                            <span class="pl-2">กระดาษ A4</span>
-                                            <div class="flex gap-4">
-                                                <span class="text-blue-500 w-10 text-right">฿500</span>
-                                                <span class="text-green-500 w-10 text-right">฿350</span>
-                                                <span class="text-gray-800 font-bold w-10 text-right">฿150</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex justify-between text-[10px] text-gray-600">
-                                            <span class="pl-2">ปากกาและสี</span>
-                                            <div class="flex gap-4">
-                                                <span class="text-blue-500 w-10 text-right">฿1,500</span>
-                                                <span class="text-green-500 w-10 text-right">฿1,000</span>
-                                                <span class="text-gray-800 font-bold w-10 text-right">฿500</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div
-                                        class="flex items-center justify-between text-[11px] mb-2 cursor-pointer group hover:bg-gray-50 p-1 -mx-1 rounded transition-colors">
-                                        <div class="w-2/5 flex items-center gap-2.5 font-medium text-gray-700">
-                                            <div
-                                                class="w-6 h-6 rounded bg-pink-100 flex items-center justify-center shrink-0">
-                                                <i class="fa-solid fa-palette text-pink-500 text-[10px]"></i>
-                                            </div>
-                                            <span class="truncate">กิจกรรม</span>
-                                        </div>
-                                        <div class="w-1/5 text-right text-gray-500">฿6,000</div>
-                                        <div class="w-1/5 text-right text-gray-500">฿3,000</div>
-                                        <div class="w-1/5 text-right font-bold text-gray-800">฿3,000</div>
-                                    </div>
-                                    <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden flex">
-                                        <div class="bg-green-500 h-full" style="width: 50%;"></div>
-                                        <div class="bg-blue-400 h-full opacity-30" style="width: 50%;"></div>
-                                    </div>
-                                    <div class="text-[9px] text-gray-400 text-right mt-1">ใช้ไปแล้ว 50%</div>
-                                </div>
-
-                                <div>
-                                    <div
-                                        class="flex items-center justify-between text-[11px] mb-2 cursor-pointer group hover:bg-gray-50 p-1 -mx-1 rounded transition-colors">
-                                        <div class="w-2/5 flex items-center gap-2.5 font-medium text-gray-700">
-                                            <div
-                                                class="w-6 h-6 rounded bg-sky-100 flex items-center justify-center shrink-0">
-                                                <i class="fa-solid fa-car text-sky-500 text-[10px]"></i>
-                                            </div>
-                                            <span class="truncate">เดินทาง</span>
-                                        </div>
-                                        <div class="w-1/5 text-right text-gray-500">฿2,600</div>
-                                        <div class="w-1/5 text-right text-gray-500">฿1,100</div>
-                                        <div class="w-1/5 text-right font-bold text-gray-800">฿1,500</div>
-                                    </div>
-                                    <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden flex">
-                                        <div class="bg-green-500 h-full" style="width: 42%;"></div>
-                                        <div class="bg-blue-400 h-full opacity-30" style="width: 58%;"></div>
-                                    </div>
-                                    <div class="text-[9px] text-gray-400 text-right mt-1">ใช้ไปแล้ว 42%</div>
-                                </div>
+                                <p class="text-xs text-gray-400 text-center py-6">ยังไม่มีหมวดงบ · กด “เพิ่มหมวดงบ”
+                                    เพื่อเริ่ม</p>
                             </div>
 
                             <div
                                 class="mt-4 pt-4 border-t border-gray-100 flex justify-between text-[11px] font-bold text-gray-800 px-1">
                                 <div class="w-2/5">งบประมาณรวม</div>
-                                <div class="w-1/5 text-right text-blue-600">฿20,000</div>
-                                <div class="w-1/5 text-right text-green-600">฿8,450</div>
-                                <div class="w-1/5 text-right">฿11,550</div>
+                                <div class="w-1/5 text-right text-blue-600">฿0</div>
+                                <div class="w-1/5 text-right text-green-600">฿0</div>
+                                <div class="w-1/5 text-right">฿0</div>
                             </div>
                         </div>
                     </div>
@@ -869,7 +719,7 @@
                             <button
                                 class="px-6 py-3.5 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-t-lg transition-colors flex items-center gap-2 whitespace-nowrap">รออนุมัติ
                                 <span
-                                    class="bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded text-[10px] font-bold">1</span></button>
+                                    class="hidden bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded text-[10px] font-bold">0</span></button>
                             <div class="ml-auto flex items-center px-2">
                                 <button
                                     class="text-xs text-gray-500 hover:text-gray-800 font-medium flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm"><i
@@ -892,148 +742,9 @@
                                         <th class="px-6 py-4 font-medium text-center">รายละเอียด</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-50 text-gray-700">
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 text-xs text-gray-500">02/09/2026</td>
-                                        <td class="px-6 py-4 font-medium text-gray-800">ขออนุมัติค่าอาหารและเบรก</td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-2">
-                                                <i class="fa-solid fa-utensils text-orange-400 w-4 text-center"></i>
-                                                <span class="text-xs">สวัสดิการ</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-center"><span
-                                                class="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-1 rounded text-[10px] font-bold tracking-wide">Credit</span>
-                                        </td>
-                                        <td class="px-6 py-4 text-right font-bold text-gray-800">฿5,400</td>
-                                        <td class="px-6 py-4 text-center"><span
-                                                class="bg-orange-50 text-orange-600 px-2.5 py-1 rounded-md text-[10px] font-bold border border-orange-100">รออนุมัติ</span>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-2">
-                                                <img src="https://ui-avatars.com/api/?name=PM&background=random"
-                                                    class="w-6 h-6 rounded-full border border-gray-200">
-                                                <span class="text-xs text-gray-600">ผู้จัดการโครงการ</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-center"><button
-                                                class="text-gray-400 hover:text-blue-500 transition-colors"><i
-                                                    class="fa-regular fa-comment-dots"></i></button></td>
-                                    </tr>
-
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 text-xs text-gray-500">02/09/2026</td>
-                                        <td class="px-6 py-4 font-medium text-gray-800">จ่ายค่าอาหารและเบรก</td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-2">
-                                                <i class="fa-solid fa-utensils text-orange-400 w-4 text-center"></i>
-                                                <span class="text-xs">สวัสดิการ</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-center"><span
-                                                class="bg-green-50 text-green-600 border border-green-100 px-2 py-1 rounded text-[10px] font-bold tracking-wide">Cash</span>
-                                        </td>
-                                        <td class="px-6 py-4 text-right font-bold text-gray-800">฿2,000</td>
-                                        <td class="px-6 py-4 text-center"><span
-                                                class="bg-green-100 text-green-700 px-2.5 py-1 rounded-md text-[10px] font-bold border border-green-200">จ่ายแล้ว</span>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-2">
-                                                <img src="https://ui-avatars.com/api/?name=PM&background=random"
-                                                    class="w-6 h-6 rounded-full border border-gray-200">
-                                                <span class="text-xs text-gray-600">ผู้จัดการโครงการ</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-center"><button
-                                                class="text-gray-400 hover:text-blue-500 transition-colors"><i
-                                                    class="fa-regular fa-file-invoice"></i></button></td>
-                                    </tr>
-
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 text-xs text-gray-500">01/09/2026</td>
-                                        <td class="px-6 py-4 font-medium text-gray-800">กระดาษ A4</td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-2">
-                                                <i class="fa-solid fa-box text-purple-400 w-4 text-center"></i> <span
-                                                    class="text-xs">พัสดุ</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-center"><span
-                                                class="bg-green-50 text-green-600 border border-green-100 px-2 py-1 rounded text-[10px] font-bold tracking-wide">Cash</span>
-                                        </td>
-                                        <td class="px-6 py-4 text-right font-bold text-gray-800">฿350</td>
-                                        <td class="px-6 py-4 text-center"><span
-                                                class="bg-green-100 text-green-700 px-2.5 py-1 rounded-md text-[10px] font-bold border border-green-200">จ่ายแล้ว</span>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-2">
-                                                <img src="https://ui-avatars.com/api/?name=SU&background=random"
-                                                    class="w-6 h-6 rounded-full border border-gray-200">
-                                                <span class="text-xs text-gray-600">ฝ่ายพัสดุ</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-center"><button
-                                                class="text-gray-400 hover:text-blue-500 transition-colors"><i
-                                                    class="fa-regular fa-file-invoice"></i></button></td>
-                                    </tr>
-
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 text-xs text-gray-500">01/09/2026</td>
-                                        <td class="px-6 py-4 font-medium text-gray-800">ปากกา</td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-2">
-                                                <i class="fa-solid fa-box text-purple-400 w-4 text-center"></i> <span
-                                                    class="text-xs">พัสดุ</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-center"><span
-                                                class="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-1 rounded text-[10px] font-bold tracking-wide">Credit</span>
-                                        </td>
-                                        <td class="px-6 py-4 text-right font-bold text-gray-800">฿500</td>
-                                        <td class="px-6 py-4 text-center"><span
-                                                class="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md text-[10px] font-bold border border-blue-200">อนุมัติแล้ว</span>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-2">
-                                                <img src="https://ui-avatars.com/api/?name=PM&background=random"
-                                                    class="w-6 h-6 rounded-full border border-gray-200">
-                                                <span class="text-xs text-gray-600">ผู้จัดการโครงการ</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-center"><button
-                                                class="text-gray-400 hover:text-blue-500 transition-colors"><i
-                                                    class="fa-regular fa-comment-dots"></i></button></td>
-                                    </tr>
-
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 text-xs text-gray-500">31/08/2026</td>
-                                        <td class="px-6 py-4 font-medium text-gray-800">วัสดุทำกิจกรรม</td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-2">
-                                                <i class="fa-solid fa-palette text-pink-400 w-4 text-center"></i> <span
-                                                    class="text-xs">กิจกรรม</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-center"><span
-                                                class="bg-green-50 text-green-600 border border-green-100 px-2 py-1 rounded text-[10px] font-bold tracking-wide">Cash</span>
-                                        </td>
-                                        <td class="px-6 py-4 text-right font-bold text-gray-800">฿1,200</td>
-                                        <td class="px-6 py-4 text-center"><span
-                                                class="bg-green-100 text-green-700 px-2.5 py-1 rounded-md text-[10px] font-bold border border-green-200">จ่ายแล้ว</span>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-2">
-                                                <img src="https://ui-avatars.com/api/?name=AC&background=random"
-                                                    class="w-6 h-6 rounded-full border border-gray-200">
-                                                <span class="text-xs text-gray-600">ฝ่ายกิจกรรม</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-center"><button
-                                                class="text-gray-400 hover:text-blue-500 transition-colors"><i
-                                                    class="fa-regular fa-file-invoice"></i></button></td>
-                                    </tr>
-                                </tbody>
+                                <tbody class="divide-y divide-gray-50 text-gray-700"></tbody>
                             </table>
+                            <p class="finance-empty text-sm text-gray-400 text-center py-12">ยังไม่มีรายการ</p>
                         </div>
 
                         <div
@@ -1085,7 +796,7 @@
                                 <div>
                                     <h3 class="text-gray-500 text-sm font-medium mb-0.5">งานทั้งหมด</h3>
                                     <div class="text-3xl font-bold text-gray-800"><span
-                                            id="dash-total-tasks">64</span><span
+                                            id="dash-total-tasks">0</span><span
                                             class="text-sm font-normal text-gray-500 ml-1">งาน</span></div>
                                     <div id="dash-trend-total"
                                         class="text-gray-400 text-xs font-medium mt-1 flex items-center gap-1">...</div>
@@ -1104,7 +815,7 @@
                                 <div>
                                     <h3 class="text-gray-500 text-sm font-medium mb-0.5">งานที่กำลังทำ</h3>
                                     <div class="text-3xl font-bold text-gray-800"><span
-                                            id="dash-in-progress-tasks">28</span><span
+                                            id="dash-in-progress-tasks">0</span><span
                                             class="text-sm font-normal text-gray-500 ml-1">งาน</span></div>
                                     <div id="dash-trend-in-progress"
                                         class="text-gray-400 text-xs font-medium mt-1 flex items-center gap-1">...</div>
@@ -1123,7 +834,7 @@
                                 <div>
                                     <h3 class="text-gray-500 text-sm font-medium mb-0.5">งานที่เสร็จสิ้น</h3>
                                     <div class="text-3xl font-bold text-gray-800"><span
-                                            id="dash-completed-tasks">18</span><span
+                                            id="dash-completed-tasks">0</span><span
                                             class="text-sm font-normal text-gray-500 ml-1">งาน</span></div>
                                     <div id="dash-trend-completed"
                                         class="text-gray-400 text-xs font-medium mt-1 flex items-center gap-1">...</div>
@@ -1142,7 +853,7 @@
                                 <div>
                                     <h3 class="text-gray-500 text-sm font-medium mb-0.5">งานที่ค้าง</h3>
                                     <div class="text-3xl font-bold text-gray-800"><span
-                                            id="dash-pending-tasks">12</span><span
+                                            id="dash-pending-tasks">0</span><span
                                             class="text-sm font-normal text-gray-500 ml-1">งาน</span></div>
                                     <div id="dash-trend-pending"
                                         class="text-gray-400 text-xs font-medium mt-1 flex items-center gap-1">...</div>
@@ -1161,7 +872,7 @@
                                 <div>
                                     <h3 class="text-gray-500 text-sm font-medium mb-0.5">ใกล้ถึงกำหนด</h3>
                                     <div class="text-3xl font-bold text-gray-800"><span
-                                            id="dash-due-soon-tasks">7</span><span
+                                            id="dash-due-soon-tasks">0</span><span
                                             class="text-sm font-normal text-gray-500 ml-1">งาน</span></div>
                                     <div class="text-red-500 text-xs font-medium mt-1 flex items-center gap-1"><i
                                             class="fa-regular fa-clock"></i> ภายใน 3 วัน</div>
@@ -1192,8 +903,7 @@
                                     </div>
                                     <div
                                         class="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
-                                        <span id="dash-donut-percent"
-                                            class="text-3xl font-bold text-gray-800">64%</span>
+                                        <span id="dash-donut-percent" class="text-3xl font-bold text-gray-800">0%</span>
                                         <span class="text-xs text-gray-500 font-medium">ความคืบหน้ารวม</span>
                                     </div>
                                 </div>
@@ -1204,36 +914,36 @@
                                             <div class="w-3 h-3 rounded-full bg-[#4285F4]"></div> Completed
                                         </div>
                                         <div><span id="dash-legend-completed-count"
-                                                class="font-bold text-gray-800">18</span> <span
+                                                class="font-bold text-gray-800">0</span> <span
                                                 id="dash-legend-completed-pct"
-                                                class="text-gray-400 text-xs ml-1">(28%)</span></div>
+                                                class="text-gray-400 text-xs ml-1">(0%)</span></div>
                                     </div>
                                     <div class="flex justify-between items-center text-sm">
                                         <div class="flex items-center gap-2 text-gray-700 font-medium">
                                             <div class="w-3 h-3 rounded-full bg-[#34A853]"></div> In Progress
                                         </div>
                                         <div><span id="dash-legend-inprogress-count"
-                                                class="font-bold text-gray-800">28</span> <span
+                                                class="font-bold text-gray-800">0</span> <span
                                                 id="dash-legend-inprogress-pct"
-                                                class="text-gray-400 text-xs ml-1">(44%)</span></div>
+                                                class="text-gray-400 text-xs ml-1">(0%)</span></div>
                                     </div>
                                     <div class="flex justify-between items-center text-sm">
                                         <div class="flex items-center gap-2 text-gray-700 font-medium">
                                             <div class="w-3 h-3 rounded-full bg-[#FBBC05]"></div> Pending
                                         </div>
                                         <div><span id="dash-legend-pending-count"
-                                                class="font-bold text-gray-800">12</span> <span
+                                                class="font-bold text-gray-800">0</span> <span
                                                 id="dash-legend-pending-pct"
-                                                class="text-gray-400 text-xs ml-1">(19%)</span></div>
+                                                class="text-gray-400 text-xs ml-1">(0%)</span></div>
                                     </div>
                                     <div class="flex justify-between items-center text-sm">
                                         <div class="flex items-center gap-2 text-gray-700 font-medium">
                                             <div class="w-3 h-3 rounded-full bg-[#EA4335]"></div> Stalled / Due Soon
                                         </div>
                                         <div><span id="dash-legend-stalled-count"
-                                                class="font-bold text-gray-800">6</span> <span
+                                                class="font-bold text-gray-800">0</span> <span
                                                 id="dash-legend-stalled-pct"
-                                                class="text-gray-400 text-xs ml-1">(9%)</span></div>
+                                                class="text-gray-400 text-xs ml-1">(0%)</span></div>
                                     </div>
                                 </div>
                             </div>
@@ -1295,86 +1005,6 @@
                         </div>
 
                         <div id="dash-recent-projects" class="flex flex-col space-y-4">
-                            <!-- Project 1 -->
-                            <div onclick="App.switchView('projects')"
-                                class="flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-100">
-                                <div
-                                    class="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl shrink-0">
-                                    <i class="fa-solid fa-code"></i>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <h4 class="font-bold text-gray-800 truncate">Open House 2024</h4>
-                                    <div class="flex items-center gap-4 mt-1">
-                                        <div class="text-xs text-gray-500 font-medium">72%</div>
-                                        <div class="text-xs text-gray-400"><i class="fa-regular fa-clock"></i> Due: 30
-                                            พ.ค. 2567</div>
-                                    </div>
-                                </div>
-                                <div
-                                    class="w-full md:w-64 h-6 rounded-full bg-red-100 relative shrink-0 overflow-hidden">
-                                    <div class="absolute top-0 left-0 h-full bg-green-500 flex items-center justify-center rounded-full"
-                                        style="width: 72%;">
-                                        <span class="text-[10px] font-bold text-white">72%</span>
-                                    </div>
-                                    <div class="absolute top-0 right-0 h-full w-[28%] flex items-center justify-center">
-                                        <span class="text-[10px] font-bold text-gray-600">28%</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Project 2 -->
-                            <div onclick="App.switchView('projects')"
-                                class="flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-100">
-                                <div
-                                    class="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center text-xl shrink-0">
-                                    <i class="fa-solid fa-laptop-code"></i>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <h4 class="font-bold text-gray-800 truncate">โครงการพัฒนาไอที 2024</h4>
-                                    <div class="flex items-center gap-4 mt-1">
-                                        <div class="text-xs text-gray-500 font-medium">58%</div>
-                                        <div class="text-xs text-gray-400"><i class="fa-regular fa-clock"></i> Due: 20
-                                            มิ.ย. 2567</div>
-                                    </div>
-                                </div>
-                                <div
-                                    class="w-full md:w-64 h-6 rounded-full bg-red-100 relative shrink-0 overflow-hidden">
-                                    <div class="absolute top-0 left-0 h-full bg-green-500 flex items-center justify-center rounded-full"
-                                        style="width: 58%;">
-                                        <span class="text-[10px] font-bold text-white">58%</span>
-                                    </div>
-                                    <div class="absolute top-0 right-0 h-full w-[42%] flex items-center justify-center">
-                                        <span class="text-[10px] font-bold text-gray-600">42%</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Project 3 -->
-                            <div onclick="App.switchView('projects')"
-                                class="flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-100">
-                                <div
-                                    class="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-xl shrink-0">
-                                    <i class="fa-solid fa-book-open-reader"></i>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <h4 class="font-bold text-gray-800 truncate">โครงการห้องสมุดดิจิทัล</h4>
-                                    <div class="flex items-center gap-4 mt-1">
-                                        <div class="text-xs text-gray-500 font-medium">35%</div>
-                                        <div class="text-xs text-gray-400"><i class="fa-regular fa-clock"></i> Due: 1
-                                            ส.ค. 2567</div>
-                                    </div>
-                                </div>
-                                <div
-                                    class="w-full md:w-64 h-6 rounded-full bg-red-100 relative shrink-0 overflow-hidden">
-                                    <div class="absolute top-0 left-0 h-full bg-green-500 flex items-center justify-center rounded-full"
-                                        style="width: 35%;">
-                                        <span class="text-[10px] font-bold text-white">35%</span>
-                                    </div>
-                                    <div class="absolute top-0 right-0 h-full w-[65%] flex items-center justify-center">
-                                        <span class="text-[10px] font-bold text-gray-600">65%</span>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1453,7 +1083,7 @@
                                 <div class="flex flex-col min-w-0">
                                     <h3 id="task-project-name"
                                         class="text-xl font-bold text-gray-800 truncate project-name-display">
-                                        ชื่อโปรเจกต์</h3>
+                                        Project Name</h3>
                                     <div id="task-project-managers"
                                         class="flex items-center mt-1 space-x-1 empty:hidden"></div>
                                 </div>
@@ -1633,7 +1263,7 @@
                                                 class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-gray-400 pointer-events-none"></i>
                                         </div>
                                         <p id="cal-group-member-count" class="text-xs text-gray-500 font-medium mt-1">
-                                            สมาชิก 5 คน</p>
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="shrink-0 ml-auto">
@@ -3025,7 +2655,7 @@
     <!-- ================= CREATE PROJECT MODAL ================= -->
     <div id="create-project-modal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm overflow-y-auto py-10">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-4 flex flex-col max-h-[90vh]">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]">
             <!-- Header -->
             <div class="flex justify-between items-center p-6 border-b border-gray-100 flex-shrink-0">
                 <h2 class="text-xl font-bold text-gray-800">สร้างโปรเจกต์ใหม่</h2>
@@ -3154,9 +2784,30 @@
                         </div>
                     </div>
 
+                    <!-- Members -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ผู้เข้าร่วม</label>
+                        <div class="relative">
+                            <div onclick="App.toggleDropdown('cp-members-dropdown')"
+                                class="w-full border border-gray-300 rounded-lg py-1.5 px-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer min-h-[38px] flex items-center flex-wrap gap-1">
+                                <div id="cp-selected-members" class="flex flex-wrap gap-1.5 items-center w-full">
+                                    <span class="text-gray-400 text-sm">ค้นหาหรือเลือกผู้เข้าร่วม</span>
+                                </div>
+                                <i
+                                    class="fa-solid fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                            </div>
+
+                            <!-- Dropdown for selecting members -->
+                            <div id="cp-members-dropdown"
+                                class="hidden absolute top-full left-0 z-30 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
+                                <!-- Rendered by JS -->
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Departments & Divisions -->
                     <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">ฝ่ายและแผนกที่เกี่ยวข้อง</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ฝ่าย/แผนกที่เกี่ยวข้อง</label>
                         <div class="relative">
                             <div onclick="App.toggleDropdown('team-dropdown')"
                                 class="w-full border border-gray-300 rounded-lg py-1.5 px-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer min-h-[38px] flex items-center flex-wrap gap-1">
@@ -3170,35 +2821,17 @@
                                 class="hidden absolute z-30 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
                             </div>
                         </div>
+                        <p class="text-xs text-gray-500 mt-1.5">กำหนดการโปรเจกต์ (วันเริ่ม – วันสิ้นสุด)
+                            พร้อมชื่อโปรเจกต์ จะขึ้นในปฏิทินของทุกคนในฝ่าย/แผนกที่เลือกโดยอัตโนมัติ</p>
                     </div>
 
-                    <!-- Members -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">ผู้ที่ได้รับมอบหมาย</label>
-                        <div class="relative">
-                            <div onclick="App.toggleDropdown('cp-members-dropdown')"
-                                class="w-full border border-gray-300 rounded-lg py-1.5 px-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer min-h-[38px] flex items-center flex-wrap gap-1">
-                                <div id="cp-selected-members" class="flex flex-wrap gap-1.5 items-center w-full">
-                                    <span class="text-gray-400 text-sm">ค้นหาหรือเลือกผู้ที่ได้รับมอบหมาย</span>
-                                </div>
-                                <i
-                                    class="fa-solid fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
-                            </div>
-
-                            <!-- Dropdown for selecting members -->
-                            <div id="cp-members-dropdown"
-                                class="hidden absolute top-full left-0 z-30 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
-                                <!-- Rendered by JS -->
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Vertical Divider -->
-                <div class="hidden md:block w-px bg-gray-100"></div>
+                <div class="hidden"></div>
 
-                <!-- Right Column -->
-                <div class="flex-1 space-y-6">
+                <!-- Right Column: recurring schedule (no longer used — the project dates go to the calendar) -->
+                <div id="cp-schedule-col" class="hidden">
                     <div>
                         <h3 class="text-sm font-bold text-gray-800 mb-3">ปฏิทิน / การนัดหมาย</h3>
                         <label class="flex items-center space-x-2 cursor-pointer">
@@ -3422,11 +3055,11 @@
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-gray-400">ตัวอย่าง</span>
                             <div id="ats-color-preview" class="h-8 w-24 rounded-xl shadow-sm"
-                                style="background-color:#1e3a5f"></div>
+                                style="background-color:#1E293B"></div>
                         </div>
                     </div>
                     <div class="grid grid-cols-6 gap-3 justify-items-center">
-                        <input type="hidden" id="ats-color" value="#1e3a5f">
+                        <input type="hidden" id="ats-color" value="#1E293B">
                         <button type="button" onclick="App.setAtsColor('#ef4444')"
                             class="ats-color-btn w-8 h-8 rounded-full shadow-sm hover:scale-110 transition-transform"
                             data-color="#ef4444" style="background-color: #ef4444;"></button>
@@ -3439,18 +3072,18 @@
                         <button type="button" onclick="App.setAtsColor('#22c55e')"
                             class="ats-color-btn w-8 h-8 rounded-full shadow-sm hover:scale-110 transition-transform"
                             data-color="#22c55e" style="background-color: #22c55e;"></button>
-                        <button type="button" onclick="App.setAtsColor('#10b981')"
+                        <button type="button" onclick="App.setAtsColor('#22C55E')"
                             class="ats-color-btn w-8 h-8 rounded-full shadow-sm hover:scale-110 transition-transform"
-                            data-color="#10b981" style="background-color: #10b981;"></button>
+                            data-color="#22C55E" style="background-color: #22C55E;"></button>
                         <button type="button" onclick="App.setAtsColor('#06b6d4')"
                             class="ats-color-btn w-8 h-8 rounded-full shadow-sm hover:scale-110 transition-transform"
                             data-color="#06b6d4" style="background-color: #06b6d4;"></button>
                         <button type="button" onclick="App.setAtsColor('#3b82f6')"
                             class="ats-color-btn w-8 h-8 rounded-full shadow-sm hover:scale-110 transition-transform"
                             data-color="#3b82f6" style="background-color: #3b82f6;"></button>
-                        <button type="button" onclick="App.setAtsColor('#1e3a5f')"
+                        <button type="button" onclick="App.setAtsColor('#1E293B')"
                             class="ats-color-btn w-8 h-8 rounded-full shadow-sm hover:scale-110 transition-transform ring-2 ring-offset-2 ring-gray-400"
-                            data-color="#1e3a5f" style="background-color: #1e3a5f;"></button>
+                            data-color="#1E293B" style="background-color: #1E293B;"></button>
                         <button type="button" onclick="App.setAtsColor('#8b5cf6')"
                             class="ats-color-btn w-8 h-8 rounded-full shadow-sm hover:scale-110 transition-transform"
                             data-color="#8b5cf6" style="background-color: #8b5cf6;"></button>
@@ -5626,8 +5259,8 @@
                         id="panel-icon">
                         <i class="fa-solid fa-wallet"></i>
                     </div>
-                    <h3 class="text-base font-bold text-gray-800 mb-1" id="panel-title">ขออนุมัติค่าอาหารและเบรก</h3>
-                    <div class="text-3xl font-black text-gray-900 mb-3" id="panel-amount">฿5,400</div>
+                    <h3 class="text-base font-bold text-gray-800 mb-1" id="panel-title">รายละเอียดรายการ</h3>
+                    <div class="text-3xl font-black text-gray-900 mb-3" id="panel-amount">฿0</div>
                     <div class="flex justify-center gap-2" id="panel-badges">
                         <span
                             class="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold"
@@ -5646,15 +5279,14 @@
                     </div>
                     <div class="px-5 py-3.5 border-b border-gray-50 flex justify-between items-center">
                         <span class="text-xs font-medium text-gray-500">วันที่</span>
-                        <span class="text-sm font-medium text-gray-800" id="panel-date">02 กันยายน 2026</span>
+                        <span class="text-sm font-medium text-gray-800" id="panel-date">—</span>
                     </div>
                     <div class="px-5 py-3.5 border-b border-gray-50 flex justify-between items-center">
                         <span class="text-xs font-medium text-gray-500">ผู้ขอ/ผู้บันทึก</span>
                         <div class="flex items-center gap-2">
                             <img src="https://ui-avatars.com/api/?name=PM&background=random"
                                 class="w-6 h-6 rounded-full border border-gray-200">
-                            <span class="text-sm font-medium text-gray-800" id="panel-user">พิมพ์ชนก (Project
-                                Manager)</span>
+                            <span class="text-sm font-medium text-gray-800" id="panel-user">—</span>
                         </div>
                     </div>
                     <div class="px-5 py-3.5 border-b border-gray-50 flex flex-col gap-2">
@@ -5696,13 +5328,14 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/mockData.js?v=8"></script>
-    <script src="js/config.js?v=7"></script>
+    <script src="js/config.js?v=10"></script>
     <script src="js/supabaseClient.js?v=1"></script>
     <script src="js/apiService.js?v=7"></script>
-    <script src="js/i18n.js?v=7"></script>
+    <script src="js/i18n.js?v=8"></script>
     <script src="js/workReport.js?v=7"></script>
-    <script src="js/app.js?v=39"></script>
-    <script src="js/login-flow.js?v=10"></script>
+    <script src="js/dateFormat.js?v=1"></script>
+    <script src="js/app.js?v=44"></script>
+    <script src="js/login-flow.js?v=12"></script>
     <script src="js/finance.js?v=1"></script>
     <script src="js/personalInfo.js?v=2"></script>
     <script src="js/memberInfo.js?v=1"></script>
@@ -5710,7 +5343,7 @@
     <script src="js/mailbox.js?v=3"></script>
     <script src="js/invitePage.js?v=5"></script>
     <script src="js/memberActions.js?v=2"></script>
-    <script src="js/nav.js?v=5"></script>
+    <script src="js/nav.js?v=6"></script>
 </body>
 
 </html>

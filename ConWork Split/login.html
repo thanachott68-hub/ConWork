@@ -9,7 +9,7 @@
     <link rel="icon" type="image/jpeg" href="img/logo.jpg">
     <!-- Fonts -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Kanit:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Kanit:wght@500;600;700&family=Nunito:wght@600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap"
         rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,54 +20,62 @@
             darkMode: 'class',
             theme: {
                 extend: {
+                    /* Skylearn design system: sky / sun / leaf palette, legible type, soft rounded shapes */
                     fontFamily: {
-                        sans: ['Kanit', 'Inter', 'sans-serif'],
+                        sans: ['"Atkinson Hyperlegible Next"', '"Atkinson Hyperlegible"', '"IBM Plex Sans Thai"', 'Nunito Sans', 'sans-serif'],
+                        display: ['Nunito', 'Kanit', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    fontSize: {
+                        xs: ['14px', '20px'],
+                        sm: ['16px', '24px'],
+                        base: ['18px', '28px'],
+                        lg: ['19px', '28px'],
                     },
                     colors: {
-                        primary: '#4193FA',
-                        secondary: '#66CBAA',
-                        accent: '#f7759c',
-                        cream: '#FEF8F1',
-                        blue: {
-                            50: '#F0F6FF',
-                            100: '#E0EDFF',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#4193FA',
-                            600: '#267DF0',
-                            700: '#1E65CC'
+                        primary: '#3B82F6',
+                        secondary: '#22C55E',
+                        accent: '#F87171',
+                        cream: '#F8FAFC',
+                        sky: { DEFAULT: '#3B82F6', bright: '#60A5FA', deep: '#1D4ED8', soft: '#DBEAFE' },
+                        sun: { DEFAULT: '#FBBF24', bright: '#FCD34D', deep: '#D97706' },
+                        leaf: { DEFAULT: '#22C55E', soft: '#DCFCE7', deep: '#16A34A' },
+                        coral: { DEFAULT: '#F87171', soft: '#FEE2E2' },
+                        berry: '#A855F7',
+                        ink: { DEFAULT: '#0F172A', muted: '#475569', subtle: '#94A3B8', faint: '#CBD5E1' },
+                        outline: { DEFAULT: '#E2E8F0', strong: '#94A3B8' },
+                        gray: {
+                            50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1', 400: '#94A3B8',
+                            500: '#64748B', 600: '#475569', 700: '#334155', 800: '#1E293B', 900: '#0F172A'
                         },
-                        emerald: {
-                            50: '#F0Fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            300: '#86efac',
-                            400: '#66CBAA',
-                            500: '#4BAF8E',
-                            600: '#359071',
-                            700: '#15803d'
-                        },
-                        green: {
-                            50: '#F0Fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            300: '#86efac',
-                            400: '#66CBAA',
-                            500: '#4BAF8E',
-                            600: '#359071',
-                            700: '#15803d'
+                        red: {
+                            50: '#FEF2F2', 100: '#FEE2E2', 200: '#FECACA', 300: '#FCA5A5', 400: '#F87171',
+                            500: '#F87171', 600: '#DC2626', 700: '#B91C1C', 800: '#991B1B', 900: '#7F1D1D'
                         }
-                    }
+                    },
+                    borderRadius: {
+                        xl: '16px',
+                        '2xl': '20px',
+                        '3xl': '28px',
+                    },
+                    boxShadow: {
+                        sm: '0 1px 2px rgba(15, 23, 42, 0.04)',
+                        DEFAULT: '0 2px 8px rgba(15, 23, 42, 0.05)',
+                        md: '0 8px 24px rgba(15, 23, 42, 0.06)',
+                        lg: '0 12px 32px rgba(15, 23, 42, 0.08)',
+                        xl: '0 24px 48px rgba(15, 23, 42, 0.12)',
+                        '2xl': '0 24px 48px rgba(15, 23, 42, 0.12)',
+                    },
+                    transitionDuration: { DEFAULT: '240ms' },
                 }
             }
         }
     </script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/work-report.css?v=2">
-    <link id="dark-mode-styles" rel="stylesheet" href="css/dark-mode.css">
-    <link rel="stylesheet" href="css/login-flow.css">
+    <link rel="stylesheet" href="css/work-report.css?v=3">
+    <link id="dark-mode-styles" rel="stylesheet" href="css/dark-mode.css?v=3">
+    <link rel="stylesheet" href="css/login-flow.css?v=2">
     <style>
         /* Rich Text Editor Tailwind Resets Reverter */
         [contenteditable="true"] b,
@@ -134,7 +142,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #9CA3AF;
+            color: #94A3B8;
             transition: color .15s;
         }
 
@@ -195,6 +203,8 @@
             border-color: #F87171 !important;
         }
     </style>
+    <!-- Skylearn theme (loaded last so it wins over the older styles) -->
+    <link rel="stylesheet" href="css/skylearn.css?v=1">
 </head>
 
 <body data-page="login" class="text-gray-800 antialiased h-screen overflow-hidden flex flex-col font-sans bg-cream">
@@ -234,7 +244,7 @@
                                 d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
                             <path fill="#4CAF50"
                                 d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
-                            <path fill="#1976D2"
+                            <path fill="#1D4ED8"
                                 d="M43.6 20.5H42V20H24v8h11.3a12 12 0 0 1-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" />
                         </svg> Continue with
                         Google
@@ -391,7 +401,7 @@
                     </div>
 
                     <button type="submit"
-                        class="w-full bg-[#1e1e24] hover:bg-black text-white px-4 py-3 rounded-md font-medium text-sm transition-colors">Update
+                        class="w-full bg-[#0F172A] hover:bg-black text-white px-4 py-3 rounded-md font-medium text-sm transition-colors">Update
                         Password</button>
                 </form>
             </div>
@@ -490,11 +500,11 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=8"></script>
+    <script src="js/config.js?v=10"></script>
     <script src="js/supabaseClient.js?v=1"></script>
-    <script src="js/i18n.js?v=7"></script>
-    <script src="js/login-flow.js?v=11"></script>
-    <script src="js/nav.js?v=5"></script>
+    <script src="js/i18n.js?v=8"></script>
+    <script src="js/login-flow.js?v=12"></script>
+    <script src="js/nav.js?v=6"></script>
 </body>
 
 </html>

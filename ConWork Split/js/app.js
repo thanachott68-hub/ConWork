@@ -759,6 +759,22 @@ const App = {
                                     this.state.currentUser.jobTitle = jobTitle;
                                 }
                             });
+                            /* names: the Thai name from ข้อมูลส่วนตัว (same as the Team page) wherever it has been filled in */
+                            if (window.PersonalInfo) {
+                                try {
+                                    const infos = await window.PersonalInfo.loadMany(userIds);
+                                    const mineInfo = this.state.currentUser ? await window.PersonalInfo.load(this.state.currentUser.id) : null;
+                                    if (mineInfo && this.state.currentUser) infos[String(this.state.currentUser.id)] = mineInfo;
+                                    mockUsers.forEach(u => {
+                                        const x = infos[String(u.id)];
+                                        const th = x ? [x.first_name_th, x.last_name_th].filter(Boolean).join(' ').trim() : '';
+                                        if (!th) return;
+                                        u.name = th; u.username = th;
+                                        if (/ui-avatars\.com/.test(u.avatar || '')) u.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(th)}&background=random`;
+                                        if (this.state.currentUser && String(u.id) === String(this.state.currentUser.id)) this.state.currentUser.name = th;
+                                    });
+                                } catch (e) { console.warn('[App] personal info names', e); }
+                            }
                             this.updateProfile();
                             await this.loadUserChats();
                         }
@@ -845,8 +861,8 @@ const App = {
                                     if (p.project_members) {
                                         p.project_members.forEach(pm => {
                                             memberUserIds.push(pm.user_id);
-                                            if (pm.project_role === 'manager') managerIds.push(pm.user_id);
-                                            if (pm.project_role === 'comanager') comanagerIds.push(pm.user_id);
+                                            if (pm.project_role === 'manager' || pm.project_role === 'owner') managerIds.push(pm.user_id);
+                                            if (pm.project_role === 'comanager' || pm.project_role === 'admin' || pm.project_role === 'editor') comanagerIds.push(pm.user_id);
                                         });
                                     }
                                     
@@ -868,6 +884,8 @@ const App = {
                                         comanagers: comanagerIds,
                                         manager: managerIds.length > 0 ? managerIds[0] : null,
                                         color: p.color || 'bg-blue-500',
+                                        teams: Array.isArray(p.departments) ? p.departments : [],
+                                        teamDept: Array.isArray(p.departments) ? p.departments.join(', ') : '',
                                         tags: []
                                     });
                                 });
@@ -4242,7 +4260,13 @@ const App = {
 
         // Set select value based on state
         const sel = document.getElementById('cal-group-select');
-        if (sel && sel.value !== this.state.calTab) sel.value = this.state.calTab;
+        if (sel) {
+            let opt = sel.querySelector('option[value="dept"]');
+            if (!opt) { opt = document.createElement('option'); opt.value = 'dept'; sel.appendChild(opt); }
+            const d = this._myDept();
+            opt.textContent = (isEn ? 'My department' : 'แผนกของฉัน') + (d ? ` (${d})` : '');
+            if (sel.value !== this.state.calTab) sel.value = this.state.calTab;
+        }
 
         // Count members roughly based on tab
         const countSpan = document.getElementById('cal-group-member-count');
@@ -4252,6 +4276,9 @@ const App = {
                 count = 1;
             } else if (this.state.calTab === 'group') {
                 count = mockUsers.filter(u => mockProjects.some(p => p.team && p.team.includes(u.id))).length || mockUsers.length;
+            } else if (this.state.calTab === 'dept') {
+                const d = this._myDept();
+                count = d ? mockUsers.filter(u => String(u.department || '').trim() === d).length : 0;
             }
             countSpan.textContent = isEn ? `${count} Members` : `สมาชิก ${count} คน`;
         }
@@ -4410,6 +4437,35 @@ const App = {
         const today = new Date();
         const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
+        /* project bars: each project gets its own row ("lane") so a bar stays at the same height from start to end */
+        const lanes = {}, laneEnds = [];
+        const spanProjects = [];
+        events.filter(e => e.span).forEach(e => { if (!spanProjects.some(x => x.projectId === e.projectId)) spanProjects.push(e); });
+        spanProjects.sort((a, b) => a.spanFrom.localeCompare(b.spanFrom) || String(a.projectId).localeCompare(String(b.projectId)));
+        spanProjects.forEach(e => {
+            let l = laneEnds.findIndex(end => end < e.spanFrom);
+            if (l === -1) { l = laneEnds.length; laneEnds.push(''); }
+            laneEnds[l] = e.spanTo; lanes[e.projectId] = l;
+        });
+        const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const barsFor = (dateStr, weekday, dayNum) => {
+            const mine = events.filter(e => e.span && e.date === dateStr);
+            if (!mine.length) return '';
+            const top = Math.max(...mine.map(e => lanes[e.projectId]));
+            let out = '';
+            for (let l = 0; l <= top; l++) {
+                const e = mine.find(x => lanes[x.projectId] === l);
+                if (!e) { out += '<div class="h-[15px]"></div>'; continue; }
+                const showName = e.spanStart || weekday === 0 || dayNum === 1;
+                const round = (e.spanStart ? ' rounded-l ml-0.5' : ' -ml-1') + (e.spanEnd ? ' rounded-r mr-0.5' : ' -mr-1');
+                const range = `${e.spanFrom.slice(5, 7)}/${e.spanFrom.slice(8)}/${e.spanFrom.slice(0, 4)} – ${e.spanTo.slice(5, 7)}/${e.spanTo.slice(8)}/${e.spanTo.slice(0, 4)}`;
+                out += `<div class="h-[15px] text-[9px] leading-[15px] px-1 font-semibold truncate ${e.colorClass}${round} cursor-pointer"
+                            onclick="event.stopPropagation(); App.calendarEventClick('${e.projectId}', '${e.id}');"
+                            title="${esc(e.title)} (${range})">${showName ? esc(e.title) : '&nbsp;'}</div>`;
+            }
+            return `<div class="mt-1 space-y-0.5">${out}</div>`;
+        };
+
         let html = '';
         for (let i = 0; i < firstDay; i++) {
             html += `<div class="min-h-0 border-b border-r border-gray-100 bg-gray-50/40 p-1 flex flex-col"></div>`;
@@ -4419,7 +4475,8 @@ const App = {
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
             const isToday = dateStr === todayStr;
             const isSelected = dateStr === this.state.selectedDate;
-            const dayEvents = events.filter(e => e.date === dateStr);
+            const dayEvents = events.filter(e => e.date === dateStr && !e.span);
+            const bars = barsFor(dateStr, (firstDay + d - 1) % 7, d);
 
             // Sort events by time loosely
             dayEvents.sort((a, b) => (a.time || '24:00').localeCompare(b.time || '24:00'));
@@ -4430,7 +4487,8 @@ const App = {
             html += `
                 <div class="min-h-0 border-b border-r border-gray-100 p-1 flex flex-col ${bgClass} transition-colors cursor-pointer"
                     onclick="App.calendarDayClick('${dateStr}')">
-                    <span class="text-sm font-medium ml-1 mt-0.5 ${isToday ? 'bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm' : 'text-gray-600'}">${d}</span>
+                    <span class="text-sm font-medium ml-1 mt-0.5 ${isToday ? 'bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm' : 'text-gray-600 h-6 leading-6'}">${d}</span>
+                    ${bars}
                     <div class="flex-1 min-h-0 overflow-y-auto mt-1 px-0.5 space-y-0.5 custom-scrollbar">
                         ${dayEvents.map(e => `
                             <div class="group relative text-[9px] truncate px-1 py-[1px] rounded-sm font-medium ${e.colorClass} cursor-pointer shadow-sm border ${e.borderClass || 'border-transparent'} leading-tight"
@@ -4655,11 +4713,19 @@ const App = {
                 mockProjects.forEach(p => {
                     if (this._isVisibleByTab(p.id)) {
                         const colors = _getProjColors(p.id, 'bg-emerald-50 text-emerald-700', 'border-emerald-200');
-                        if (p.startDate && p.startDate.startsWith(mStr)) {
-                            events.push({ id: 'proj-start-' + p.id, date: p.startDate, title: `▶ ${p.name}`, time: '', projectId: p.id, colorClass: colors.cl, borderClass: colors.br });
-                        }
-                        if (p.dueDate && p.dueDate.startsWith(mStr)) {
-                            events.push({ id: 'proj-end-' + p.id, date: p.dueDate, title: `■ ${p.name}`, time: '', projectId: p.id, colorClass: colors.cl, borderClass: colors.br });
+                        /* one colored bar from the start date to the end date: an entry on every day in between */
+                        const s0 = p.startDate || p.dueDate, e0 = p.dueDate || p.startDate;
+                        if (s0 && e0 && s0 <= e0) {
+                            const solid = /^bg-[a-z]+-\d+$/.test(p.color || '') ? p.color : 'bg-blue-500';
+                            for (let d = 1; d <= daysInM; d++) {
+                                const ds = `${mStr}-${String(d).padStart(2, '0')}`;
+                                if (ds < s0 || ds > e0) continue;
+                                events.push({
+                                    id: 'proj-span-' + p.id + '-' + ds, date: ds, title: p.name, time: '', projectId: p.id,
+                                    span: true, spanStart: ds === s0, spanEnd: ds === e0, spanFrom: s0, spanTo: e0,
+                                    colorClass: `${solid} text-white`, borderClass: 'border-transparent'
+                                });
+                            }
                         }
                     }
                 });
@@ -4718,12 +4784,26 @@ const App = {
             visible = (createdTab === 'all' || createdTab === 'group');
         } else if (this.state.calTab === 'personal') {
             visible = (createdTab === 'personal' || createdTab === 'all');
+        } else if (this.state.calTab === 'dept') {
+            visible = (createdTab === 'all' || createdTab === 'group');
         }
 
         if (visible) {
             return this._isVisibleByTab(e.projectId, e.userIds);
         }
         return false;
+    },
+
+    _myDept() {
+        const cu = this.state.currentUser || {};
+        const me = mockUsers.find(u => String(u.id) === String(cu.id));
+        return String((me && me.department) || cu.department || '').trim();
+    },
+    _projectInMyDept(p) {
+        const d = this._myDept();
+        if (!p || !d) return false;
+        const list = Array.isArray(p.teams) && p.teams.length ? p.teams : String(p.teamDept || '').split(',').map(x => x.trim());
+        return list.includes(d);
     },
 
     _isVisibleByTab(projectId, userIds = []) {
@@ -4743,8 +4823,15 @@ const App = {
             if (projectId) {
                 const p = mockProjects.find(pr => pr.id === projectId);
                 if (p && p.team && p.team.includes(curUser.id)) return true;
+                if (this._projectInMyDept(p)) return true;
             }
             return false;
+        }
+
+        if (this.state.calTab === 'dept') {
+            // my department's calendar: projects that list my department
+            if (!projectId) return false;
+            return this._projectInMyDept(mockProjects.find(pr => pr.id === projectId));
         }
 
         if (this.state.calTab === 'group') {
@@ -5344,8 +5431,9 @@ const App = {
         const startInput = document.getElementById('cp-start-date');
         const endInput = document.getElementById('cp-end-date');
         const recurStart = document.getElementById('cp-recur-start');
-        if (startInput) startInput.value = todayStr;
-        if (endInput) endInput.value = endStr;
+        /* a new project starts with empty dates (the boxes show mm/dd/yyyy); editing fills them in afterwards */
+        if (startInput) startInput.value = '';
+        if (endInput) endInput.value = '';
         if (recurStart) recurStart.value = todayStr;
 
         // Populate time dropdowns
@@ -5388,8 +5476,9 @@ const App = {
         // Populate team dropdown with departments
         const teamDrop = document.getElementById('team-dropdown');
         if (teamDrop) {
-            const teams = [...new Set(mockUsers.map(u => u.department))].filter(Boolean);
-            teamDrop.innerHTML = teams.map(t => `
+            const fromSettings = [...document.querySelectorAll('#dept-list-container .dept-item span')].map(x => x.textContent.trim());
+            const teams = [...new Set([...mockUsers.map(u => u.department), ...fromSettings])].filter(Boolean);
+            teamDrop.innerHTML = (teams.length ? '' : '<div class="px-4 py-2 text-sm text-gray-400">ยังไม่มีฝ่าย/แผนก</div>') + teams.map(t => `
                 <div class="flex items-center px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-700 transition-colors"
                     onclick="App._selectTeam('${t}')">
                     <i class="fa-solid fa-users mr-2 text-blue-400 text-xs"></i>${t}
@@ -5547,7 +5636,7 @@ const App = {
         const container = document.getElementById('cp-selected-members');
         if (!container) return;
         if (!App._cpSelectedMembers || App._cpSelectedMembers.length === 0) {
-            container.innerHTML = '<span class="text-gray-400 text-sm">ค้นหาหรือเลือกผู้ที่ได้รับมอบหมาย</span>';
+            container.innerHTML = '<span class="text-gray-400 text-sm">ค้นหาหรือเลือกผู้เข้าร่วม</span>';
             return;
         }
 
@@ -5654,6 +5743,42 @@ const App = {
         this._renderCpSelectedMembers();
     },
 
+    /* run a Supabase insert/update; if the table lacks a column ("Could not find the 'x' column"), drop that field and try again */
+    async _sbSaveSkippingMissing(data, run) {
+        const d = Object.assign({}, data);
+        let res = await run(d);
+        for (let i = 0; i < 12 && res && res.error; i++) {
+            const m = /Could not find the '([^']+)' column/i.exec(res.error.message || '') || /column "?([a-z_]+)"? of relation .* does not exist/i.exec(res.error.message || '');
+            if (!m || !(m[1] in d)) break;
+            console.warn('[projects] column missing in the database, saving without it:', m[1]);
+            delete d[m[1]];
+            res = await run(d);
+        }
+        return res;
+    },
+
+    /* project_members has a check on project_role; databases set up differently allow different names.
+       Try the app's names first (manager / comanager / contributor), then common alternatives. */
+    async _insertProjectMembers(rows) {
+        const sb = window.conworkSupabase.client;
+        const tries = [
+            null,
+            { manager: 'owner', comanager: 'admin', contributor: 'member' },
+            { manager: 'manager', comanager: 'manager', contributor: 'member' },
+            { manager: 'owner', comanager: 'editor', contributor: 'viewer' },
+            { manager: 'admin', comanager: 'admin', contributor: 'member' },
+            { manager: 'member', comanager: 'member', contributor: 'member' }
+        ];
+        let res;
+        for (const map of tries) {
+            const data = map ? rows.map(r => Object.assign({}, r, { project_role: map[r.project_role] || r.project_role })) : rows;
+            res = await sb.from('project_members').insert(data);
+            if (!res.error || !/project_role/.test(res.error.message || '')) return res;
+            console.warn('[projects] project_role not accepted, trying other names', map);
+        }
+        return res;
+    },
+
     async submitCreateProject() {
         const isManager = this.state.currentUser && ['admin', 'reviewer2', 'reviewer1', 'manager', 'supervisor'].includes(this.state.currentUser.role);
         if (this.state.editingProjectId) {
@@ -5677,6 +5802,8 @@ const App = {
 
         const startDate = document.getElementById('cp-start-date')?.value;
         const endDate = document.getElementById('cp-end-date')?.value;
+        if (!startDate || !endDate) { App._showToast('กรุณาเลือกวันเริ่มต้นและวันสิ้นสุดของโครงการ', 'error'); return; }
+        if (endDate < startDate) { App._showToast('วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น', 'error'); return; }
         const desc = document.getElementById('cp-desc')?.value?.trim();
         const color = document.getElementById('cp-color')?.value || 'bg-blue-500';
         const managers = App._cpSelectedManagers || [];
@@ -5719,26 +5846,14 @@ const App = {
                 proj.teamDept = teams.join(', ');
                 proj.teams = teams;
                 proj.team = teamMembers;
-                proj.schedule = {
-                    days: selectedDays,
-                    timeStart: timeStart,
-                    timeEnd: timeEnd,
-                    recurStart: startDate,
-                    recurEndType: recurEndType,
-                    recurEndDate: recurEndDate,
-                    recurEndCount: recurEndCount
-                };
+                proj.schedule = null;
 
                 // --- Update Supabase Project ---
                 if (window.conworkSupabase && window.conworkSupabase.isAvailable() && !['p1', 'p2', 'p3', 'p4'].includes(String(proj.id))) {
                     try {
-                        await window.conworkSupabase.client.from('projects').update({
-                            name: name,
-                            description: desc,
-                            color: color,
-                            start_date: startDate || null,
-                            due_date: endDate || null
-                        }).eq('id', proj.id);
+                        const upd = { name: name, description: desc, color: color, start_date: startDate || null, due_date: endDate || null, departments: teams };
+                        const { error: upErr } = await this._sbSaveSkippingMissing(upd, d => window.conworkSupabase.client.from('projects').update(d).eq('id', proj.id));
+                        if (upErr) console.error('Error updating project', upErr);
 
                         // Sync members
                         if (teamMembers.length > 0) {
@@ -5758,7 +5873,7 @@ const App = {
                                     project_role: role 
                                 };
                             });
-                            const { error: pmErr } = await window.conworkSupabase.client.from('project_members').insert(membersToInsert);
+                            const { error: pmErr } = await this._insertProjectMembers(membersToInsert);
                             if (pmErr) {
                                 console.error("Error updating project_members in Supabase:", pmErr);
                                 alert(`เกิดข้อผิดพลาดในการบันทึกรายชื่อคนเข้าโปรเจกต์:\n${pmErr.message}`);
@@ -5819,14 +5934,13 @@ const App = {
                         status: 'planning',
                         progress_pct: 0,
                         start_date: startDate || null,
-                        due_date: endDate || null
+                        due_date: endDate || null,
+                        departments: teams
                     };
 
-                    const { data: insertedProj, error: insErr } = await window.conworkSupabase.client
-                        .from('projects')
-                        .insert(dbProjData)
-                        .select()
-                        .single();
+                    /* columns this database does not have yet (conwork-projects.sql adds them) are left out instead of failing */
+                    const { data: insertedProj, error: insErr } = await this._sbSaveSkippingMissing(dbProjData,
+                        d => window.conworkSupabase.client.from('projects').insert(d).select().single());
                         
                     if (insErr) {
                         console.error("Error creating project:", insErr);
@@ -5858,7 +5972,7 @@ const App = {
                                     project_role: role 
                                 };
                             });
-                            const { error: pmErr } = await window.conworkSupabase.client.from('project_members').insert(membersToInsert);
+                            const { error: pmErr } = await this._insertProjectMembers(membersToInsert);
                             if (pmErr) {
                                 console.error("Error inserting project_members in Supabase:", pmErr);
                                 alert(`เกิดข้อผิดพลาดในการบันทึกรายชื่อคนเข้าโปรเจกต์ใหม่:\n${pmErr.message}`);
@@ -5890,15 +6004,7 @@ const App = {
                 comanagers: comanagers,
                 teamDept: teams.join(', '),
                 teams: teams,
-                schedule: {
-                    days: selectedDays,
-                    timeStart: timeStart,
-                    timeEnd: timeEnd,
-                    recurStart: startDate,
-                    recurEndType: recurEndType,
-                    recurEndDate: recurEndDate,
-                    recurEndCount: recurEndCount
-                }
+                schedule: null
             };
 
             mockProjects.push(newProject);
@@ -10101,12 +10207,6 @@ const App = {
         document.getElementById('up-job-title').innerHTML = jobTitleHtml;
         document.getElementById('up-role-badge').textContent = roleLabel;
 
-        // Mock realistic missing data
-        const nickname = user.username || user.name.split(' ')[0];
-        const age = Math.floor(Math.random() * 20) + 22; // 22 to 41
-        const birthYear = 2567 - age;
-        const phone = `0${Math.floor(80 + Math.random() * 19)}-${Math.floor(100 + Math.random() * 899)}-${Math.floor(1000 + Math.random() * 8999)}`;
-
         this.state.currentViewingUserId = userId;
 
         // Bind Send Message Button
@@ -10137,34 +10237,41 @@ const App = {
             }
         }
 
-        // 2. Personal Info
-        const nameParts = user.name.split(' ');
-        const firstName = nameParts[0] || '';
-        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : 'Surname';
-        
+        // 2. Personal Info — the same record as Team → Profile (member_details), never made-up values
         const isEn = App.settings && App.settings.language === 'en';
-
-        const mrStr = isEn ? 'Mr.' : 'นาย';
-        const msStr = isEn ? 'Ms.' : 'นางสาว';
-        document.getElementById('up-title').textContent = Math.random() > 0.5 ? mrStr : msStr;
-        
-        document.getElementById('up-firstname').textContent = firstName;
-        document.getElementById('up-lastname').textContent = lastName;
-        document.getElementById('up-nickname').textContent = nickname;
-        
-        const enYear = birthYear - 543;
-        const bdayStr = isEn ? `15 March ${enYear} (${age} years)` : `15 มีนาคม ${birthYear} (${age} ปี)`;
-        document.getElementById('up-birthday').textContent = bdayStr;
-        
-        const mStr = isEn ? 'Male' : 'ชาย';
-        const fStr = isEn ? 'Female' : 'หญิง';
-        document.getElementById('up-gender').textContent = Math.random() > 0.5 ? mStr : fStr;
-        
-        document.getElementById('up-phone').textContent = phone;
-        document.getElementById('up-personal-email').textContent = `${nickname.toLowerCase()}.personal@gmail.com`;
+        const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = (v === undefined || v === null || v === '') ? '-' : v; };
+        /* คำนำหน้า and ชื่อเล่น are not collected, so those boxes are hidden */
+        ['up-title', 'up-nickname'].forEach(id => { const el = document.getElementById(id); if (el && el.parentElement) el.parentElement.classList.add('hidden'); });
+        setTxt('up-firstname', '…'); setTxt('up-lastname', '…'); setTxt('up-birthday', '…'); setTxt('up-gender', '…'); setTxt('up-phone', '…'); setTxt('up-personal-email', '…');
+        const PI = window.PersonalInfo;
+        const isMe = this.state.currentUser && String(this.state.currentUser.id) === String(userId);
+        const fill = (info) => {
+            if (String(this.state.currentViewingUserId) !== String(userId)) return;   // another profile was opened meanwhile
+            info = info || {};
+            setTxt('up-firstname', info.first_name_th || '');
+            setTxt('up-lastname', info.last_name_th || '');
+            const thName = [info.first_name_th, info.last_name_th].filter(Boolean).join(' ');
+            if (thName) setTxt('up-name', thName);
+            let bday = '';
+            if (info.birth_date) {
+                const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(info.birth_date);
+                const age = PI ? PI.age(info.birth_date) : '';
+                bday = (m ? `${m[2]}/${m[3]}/${m[1]}` : info.birth_date) + (age !== '' ? (isEn ? ` (${age} years)` : ` (${age} ปี)`) : '');
+            }
+            setTxt('up-birthday', bday);
+            const G = isEn ? { male: 'Male', female: 'Female', unspecified: 'Not specified' } : ((PI && PI.GENDER) || {});
+            setTxt('up-gender', G[info.gender] || '');
+            setTxt('up-phone', info.phone ? (PI ? PI.phone(info.phone) : info.phone) : '');
+            setTxt('up-personal-email', info.personal_email || '');
+        };
+        this.state.currentViewingUserId = userId;
+        if (PI) {
+            (isMe ? PI.load(userId) : PI.loadMany([userId]).then(o => o[String(userId)] || null))
+                .then(fill).catch(() => fill(null));
+        } else fill(null);
 
         // 3. Account Access
-        document.getElementById('up-email').textContent = `${nickname.toLowerCase()}@company.com`;
+        setTxt('up-email', user.email && !/@company\.com$/.test(user.email) ? user.email : (isMe && this.state.currentUser.email) || user.email || '');
 
         // 4. Work Info
         document.getElementById('up-work-position').textContent = jobTitle;
