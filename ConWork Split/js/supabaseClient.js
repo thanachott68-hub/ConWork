@@ -313,6 +313,17 @@ class ConWorkSupabaseService {
     // 4. REAL-TIME CHAT
     // ==========================================
 
+    /* run a chat database function; returns { missing: true } when the function is not installed yet */
+    async _chatRpc(name, args) {
+        const { data, error } = await this.client.rpc(name, args || {});
+        if (error) {
+            if (error.code === 'PGRST202' || /Could not find the function/i.test(error.message || '')) return { missing: true };
+            console.warn(`[chat] ${name}:`, error.message);
+            return { error };
+        }
+        return { data };
+    }
+
     async getOrCreateDirectChannel(targetUserId) {
         if (!this.isAvailable() || !targetUserId) return null;
         const user = await this.getCurrentUser();
@@ -321,6 +332,11 @@ class ConWorkSupabaseService {
         if (targetUserId === 'note' || String(targetUserId) === String(user.id)) {
             return this.getOrCreatePersonalNoteChannel();
         }
+
+        /* the database function creates the room with BOTH people in it (the app itself may not add someone else) */
+        const viaRpc = await this._chatRpc('get_or_create_dm', { other_user: targetUserId });
+        if (viaRpc.data) return viaRpc.data;
+        if (!viaRpc.missing) return null;
 
         try {
             const { data: myMemberships } = await this.client
@@ -373,6 +389,34 @@ class ConWorkSupabaseService {
         const user = await this.getCurrentUser();
         if (!user) return [];
 
+        /* one database call that also returns the other person's name and picture (their rows may be hidden from the app) */
+        const viaRpc = await this._chatRpc('list_my_chats');
+        if (viaRpc.data && Array.isArray(viaRpc.data)) {
+            return viaRpc.data.map(r => {
+                if (r.channel_name === 'พื้นที่ส่วนตัว (Note)') {
+                    return { id: 'note', supabaseChannelId: r.channel_id, name: 'พื้นที่ส่วนตัว (Note)', subtitle: 'จดบันทึกและฝากงานตัวเอง', type: 'personal', icon: 'fa-bookmark', color: 'bg-blue-600', status: 'online', unreadCount: 0 };
+                }
+                if (r.channel_type && r.channel_type !== 'direct') {
+                    return {
+                        companyId: r.company_id || null, scope: r.scope || null,
+                        id: 'chan-' + r.channel_id, supabaseChannelId: r.channel_id, name: r.channel_name || 'กลุ่มสนทนา',
+                        subtitle: r.channel_type === 'project' ? 'แชทโปรเจกต์' : (r.channel_type === 'announcement' ? 'ประกาศ' : 'กรุ๊ป'),
+                        type: 'group', channelType: r.channel_type, projectId: r.project_id || null,
+                        icon: r.channel_type === 'project' ? 'fa-folder-open' : (r.channel_type === 'announcement' ? 'fa-bullhorn' : 'fa-users'),
+                        color: r.channel_type === 'project' ? 'bg-violet-600' : 'bg-green-600', status: 'online', unreadCount: 0
+                    };
+                }
+                if (!r.other_user_id) return null; // a direct room with nobody else in it
+                return {
+                    companyId: r.company_id || null,
+                    id: 'user-' + r.other_user_id, supabaseChannelId: r.channel_id, userId: r.other_user_id,
+                    name: r.other_name || (r.other_email ? r.other_email.split('@')[0] : 'ผู้ใช้'),
+                    subtitle: r.other_email || 'ส่วนตัว', avatar: r.other_avatar || null,
+                    type: 'personal', icon: 'fa-user', color: 'bg-blue-500', status: 'offline', unreadCount: 0
+                };
+            }).filter(Boolean);
+        }
+
         try {
             const { data: memberships, error: memErr } = await this.client
                 .from('chat_channel_members')
@@ -395,6 +439,24 @@ class ConWorkSupabaseService {
                         type: 'personal',
                         icon: 'fa-bookmark',
                         color: 'bg-blue-600',
+                        status: 'online',
+                        unreadCount: 0
+                    });
+                    continue;
+                }
+
+                /* group / project / announcement rooms: shown by the room's own name, not as a chat with one of its members */
+                if (chan.type && chan.type !== 'direct') {
+                    channels.push({
+                        id: 'chan-' + chan.id,
+                        supabaseChannelId: chan.id,
+                        name: chan.name || 'กลุ่มสนทนา',
+                        subtitle: chan.type === 'project' ? 'แชทโปรเจกต์' : (chan.type === 'announcement' ? 'ประกาศ' : 'กรุ๊ป'),
+                        type: 'group',
+                        channelType: chan.type,
+                        projectId: chan.project_id || null,
+                        icon: chan.type === 'project' ? 'fa-folder-open' : (chan.type === 'announcement' ? 'fa-bullhorn' : 'fa-users'),
+                        color: chan.type === 'project' ? 'bg-violet-600' : 'bg-green-600',
                         status: 'online',
                         unreadCount: 0
                     });
@@ -442,6 +504,10 @@ class ConWorkSupabaseService {
         if (!this.isAvailable()) return null;
         const user = await this.getCurrentUser();
         if (!user) return null;
+
+        const viaRpc = await this._chatRpc('get_or_create_note');
+        if (viaRpc.data) return viaRpc.data;
+        if (!viaRpc.missing) return null;
 
         try {
             const { data: myMemberships } = await this.client
@@ -496,43 +562,91 @@ class ConWorkSupabaseService {
         return data;
     }
 
-    async sendMessage(channelId, content) {
+    /* save a message, then tell the open room about it. The broadcast carries the saved row's id
+       (and the sender's temporary client id), so every receiver can tell one message from another by id. */
+    async sendMessage(channelId, content, options = {}) {
         if (!this.isAvailable()) return null;
+        const clientId = (options && options.clientId) || null;
+        const file = options && options.file; // { path, name, size, type, messageType } for a file kept in Storage
 
         const user = await this.getCurrentUser();
-        const payload = {
-            channel_id: channelId,
-            sender_id: user ? user.id : 'anonymous',
-            content: content,
-            created_at: new Date().toISOString()
-        };
-
-        if (this.activeChannels && this.activeChannels[channelId]) {
-            try {
-                this.activeChannels[channelId].send({
-                    type: 'broadcast',
-                    event: 'new_message',
-                    payload: payload
-                });
-            } catch (e) {
-                console.warn('Broadcast send warning:', e);
-            }
-        }
-
+        const row = { channel_id: channelId, sender_id: user ? user.id : null, content: content };
+        if (file) Object.assign(row, { file_url: file.path, file_name: file.name, file_size: file.size, file_type: file.type, message_type: file.messageType });
         const { data, error } = await this.client
             .from('chat_messages')
-            .insert([{
-                channel_id: channelId,
-                sender_id: user ? user.id : null,
-                content: content
-            }])
+            .insert([row])
             .select()
             .single();
 
         if (error) {
             console.warn('Supabase DB insert notice:', error.message);
+            return null;
         }
-        return data || payload;
+
+        const payload = {
+            id: data.id,
+            client_id: clientId,
+            channel_id: channelId,
+            sender_id: data.sender_id,
+            content: data.content,
+            created_at: data.created_at,
+            file_url: data.file_url || null,
+            file_name: data.file_name || null,
+            file_size: data.file_size || null,
+            file_type: data.file_type || null,
+            message_type: data.message_type || null
+        };
+        if (this.activeChannels && this.activeChannels[channelId]) {
+            try {
+                this.activeChannels[channelId].send({ type: 'broadcast', event: 'new_message', payload: payload });
+            } catch (e) {
+                console.warn('Broadcast send warning:', e);
+            }
+        }
+        return payload;
+    }
+
+    /* ===== Chat files in Storage (bucket conwork-files, path <company>/chat/<room>/<time>-<name>) ===== */
+    async chatFilesReady() {
+        if (!this.isAvailable()) return false;
+        if (this._chatFilesReady !== undefined) return this._chatFilesReady;
+        const { error } = await this.client.from('chat_messages').select('file_url').limit(0);
+        this._chatFilesReady = !error; // the file columns exist (installed by the chat SQL)
+        return this._chatFilesReady;
+    }
+
+    async uploadChatFile(companyId, channelId, blob, fileName) {
+        const safe = String(fileName || 'file').replace(/[^\w.\-]+/g, '_').slice(-80);
+        const path = `${companyId || 'shared'}/chat/${channelId}/${Date.now()}-${safe}`;
+        const { error } = await this.client.storage.from('conwork-files').upload(path, blob, { contentType: blob.type || 'application/octet-stream', upsert: false });
+        if (error) { console.warn('[chat] file upload:', error.message); return null; }
+        return path;
+    }
+
+    /* a short-lived link to open or download a stored file (cached until shortly before it expires) */
+    async signedFileUrl(path) {
+        if (!path || !this.isAvailable()) return null;
+        this._signed = this._signed || {};
+        const hit = this._signed[path];
+        if (hit && hit.exp > Date.now()) return hit.url;
+        const { data, error } = await this.client.storage.from('conwork-files').createSignedUrl(path, 3600);
+        if (error || !data) return null;
+        this._signed[path] = { url: data.signedUrl, exp: Date.now() + 55 * 60 * 1000 };
+        return data.signedUrl;
+    }
+
+    /* someone started a chat with me (I was added to a room): let the app refresh its chat list */
+    async subscribeMyNewChats(onAdded) {
+        if (!this.isAvailable()) return null;
+        const { data: sess } = await this.client.auth.getSession();
+        const myId = sess && sess.session ? sess.session.user.id : null;
+        if (!myId) return null;
+        if (this.myChatsChannel) { try { this.client.removeChannel(this.myChatsChannel); } catch (e) { } }
+        const channel = this.client.channel('my_chat_memberships');
+        channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_channel_members', filter: `user_id=eq.${myId}` }, () => onAdded());
+        channel.subscribe();
+        this.myChatsChannel = channel;
+        return channel;
     }
 
     subscribeGlobalUserMessages(onNewMessageCallback) {
@@ -595,11 +709,14 @@ class ConWorkSupabaseService {
         });
 
         // 3. Listen to Realtime Presence State (Online/Offline status)
-        channel.on('presence', { event: 'sync' }, () => {
+        /* "online" means someone OTHER than me has this room open right now */
+        channel.on('presence', { event: 'sync' }, async () => {
             const state = channel.presenceState();
-            const isOnline = Object.keys(state).length > 0;
+            const { data: sess } = await this.client.auth.getSession(); // local, no network call
+            const myId = sess && sess.session ? String(sess.session.user.id) : '';
+            const others = Object.values(state).flat().filter(p => p && p.user_id && String(p.user_id) !== myId);
             if (onPresenceCallback) {
-                onPresenceCallback(isOnline, state);
+                onPresenceCallback(others.length > 0, state);
             }
         });
 
@@ -641,14 +758,19 @@ class ConWorkSupabaseService {
     async createCalendarEvent(eventData) {
         if (!this.isAvailable()) return null;
         
-        const { data, error } = await this.client
-            .from('events')
-            .insert([eventData])
-            .select()
-            .single();
-            
+        // attendee_ids go to event_attendees, not the events table; a column this database lacks is left out instead of failing
+        const { attendee_ids, ...row } = eventData;
+        let res = await this.client.from('events').insert([row]).select().single();
+        for (let i = 0; i < 8 && res.error; i++) {
+            const m = /Could not find the '([^']+)' column/i.exec(res.error.message || '');
+            if (!m || !(m[1] in row)) break;
+            console.warn('[events] column missing in the database, saving without it:', m[1]);
+            delete row[m[1]];
+            res = await this.client.from('events').insert([row]).select().single();
+        }
+        const { data, error } = res;
         if (error) throw error;
-        
+
         // Also insert attendees if any
         if (eventData.attendee_ids && eventData.attendee_ids.length > 0 && data.id) {
             const attendees = eventData.attendee_ids.map(uid => ({
@@ -669,14 +791,15 @@ class ConWorkSupabaseService {
         const { attendee_ids, ...mainData } = updateData;
         
         if (Object.keys(mainData).length > 0) {
-            const { data, error } = await this.client
-                .from('events')
-                .update(mainData)
-                .eq('id', eventId)
-                .select()
-                .single();
-                
-            if (error) throw error;
+            let res = await this.client.from('events').update(mainData).eq('id', eventId).select().single();
+            for (let i = 0; i < 8 && res.error; i++) {
+                const m = /Could not find the '([^']+)' column/i.exec(res.error.message || '');
+                if (!m || !(m[1] in mainData)) break;
+                console.warn('[events] column missing in the database, saving without it:', m[1]);
+                delete mainData[m[1]];
+                res = await this.client.from('events').update(mainData).eq('id', eventId).select().single();
+            }
+            if (res.error) throw res.error;
         }
         
         // Handle attendees update if provided

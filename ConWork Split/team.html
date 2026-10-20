@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ConWork - Teams</title>
     <!-- Favicon -->
-    <link rel="icon" type="image/jpeg" href="img/logo.jpg">
+    <link rel="icon" type="image/png" href="img/logo.png">
+    <link rel="apple-touch-icon" href="img/logo.png">
     <!-- Fonts -->
     <link
         href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Kanit:wght@500;600;700&family=Nunito:wght@600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap"
@@ -137,7 +138,8 @@
         }
     </style>
     <!-- Skylearn theme (loaded last so it wins over the older styles) -->
-    <link rel="stylesheet" href="css/skylearn.css?v=1">
+    <link rel="stylesheet" href="css/skylearn.css?v=5">
+    <link rel="stylesheet" href="css/bubble.css?v=3">
 </head>
 
 <body data-page="team" class="text-gray-800 antialiased h-screen overflow-hidden flex flex-col font-sans bg-cream">
@@ -567,8 +569,7 @@
         <aside id="app-sidebar" class="w-64 shrink-0 bg-slate-900 text-white flex flex-col shadow-xl z-20">
             <a href="index.html" onclick="goToLandingPage(); return false;" title="กลับหน้าแรก"
                 class="px-6 flex items-center gap-3 border-b border-white/10 h-16 shrink-0 hover:opacity-80 transition-opacity">
-                <span class="flex items-center bg-white rounded-lg p-1 shadow-sm"><img src="img/logo.jpg"
-                        alt="ConWork Logo" class="h-10 w-auto"></span>
+                <span class="flex items-center bg-white rounded-lg p-1 shadow-sm"><span class="cw-logo" style="height:34px"><img src="img/logo.png" alt="ConWork Logo"></span></span>
                 <h2 class="text-xl font-bold tracking-wide">ConWork</h2>
             </a>
             <nav class="flex-1 py-6 px-4 space-y-2">
@@ -802,10 +803,9 @@
                             <span class="tm-ico bg-slate-100 text-slate-600"><i
                                     class="fa-solid fa-circle-half-stroke"></i></span>
                             <span class="font-medium text-gray-700">ธีม</span>
-                            <div class="tm-seg ml-auto" data-setting="darkMode">
-                                <button type="button" data-v="false">สว่าง</button><button type="button"
-                                    data-v="true">มืด</button>
-                            </div>
+                            <button type="button" id="tm-theme-switch" class="cw-theme-btn ml-auto" role="switch" aria-checked="false" aria-label="ธีมมืด">
+                                <span class="cw-theme-switch" aria-hidden="true"><span class="cw-ts-knob"><svg class="cw-ts-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg><svg class="cw-ts-moon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></span></span>
+                            </button>
                         </div>
                     </div>
 
@@ -881,7 +881,7 @@
     <div id="tm-pass-modal" class="tm-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4">
         <form id="tm-pass-form" class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <div class="flex items-center mb-2">
-                <h3 class="text-lg font-bold text-gray-800">ออกจากทีม <span id="tm-pass-team"></span></h3>
+                <h3 class="text-lg font-bold text-gray-800">ออกจากทีม <span id="tm-pass-team" data-no-i18n></span></h3>
                 <button type="button" data-close class="ml-auto w-8 h-8 rounded-full hover:bg-gray-100 text-gray-400"><i
                         class="fa-solid fa-xmark"></i></button>
             </div>
@@ -901,7 +901,7 @@
     <div id="tm-req-modal" class="tm-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <div class="flex items-center mb-2">
-                <h3 class="text-lg font-bold text-gray-800">ขอออกจากทีม <span id="tm-req-team"></span></h3>
+                <h3 class="text-lg font-bold text-gray-800">ขอออกจากทีม <span id="tm-req-team" data-no-i18n></span></h3>
                 <button type="button" data-close class="ml-auto w-8 h-8 rounded-full hover:bg-gray-100 text-gray-400"><i
                         class="fa-solid fa-xmark"></i></button>
             </div>
@@ -916,7 +916,7 @@
     <div id="tm-inbox-modal" class="tm-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <div class="flex items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-800">Pending approval <span id="tm-inbox-team"
+                <h3 class="text-lg font-bold text-gray-800">Pending approval <span id="tm-inbox-team" data-no-i18n
                         class="text-gray-500 font-semibold"></span></h3>
                 <button type="button" data-close class="ml-auto w-8 h-8 rounded-full hover:bg-gray-100 text-gray-400"><i
                         class="fa-solid fa-xmark"></i></button>
@@ -933,7 +933,7 @@
                 <span id="tm-d-ini"
                     class="relative z-10 w-14 h-14 rounded-xl bg-white/90 flex items-center justify-center text-xl font-bold"></span>
                 <div class="relative z-10 ml-4 min-w-0 text-white drop-shadow">
-                    <div id="tm-d-name" class="text-xl font-bold truncate"></div>
+                    <div id="tm-d-name" data-no-i18n class="text-xl font-bold truncate"></div>
                     <div class="text-sm opacity-90">Your role: <b id="tm-d-role"></b></div>
                 </div>
                 <button type="button" data-close
@@ -990,16 +990,17 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=10"></script>
+    <script src="js/config.js?v=12"></script>
     <script>
         /* SKIP_TEAM_PAGE in js/config.js: never stop on this page, go straight into the app */
         if (window.CONWORK_CONFIG && window.CONWORK_CONFIG.SKIP_TEAM_PAGE) location.replace('app.html' + location.search + location.hash);
     </script>
-    <script src="js/supabaseClient.js?v=1"></script>
-    <script src="js/i18n.js?v=8"></script>
+    <script src="js/supabaseClient.js?v=5"></script>
+    <script src="js/theme.js?v=3"></script>
+    <script src="js/i18n.js?v=18"></script>
     <script src="js/personalInfo.js?v=2"></script>
     <script src="js/mailbox.js?v=3"></script>
-    <script src="js/nav.js?v=6"></script>
+    <script src="js/nav.js?v=7"></script>
     <script>
             /* ConWork — Teams page (first page after sign-in): Team tab + Profile tab */
             (function () {
@@ -1117,7 +1118,7 @@
                             + (t.personal ? '<span class="relative z-10 ml-auto tm-chip bg-white/85 text-gray-700">Personal</span>' : '')
                             + '</div>'
                             + '<div class="p-4">'
-                            + '<div class="font-bold text-gray-800 text-lg truncate">' + esc(t.name) + '</div>'
+                            + '<div class="font-bold text-gray-800 text-lg truncate" data-no-i18n>' + esc(t.name) + '</div>'
                             + '<div class="flex items-center gap-2 mt-1 text-sm text-gray-500"><i class="fa-regular fa-id-badge"></i><span>บทบาทของคุณ: <b class="text-gray-700">' + esc(role) + '</b></span>'
                             + (t.members ? '<span class="ml-auto text-xs"><i class="fa-solid fa-user-group mr-1"></i>' + t.members + '</span>' : '') + '</div>'
                             + '<div class="flex items-center gap-2 mt-3">' + chip + cancel + '</div>'
@@ -1137,7 +1138,7 @@
                         : '<span class="tm-chip bg-amber-50 text-amber-700"><i class="fa-solid fa-circle-exclamation text-[10px]"></i>ยังไม่ครบ</span>';
                     var row = function (label, val, req) {
                         return '<div class="flex items-center gap-3 px-5 py-3 border-b border-gray-100"><span class="text-gray-500 w-28 shrink-0">' + label + '</span>'
-                            + (val ? '<span class="font-medium text-gray-800 truncate">' + esc(val) + '</span>' : '<span class="' + (req ? 'text-amber-600' : 'text-gray-300') + '">' + (req ? 'ยังไม่ได้กรอก' : '—') + '</span>') + '</div>';
+                            + (val ? '<span class="font-medium text-gray-800 truncate" data-no-i18n>' + esc(val) + '</span>' : '<span class="' + (req ? 'text-amber-600' : 'text-gray-300') + '">' + (req ? 'ยังไม่ได้กรอก' : '—') + '</span>') + '</div>';
                     };
                     var name = [x.first_name_th, x.last_name_th].filter(Boolean).join(' ');
                     $('tm-pi-body').innerHTML = row('ชื่อ-สกุล (ไทย)', name, true)
@@ -1215,7 +1216,7 @@
                     $('tm-p-avatar').src = avatar; $('tm-p-name').textContent = uname; $('tm-p-email').textContent = me.email || '';
                     $('tm-p-teams').innerHTML = cards.length ? cards.map(function (c) {
                         var label = c.status === 'waiting' ? 'Waiting' : c.status === 'leaving' ? 'Leaving' : (c.t.owner ? 'Owner' : (ROLE[c.t.role] || c.t.role));
-                        return '<div class="flex items-center px-5 py-3 text-sm"><span class="font-medium text-gray-800 truncate">' + esc(c.t.name) + '</span><span class="ml-auto text-gray-500">' + esc(label) + '</span></div>';
+                        return '<div class="flex items-center px-5 py-3 text-sm"><span class="font-medium text-gray-800 truncate" data-no-i18n>' + esc(c.t.name) + '</span><span class="ml-auto text-gray-500">' + esc(label) + '</span></div>';
                     }).join('') : '<div class="px-5 py-4 text-sm text-gray-500">ยังไม่มีทีม</div>';
                 }
                 function msg(text, ok) {
@@ -1472,7 +1473,7 @@
                     $('tm-inbox-team').textContent = '“' + t.name + '”';
                     $('tm-inbox-list').innerHTML = list.length ? list.map(function (r) {
                         var join = r.type !== 'leave';
-                        return '<div class="flex flex-wrap items-center gap-2 py-3"><div class="min-w-0 flex-1"><div class="font-semibold text-gray-800 truncate">' + esc(r.user_name) + '</div>'
+                        return '<div class="flex flex-wrap items-center gap-2 py-3"><div class="min-w-0 flex-1"><div class="font-semibold text-gray-800 truncate" data-no-i18n>' + esc(r.user_name) + '</div>'
                             + '<div class="text-xs ' + (join ? 'text-amber-700' : 'text-red-600') + '">' + (join ? 'Wants to join' : 'Wants to leave') + '</div></div>'
                             + (join ? '<select data-role-for="' + esc(r.id) + '" class="tm-select" title="Role"><option value="" selected disabled>Select role…</option>' + roleOptions('') + '</select>' : '')
                             + '<button type="button" data-approve="' + esc(r.id) + '"' + (join ? ' disabled title="Select a role first"' : '') + ' class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed">Approve</button>'
@@ -1568,8 +1569,8 @@
                                 ? '<select data-member-role="' + esc(m.id) + '" class="tm-select">' + roleOptions(/admin/.test(m.role) ? 'company_admin' : /member|worker/.test(m.role) ? 'employee' : m.role) + '</select>'
                                 : '<span class="tm-chip ' + (isOwner ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600') + '">' + esc(ROLE[m.role] || m.role) + '</span>';
                             return '<div class="flex items-center gap-3 py-2.5"><img src="' + esc(av) + '" alt="" class="w-9 h-9 rounded-full border border-gray-200 object-cover">'
-                                + '<div class="min-w-0 flex-1"><div class="font-medium text-gray-800 truncate">' + esc(m.name) + (self ? ' <span class="text-xs text-gray-400">(You)</span>' : '') + '</div>'
-                                + (m.email ? '<div class="text-xs text-gray-400 truncate">' + esc(m.email) + '</div>' : '') + '</div>' + roleCell + '</div>';
+                                + '<div class="min-w-0 flex-1"><div class="font-medium text-gray-800 truncate" data-no-i18n>' + esc(m.name) + (self ? ' <span class="text-xs text-gray-400">(You)</span>' : '') + '</div>'
+                                + (m.email ? '<div class="text-xs text-gray-400 truncate" data-no-i18n>' + esc(m.email) + '</div>' : '') + '</div>' + roleCell + '</div>';
                         }).join('') || '<p class="text-sm text-gray-500 py-3">No members</p>';
                     }).catch(function (e) { $('tm-d-members').innerHTML = '<p class="text-sm text-red-600 py-3">Could not load members: ' + esc(e.message || e) + '</p>'; });
                 }
@@ -1632,16 +1633,24 @@
                         g.querySelectorAll('button').forEach(function (bt) { bt.classList.toggle('on', bt.getAttribute('data-v') === v); });
                     });
                     document.querySelectorAll('.tm-switch').forEach(function (c) { c.checked = !!S[c.getAttribute('data-setting')]; });
+                    var ts = $('tm-theme-switch'); if (ts) ts.setAttribute('aria-checked', S.darkMode ? 'true' : 'false');
                 }
                 var saveSettings = function () { write(SKEY, S); applySettings(); };
                 document.querySelectorAll('.tm-seg').forEach(function (g) {
                     g.addEventListener('click', function (e) {
                         var bt = e.target.closest('button'); if (!bt) return;
                         var k = g.getAttribute('data-setting'), v = bt.getAttribute('data-v');
-                        S[k] = v === 'true' ? true : v === 'false' ? false : v; saveSettings();
+                        S[k] = v === 'true' ? true : v === 'false' ? false : v;
+                        if (k === 'language') S.languageChosen = true; // a language picked here wins over the device language
+                        saveSettings();
                     });
                 });
                 document.querySelectorAll('.tm-switch').forEach(function (c) { c.addEventListener('change', function () { S[c.getAttribute('data-setting')] = c.checked; saveSettings(); }); });
+                /* theme: the new look grows out of the switch like a bubble (js/theme.js) */
+                if ($('tm-theme-switch')) $('tm-theme-switch').addEventListener('click', function (e) {
+                    var go = function () { S.darkMode = !S.darkMode; saveSettings(); };
+                    if (window.ConworkTheme) window.ConworkTheme.swap(go, e.currentTarget); else go();
+                });
                 document.querySelectorAll('[data-fold]').forEach(function (bt) {
                     bt.addEventListener('click', function () { var f = $(bt.getAttribute('data-fold')); f.classList.toggle('hidden'); bt.querySelector('.fa-chevron-down').style.transform = f.classList.contains('hidden') ? '' : 'rotate(180deg)'; });
                 });

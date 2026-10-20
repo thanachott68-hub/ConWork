@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConWork - Sign in</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="img/logo.jpg">
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Kanit:wght@500;600;700&family=Nunito:wght@600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    /* Skylearn design system: sky / sun / leaf palette, legible type, soft rounded shapes */
+                    fontFamily: {
+                        sans: ['"Atkinson Hyperlegible Next"', '"Atkinson Hyperlegible"', '"IBM Plex Sans Thai"', 'Nunito Sans', 'sans-serif'],
+                        display: ['Nunito', 'Kanit', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    fontSize: {
+                        xs: ['14px', '20px'],
+                        sm: ['16px', '24px'],
+                        base: ['18px', '28px'],
+                        lg: ['19px', '28px'],
+                    },
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#22C55E',
+                        accent: '#F87171',
+                        cream: '#F8FAFC',
+                        sky: { DEFAULT: '#3B82F6', bright: '#60A5FA', deep: '#1D4ED8', soft: '#DBEAFE' },
+                        sun: { DEFAULT: '#FBBF24', bright: '#FCD34D', deep: '#D97706' },
+                        leaf: { DEFAULT: '#22C55E', soft: '#DCFCE7', deep: '#16A34A' },
+                        coral: { DEFAULT: '#F87171', soft: '#FEE2E2' },
+                        berry: '#A855F7',
+                        ink: { DEFAULT: '#0F172A', muted: '#475569', subtle: '#94A3B8', faint: '#CBD5E1' },
+                        outline: { DEFAULT: '#E2E8F0', strong: '#94A3B8' },
+                        gray: {
+                            50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1', 400: '#94A3B8',
+                            500: '#64748B', 600: '#475569', 700: '#334155', 800: '#1E293B', 900: '#0F172A'
+                        },
+                        red: {
+                            50: '#FEF2F2', 100: '#FEE2E2', 200: '#FECACA', 300: '#FCA5A5', 400: '#F87171',
+                            500: '#F87171', 600: '#DC2626', 700: '#B91C1C', 800: '#991B1B', 900: '#7F1D1D'
+                        }
+                    },
+                    borderRadius: {
+                        xl: '16px',
+                        '2xl': '20px',
+                        '3xl': '28px',
+                    },
+                    boxShadow: {
+                        sm: '0 1px 2px rgba(15, 23, 42, 0.04)',
+                        DEFAULT: '0 2px 8px rgba(15, 23, 42, 0.05)',
+                        md: '0 8px 24px rgba(15, 23, 42, 0.06)',
+                        lg: '0 12px 32px rgba(15, 23, 42, 0.08)',
+                        xl: '0 24px 48px rgba(15, 23, 42, 0.12)',
+                        '2xl': '0 24px 48px rgba(15, 23, 42, 0.12)',
+                    },
+                    transitionDuration: { DEFAULT: '240ms' },
+                }
+            }
+        }
+    </script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/work-report.css?v=3">
+    <link id="dark-mode-styles" rel="stylesheet" href="css/dark-mode.css?v=3">
+    <link rel="stylesheet" href="css/login-flow.css?v=2">
+    <style>
+        /* Rich Text Editor Tailwind Resets Reverter */
+        [contenteditable="true"] b,
+        [contenteditable="true"] strong {
+            font-weight: bold;
+        }
+
+        [contenteditable="true"] i,
+        [contenteditable="true"] em {
+            font-style: italic;
+        }
+
+        [contenteditable="true"] u {
+            text-decoration: underline;
+        }
+
+        [contenteditable="true"] ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        [contenteditable="true"] ol {
+            list-style-type: decimal;
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        [contenteditable="true"] a {
+            color: #3b82f6;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        [contenteditable="true"] div,
+        [contenteditable="true"] .rt-align-block {
+            display: block;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            min-height: 0;
+            line-height: inherit;
+        }
+
+        .format-toolbar-btn.is-active {
+            background-color: #dbeafe;
+            /* bg-blue-100 */
+            color: #2563eb;
+            /* text-blue-600 */
+        }
+
+        html.dark .format-toolbar-btn.is-active {
+            background-color: rgba(59, 130, 246, 0.25);
+            /* bg-blue-500/25 */
+            color: #93c5fd;
+            /* text-blue-300 */
+        }
+    </style>
+    <style>
+        .pw-rules li,
+        .pw-rules [data-rule] {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #94A3B8;
+            transition: color .15s;
+        }
+
+        /* icons are drawn inline (the icon font may not load on every network) */
+        svg.ic {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            display: block;
+        }
+
+        .btn-toggle-password .ic-eye-off {
+            display: none;
+        }
+
+        .btn-toggle-password.showing .ic-eye {
+            display: none;
+        }
+
+        .btn-toggle-password.showing .ic-eye-off {
+            display: block;
+        }
+
+        .rule-ic {
+            flex: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: center / 6px 6px no-repeat radial-gradient(circle, currentColor 45%, transparent 50%);
+        }
+
+        .pw-rules .ok .rule-ic {
+            background: #16A34A url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 7.2 6 9.6 10.5 4.6'/%3E%3C/svg%3E") center / 12px no-repeat;
+        }
+
+        .pw-rules .bad .rule-ic {
+            background: #DC2626 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M4.5 4.5l5 5M9.5 4.5l-5 5'/%3E%3C/svg%3E") center / 12px no-repeat;
+        }
+
+        .pw-rules .ok {
+            color: #16A34A;
+            font-weight: 600;
+        }
+
+        .pw-rules .bad {
+            color: #DC2626;
+        }
+
+        input.pw-ok {
+            border-color: #16A34A !important;
+        }
+
+        input.pw-bad {
+            border-color: #F87171 !important;
+        }
+    </style>
+    <!-- Skylearn theme (loaded last so it wins over the older styles) -->
+    <link rel="stylesheet" href="css/skylearn.css?v=3">
+</head>
+
+<body data-page="login" class="text-gray-800 antialiased h-screen overflow-hidden flex flex-col font-sans bg-cream">
+
+    <!-- ================= LOGIN SCREEN ================= -->
+    <div id="login-screen" class="auth-flow-wrapper absolute inset-0 z-50 items-center justify-center"
+        style="display: flex;">
+        <!-- Background Elements Removed for Clean Look -->
+
+        <div class="app-container relative">
+            <!-- Close button to return to landing page -->
+            <button type="button" onclick="goToLandingPage()"
+                class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors z-10"
+                title="กลับหน้าหลัก">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px">
+                    <path d="M6 6l12 12M18 6 6 18" />
+                </svg>
+            </button>
+
+            <!-- Screen 1: Auth Base -->
+            <div id="screen-auth" class="screen active text-center">
+                <div class="screen-header mb-8">
+                    <h2 id="auth-title" class="text-3xl font-medium tracking-tight text-gray-900 mb-2">You're one click
+                        away<br>from less busywork</h2>
+                    <p id="auth-subtitle" class="text-sm text-gray-600">Try ConWork for free. No credit card required.
+                    </p>
+                </div>
+
+                <div class="mb-6">
+                    <button type="button"
+                        class="w-full btn flex items-center justify-center gap-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 bg-white"
+                        onclick="loginWithGoogle()">
+                        <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+                            <path fill="#FFC107"
+                                d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
+                            <path fill="#FF3D00"
+                                d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+                            <path fill="#4CAF50"
+                                d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
+                            <path fill="#1D4ED8"
+                                d="M43.6 20.5H42V20H24v8h11.3a12 12 0 0 1-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" />
+                        </svg> Continue with
+                        Google
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-4 mb-6">
+                    <hr class="flex-1 border-gray-200">
+                    <span class="text-xs font-semibold text-gray-400">OR</span>
+                    <hr class="flex-1 border-gray-200">
+                </div>
+
+                <form id="form-auth" class="mb-4 text-left">
+                    <div class="mb-4">
+                        <label class="text-sm font-semibold text-gray-600 block mb-1">Work email</label>
+                        <input type="email" id="auth-email" required placeholder="name@company.com"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black focus:border-black text-gray-900 text-sm">
+                    </div>
+
+                    <!-- Sign up: password with live rules + confirm -->
+                    <div id="signup-password-group" class="mb-4" style="display: none;">
+                        <label for="signup-password"
+                            class="text-sm font-semibold text-gray-600 block mb-1">Password</label>
+                        <div class="password-wrapper relative">
+                            <input type="password" id="signup-password" autocomplete="new-password"
+                                placeholder="Create a password"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black focus:border-black text-gray-900 text-sm">
+                            <button type="button"
+                                class="btn-toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                onclick="togglePassword('signup-password', this)">
+                                <svg class="ic ic-eye" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg><svg class="ic ic-eye-off" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M3 3l18 18" />
+                                    <path
+                                        d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.4 0 10 7 10 7a17.8 17.8 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.9 9.9 0 0 0 5.4-1.6" />
+                                    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                                </svg>
+                            </button>
+                        </div>
+                        <ul id="pw-rules" class="pw-rules mt-2 mb-4 grid gap-1 text-xs" aria-live="polite">
+                            <li data-rule="len"><i class="rule-ic"></i>At least 8 characters</li>
+                            <li data-rule="letter"><i class="rule-ic"></i>Contains a letter (A–Z)</li>
+                            <li data-rule="number"><i class="rule-ic"></i>Contains a number (0–9)</li>
+                        </ul>
+                        <label for="signup-password-confirm"
+                            class="text-sm font-semibold text-gray-600 block mb-1">Confirm password</label>
+                        <div class="password-wrapper relative">
+                            <input type="password" id="signup-password-confirm" autocomplete="new-password"
+                                placeholder="Type the password again"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black focus:border-black text-gray-900 text-sm">
+                            <button type="button"
+                                class="btn-toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                onclick="togglePassword('signup-password-confirm', this)">
+                                <svg class="ic ic-eye" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg><svg class="ic ic-eye-off" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M3 3l18 18" />
+                                    <path
+                                        d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.4 0 10 7 10 7a17.8 17.8 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.9 9.9 0 0 0 5.4-1.6" />
+                                    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p id="pw-match" class="pw-rules mt-2 text-xs" aria-live="polite"><span data-rule="match"><i
+                                    class="rule-ic"></i><span data-yes>Passwords match</span><span data-no
+                                    style="display:none">Passwords do not match</span></span></p>
+                    </div>
+
+                    <div id="auth-password-group" class="mb-4" style="display: none;">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-sm font-semibold text-gray-600">Password</label>
+                            <a href="#" onclick="forgotPassword()" class="text-sm text-blue-600 hover:underline">Forgot
+                                password?</a>
+                        </div>
+                        <div class="password-wrapper relative">
+                            <input type="password" id="auth-password" placeholder="Enter your password"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black focus:border-black text-gray-900 text-sm">
+                            <button type="button"
+                                class="btn-toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                onclick="togglePassword('auth-password', this)">
+                                <svg class="ic ic-eye" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg><svg class="ic ic-eye-off" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M3 3l18 18" />
+                                    <path
+                                        d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.4 0 10 7 10 7a17.8 17.8 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.9 9.9 0 0 0 5.4-1.6" />
+                                    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="auth-error" class="error-text text-red-500 text-sm mb-4" style="display: none;"></div>
+
+                    <button type="submit" id="btn-auth-continue"
+                        class="w-full bg-primary hover:bg-blue-600 text-white px-4 py-3 rounded-md font-medium text-sm transition-colors">Continue</button>
+                </form>
+
+                <div class="text-left mb-10">
+                    <p id="auth-toggle-link" class="text-sm text-gray-600">Already have an account? <a href="#"
+                            onclick="showLoginScreen('login')" class="text-black font-semibold hover:underline">Sign
+                            in</a></p>
+                </div>
+
+                <p class="text-xs text-gray-500 mt-8">
+                    By signing up, you agree to ConWork's <a href="#"
+                        class="font-medium text-gray-600 hover:underline">Terms of Service</a> and<br>acknowledge the
+                    ConWork <a href="#" class="font-medium text-gray-600 hover:underline">Privacy Statement</a>.
+                </p>
+
+                <div class="mt-12 text-xs text-gray-500 flex justify-center gap-6">
+                    <a href="#" class="hover:text-gray-800 flex items-center gap-1"><svg class="ic" viewBox="0 0 24 24"
+                            aria-hidden="true" style="width:14px;height:14px">
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" />
+                        </svg>
+                        English</a>
+                    <a href="#" class="hover:text-gray-800">Terms & Privacy</a>
+                </div>
+            </div>
+
+            <!-- Screen 1.5: Update Password (For Password Recovery) -->
+            <div id="screen-update-password" class="screen text-center">
+                <div class="screen-header mb-8">
+                    <h2 class="text-3xl font-medium tracking-tight text-gray-900 mb-2">Reset Password</h2>
+                    <p class="text-sm text-gray-600">Enter your new password below.</p>
+                </div>
+
+                <form id="form-update-password" class="text-left mb-4">
+                    <div class="mb-4">
+                        <label class="text-sm font-semibold text-gray-600 block mb-1">New Password</label>
+                        <div class="password-wrapper relative">
+                            <input type="password" id="new-password" required placeholder="Enter new password"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black focus:border-black text-gray-900 text-sm">
+                            <button type="button"
+                                class="btn-toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                onclick="togglePassword('new-password', this)">
+                                <svg class="ic ic-eye" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg><svg class="ic ic-eye-off" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M3 3l18 18" />
+                                    <path
+                                        d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.4 0 10 7 10 7a17.8 17.8 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.9 9.9 0 0 0 5.4-1.6" />
+                                    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="update-password-error" class="error-text text-red-500 text-sm mb-4" style="display: none;">
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-[#0F172A] hover:bg-black text-white px-4 py-3 rounded-md font-medium text-sm transition-colors">Update
+                        Password</button>
+                </form>
+            </div>
+
+            <div id="screen-team-setup" class="screen">
+                <div class="back-btn" onclick="showScreen('screen-action-select')">← Back</div>
+                <div class="screen-header">
+                    <h2>Team Setup</h2>
+                    <p>Join an existing team or create a new one.</p>
+                </div>
+
+                <!-- Custom Tabs -->
+                <div class="flex p-1 bg-gray-100 rounded-lg mb-6">
+                    <button id="tab-join-team"
+                        class="flex-1 py-2 text-sm font-medium rounded-md bg-white shadow-sm text-gray-800"
+                        onclick="switchTeamTab('join')">Join Team</button>
+                    <button id="tab-create-team"
+                        class="flex-1 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-700"
+                        onclick="switchTeamTab('create')">Create Team</button>
+                </div>
+
+                <!-- Tab A: Join Team -->
+                <div id="panel-join-team">
+                    <form id="form-join-team">
+                        <div class="input-group">
+                            <label>Have an Invite Code?</label>
+                            <input type="text" id="join-invite-code"
+                                class="uppercase-input font-mono text-center tracking-widest text-lg"
+                                placeholder="e.g. COMP-1234" required>
+                            <div id="join-code-feedback" class="feedback-text mt-2 text-sm text-center"></div>
+                        </div>
+                        <div id="join-error" class="error-text" style="display: none;"></div>
+                        <button type="submit" id="btn-join-team" class="btn btn-primary w-full mt-4" disabled>Join
+                            Team</button>
+                    </form>
+                </div>
+
+                <!-- Tab B: Create Team -->
+                <div id="panel-create-team" class="hidden">
+                    <form id="form-create-team">
+                        <div class="flex justify-center mb-4">
+                            <div class="relative w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 overflow-hidden"
+                                onclick="document.getElementById('team-logo-upload').click()">
+                                <img id="team-logo-preview" src="" class="hidden w-full h-full object-cover">
+                                <i id="team-logo-icon" class="fa-solid fa-building text-xl text-gray-400"></i>
+                                <input type="file" id="team-logo-upload" class="hidden" accept="image/*"
+                                    onchange="previewTeamLogo(this)">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Company/Team Name</label>
+                            <input type="text" id="create-team-name" required placeholder="Acme Corp">
+                        </div>
+                        <div class="input-group">
+                            <label>Corporate Domain (Optional)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
+                                <input type="text" id="create-team-domain" class="pl-8" placeholder="company.com">
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Users with this email domain will auto-join your team.
+                            </p>
+                        </div>
+                        <div id="create-team-error" class="error-text" style="display: none;"></div>
+                        <button type="submit" class="btn btn-primary w-full mt-4">Create Team</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Screen 5: Success / Auto-Join -->
+            <div id="screen-success" class="screen text-center">
+                <div
+                    class="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-6">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <div class="screen-header">
+                    <h2 id="success-title">Welcome!</h2>
+                    <p id="success-message">You are all set.</p>
+                </div>
+
+                <div id="success-team-info"
+                    class="hidden bg-gray-50 rounded-xl p-4 mt-6 mb-6 text-left border border-gray-200">
+                    <p class="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2">Your Invite Code</p>
+                    <div class="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3">
+                        <span id="success-invite-code"
+                            class="font-mono text-lg font-bold text-gray-800">COMP-XXXX</span>
+                        <button class="text-blue-600 hover:text-blue-800 p-2" onclick="copyInviteCode()"
+                            title="Copy Code"><i class="fa-solid fa-copy"></i></button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Share this code with your team to invite them.</p>
+                </div>
+
+                <button class="btn btn-primary w-full mt-6" onclick="goToDashboard()">Go to Dashboard</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js?v=11"></script>
+    <script src="js/supabaseClient.js?v=1"></script>
+    <script src="js/i18n.js?v=10"></script>
+    <script src="js/login-flow.js?v=12"></script>
+    <script src="js/nav.js?v=6"></script>
+</body>
+
+</html>

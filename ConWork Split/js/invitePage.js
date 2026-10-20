@@ -196,7 +196,11 @@
             }
             if (x) { x.status = ok ? 'approved' : 'declined'; writeLS('conwork_team_requests', all); }
         });
-        job.then(function () { loadPending(); refreshCount(); }).catch(function (er) { (ok || no).disabled = false; alert('ทำรายการไม่สำเร็จ: ' + (er.message || er)); });
+        job.then(function () { loadPending(); refreshCount(); var A = app(); if (A && A.loadPlanUsage) A.loadPlanUsage(); }).catch(function (er) {
+            (ok || no).disabled = false;
+            var A = app(), plan = A && A.planLimitMessage ? A.planLimitMessage(er) : null; // the team's package is full
+            if (plan && A._showToast) A._showToast(plan, 'error'); else alert('ทำรายการไม่สำเร็จ: ' + (er.message || er));
+        });
     }
 
     // ---------- Mailbox page ----------

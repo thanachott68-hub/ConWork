@@ -20,29 +20,46 @@ const CONFIG = {
 
     // ทางลัดสำหรับทดสอบ (ปิดก่อนขึ้น Production: ตั้ง TEST_LOGIN_KEYWORD เป็น '' และ SKIP_TEAM_PAGE เป็น false)
     // พิมพ์คำนี้ในช่อง Email หน้า Sign in แล้วกด Sign in = เข้าแอปทันทีด้วยบัญชีทดสอบ ไม่ต้องใช้รหัสผ่าน
-    TEST_LOGIN_KEYWORD: 'Test',
+    TEST_LOGIN_KEYWORD: '',
     // ข้ามหน้าทีม/สร้างทีม (team.html) ทุกกรณี: หลังล็อกอินเข้า app.html เลย
-    SKIP_TEAM_PAGE: true,
+    SKIP_TEAM_PAGE: false,
 
-    // ภาษาเริ่มต้นของทั้งระบบ: 'en' = อังกฤษ, 'th' = ไทย (ผู้ใช้ยังเปลี่ยนเองได้ในหน้าตั้งค่า)
-    DEFAULT_LANGUAGE: 'en'
+    // ภาษาเริ่มต้นของทั้งระบบ: 'auto' = ตามภาษาของเครื่อง (ไทย ถ้าเครื่องตั้งเป็นไทย นอกนั้นอังกฤษ), 'en' = อังกฤษ, 'th' = ไทย
+    // ภาษาที่ผู้ใช้เลือกเองในหน้าตั้งค่าจะใช้แทนค่านี้เสมอ
+    DEFAULT_LANGUAGE: 'auto'
 };
 
 window.CONWORK_CONFIG = CONFIG;
 
-// Switch every page to DEFAULT_LANGUAGE once per browser (also for people who saved Thai before);
-// after that, a language picked in Settings is kept.
+// With the test shortcut off, sign out a test account left over in this browser
+// (the app copies the signed-in user into localStorage, so it would otherwise stay signed in)
 (function () {
-    var lang = CONFIG.DEFAULT_LANGUAGE || 'en';
-    var mark = 'defaultLanguage';
+    if (CONFIG.TEST_LOGIN_KEYWORD) return;
+    [sessionStorage, localStorage].forEach(function (store) {
+        try {
+            var u = JSON.parse(store.getItem('conwork_user') || 'null');
+            if (u && (u.id === 'test-user' || u.user_id === 'test-user')) store.removeItem('conwork_user');
+        } catch (e) { }
+    });
+})();
+
+// Language on every page: a language the user picked (languageChosen) is kept;
+// otherwise use DEFAULT_LANGUAGE, where 'auto' follows the device (Thai when the device language is Thai, else English).
+(function () {
+    var device = 'en';
+    try {
+        var langs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || ''];
+        if (String(langs[0] || '').toLowerCase().indexOf('th') === 0) device = 'th';
+    } catch (e) { }
+    CONFIG.DEVICE_LANGUAGE = device;
+    var lang = (CONFIG.DEFAULT_LANGUAGE === 'th' || CONFIG.DEFAULT_LANGUAGE === 'en') ? CONFIG.DEFAULT_LANGUAGE : device;
     try {
         var raw = localStorage.getItem('conwork_user_settings');
         var s = raw ? JSON.parse(raw) : { darkMode: false, appNotifications: true, emailNotifications: false, fontSize: 'medium' };
-        if (s[mark] !== lang) {
-            s.language = lang;
-            s[mark] = lang;
-            localStorage.setItem('conwork_user_settings', JSON.stringify(s));
-        }
+        var changed = false;
+        if ('defaultLanguage' in s) { delete s.defaultLanguage; changed = true; } // the earlier one-time switch to English was not the user's choice
+        if (!s.languageChosen && s.language !== lang) { s.language = lang; changed = true; }
+        if (changed || !raw) localStorage.setItem('conwork_user_settings', JSON.stringify(s));
     } catch (e) { }
 })();
 

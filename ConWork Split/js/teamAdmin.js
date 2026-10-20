@@ -1,6 +1,4 @@
-/* ConWork — reset buttons in app.html
- *  • "Reset / รีเซ็ต" floating at the bottom-right of every work tab: clears that tab's work.
- *    Seen and usable by หัวหน้า (Owner) and รองหัวหน้า (Admin). Confirm by typing RESET.
+/* ConWork — owner tools in app.html
  *  • "Finish / จบงาน" in the top bar of every tab (Owner only): every tab back to 0, the team stays. Confirm with password.
  *  • ทีมงาน → Remove สมาชิกทั้งหมด (Owner only). Confirm with password.
  * Labels follow the language in Settings. The database checks the same rules again (conwork-reset.sql). */
@@ -12,18 +10,6 @@
     var readLS = function (k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } };
     var NOFN = /PGRST202|Could not find the function|function .* does not exist/i;
     var NEED_SQL = 'ฐานข้อมูลยังไม่มีคำสั่งนี้ · รัน conwork-reset.sql ใน Supabase (SQL Editor) แล้วลองใหม่';
-
-    /* pages that have their own data → what to reset */
-    var FROM_PROJECTS = 'ตัวเลขในหน้านี้คำนวณจากงานทั้งหมด จึงจะลบโปรเจกต์ งาน หัวข้องาน ผู้รับผิดชอบ และงบของโปรเจกต์ทั้งหมดของทีมนี้';
-    var PAGES = {
-        projects: { scope: 'projects', name: 'งานทั้งหมด', what: 'โปรเจกต์ งาน หัวข้องาน ผู้รับผิดชอบ และงบของโปรเจกต์ทั้งหมดของทีมนี้' },
-        tasks: { scope: 'projects', name: 'งานทั้งหมด', what: 'โปรเจกต์ งาน หัวข้องาน ผู้รับผิดชอบ และงบของโปรเจกต์ทั้งหมดของทีมนี้' },
-        dashboard: { scope: 'projects', name: 'แดชบอร์ด', what: FROM_PROJECTS, derived: true },
-        'work-report': { scope: 'projects', name: 'สร้างรายงาน', what: FROM_PROJECTS, derived: true },
-        calendar: { scope: 'calendar', name: 'ปฏิทิน', what: 'กิจกรรมและนัดหมายทั้งหมดในปฏิทินของทีมนี้' },
-        messages: { scope: 'messages', name: 'ข้อความ', what: 'ห้องแชทและข้อความทั้งหมดของทีมนี้' },
-        accounting: { scope: 'finance', name: 'บัญชี', what: 'รายการรับ-จ่ายและหมวดงบประมาณทั้งหมดของทีมนี้' }
-    };
 
     var me = {}, team = { id: null, name: '' }, tier = 0;   /* tier 1 = หัวหน้า, 2 = รองหัวหน้า, 0 = others */
 
@@ -70,16 +56,6 @@
 
     // ---------- UI pieces ----------
     function injectUI() {
-        /* Reset: floating at the bottom-right corner of the page */
-        if (!$('ta-reset')) {
-            var b = document.createElement('button');
-            b.id = 'ta-reset'; b.type = 'button';
-            b.className = 'hidden items-center gap-2 pl-4 pr-5 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shadow-lg transition-colors';
-            b.style.cssText = 'position:fixed;right:20px;bottom:20px;z-index:300;';
-            b.innerHTML = '<i class="fa-solid fa-rotate-left"></i><span data-ta-label></span>';
-            b.addEventListener('click', function () { var A = app(); openPageReset(A && A.state && A.state.currentView); });
-            document.body.appendChild(b);
-        }
         /* Finish: top bar, left of the bell */
         var bell = $('notification-container');
         if (bell && !$('ta-finish')) {
@@ -112,11 +88,7 @@
     }
     function refreshButtons(view) {
         var A = app(); view = view || (A && A.state && A.state.currentView);
-        var r = $('ta-reset'), f = $('ta-finish'), a = $('subnav-team-data');
-        var showReset = (tier === 1 || tier === 2) && !!PAGES[view];
-        /* in ข้อความ the message box and send button sit at the bottom-right: lift the button above them */
-        if (r) r.style.bottom = view === 'messages' ? '96px' : '20px';
-        if (r) { r.classList.toggle('hidden', !showReset); r.classList.toggle('inline-flex', showReset); r.querySelector('[data-ta-label]').textContent = L('Reset', 'รีเซ็ต'); r.title = showReset ? L('Reset this tab', 'ล้างงานในแท็บ ') + (isEn() ? '' : PAGES[view].name) : ''; }
+        var f = $('ta-finish'), a = $('subnav-team-data');
         if (f) { f.classList.toggle('hidden', tier !== 1); f.classList.toggle('inline-flex', tier === 1); f.querySelector('[data-ta-label]').textContent = L('Finish', 'จบงาน'); f.title = L('Finish: clear every tab, keep the team', 'จบงาน: เคลียร์งานทุกแท็บ ทีมงานยังอยู่'); }
         if (a) { a.classList.toggle('hidden', tier !== 1); a.classList.toggle('flex', tier === 1); a.querySelector('[data-ta-label]').textContent = L('Remove all members', 'Remove สมาชิกทั้งหมด'); }
     }
@@ -134,24 +106,6 @@
     };
     function err(t) { var e = $('ta-err'); if (!e) return; e.textContent = t; e.classList.toggle('hidden', !t); }
     document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('[data-ta-close]')) closeModal(); });
-
-    // ---------- page reset (หัวหน้า, รองหัวหน้า) ----------
-    function openPageReset(view) {
-        var pg = PAGES[view]; if (!pg || !(tier === 1 || tier === 2)) return;
-        openModal('<form id="ta-form">' + head('fa-rotate-left', L('Reset', 'รีเซ็ต') + ' · ' + pg.name, (pg.derived ? '' : 'ลบ') + pg.what + ' <b class="text-gray-700">ย้อนกลับไม่ได้</b> · สมาชิกในทีมยังอยู่ครบ')
-            + '<div class="px-6 pb-4"><label class="block text-sm text-gray-600 mb-1">พิมพ์ <b class="text-red-600 tracking-wider">RESET</b> เพื่อยืนยัน</label>'
-            + '<input id="ta-word" autocomplete="off" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400"></div>'
-            + foot('ta-go', L('Reset', 'รีเซ็ต')) + '</form>');
-        var go = $('ta-go'); go.disabled = true;
-        $('ta-word').addEventListener('input', function () { go.disabled = this.value.trim().toUpperCase() !== 'RESET'; });
-        setTimeout(function () { $('ta-word').focus(); }, 50);
-        $('ta-form').addEventListener('submit', function (e) {
-            e.preventDefault(); if (go.disabled) return;
-            busy(go, true);
-            runReset(pg.scope).then(function () { done(L('Reset done', 'รีเซ็ตเรียบร้อย') + ' · ' + pg.name); })
-                .catch(function (x) { busy(go, false, L('Reset', 'รีเซ็ต')); err(msgOf(x)); });
-        });
-    }
 
     // ---------- owner panel ----------
     function openOwnerPanel() {
@@ -286,5 +240,5 @@
     var known = false;
     function announce() { known = true; try { document.dispatchEvent(new CustomEvent('conwork:tier', { detail: { tier: tier, team: team } })); } catch (e) { } }
 
-    window.TeamAdmin = { known: function () { return known; }, team: function () { return team; }, openPageReset: openPageReset, openOwnerPanel: openOwnerPanel, tier: function () { return tier; } };
+    window.TeamAdmin = { known: function () { return known; }, team: function () { return team; }, openOwnerPanel: openOwnerPanel, tier: function () { return tier; } };
 })();

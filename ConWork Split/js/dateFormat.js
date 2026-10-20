@@ -123,3 +123,67 @@
 
     window.CwDate = { toShow: toShow, toIso: toIso };
 })();
+
+/* ===== Periods (week / month / quarter / year) =====
+   One place that turns "this week", "last month", "Q3 2026"… into a date range. Used by time tracking, reports and budgets.
+   ConworkPeriods.range('month', new Date(2026, 9, 20)) -> { kind, start: '2026-10-01', end: '2026-10-31', label } */
+(function () {
+    const pad = n => String(n).padStart(2, '0');
+    const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const en = () => typeof i18nIsEnglish === 'function' && i18nIsEnglish();
+    const monthName = (d, long) => d.toLocaleDateString(en() ? 'en-GB' : 'th-TH', { month: long ? 'long' : 'short' });
+    const year = d => en() ? d.getFullYear() : d.getFullYear() + 543;
+
+    function range(kind, ref) {
+        const r = ref ? new Date(ref) : new Date();
+        r.setHours(0, 0, 0, 0);
+        let start, end, label;
+        if (kind === 'week') {
+            const dow = (r.getDay() + 6) % 7; // Monday first
+            start = new Date(r); start.setDate(r.getDate() - dow);
+            end = new Date(start); end.setDate(start.getDate() + 6);
+            label = `${start.getDate()} ${monthName(start)} – ${end.getDate()} ${monthName(end)} ${year(end)}`;
+        } else if (kind === 'quarter') {
+            const q = Math.floor(r.getMonth() / 3);
+            start = new Date(r.getFullYear(), q * 3, 1);
+            end = new Date(r.getFullYear(), q * 3 + 3, 0);
+            label = `${en() ? 'Q' : 'ไตรมาส '}${q + 1} ${year(start)}`;
+        } else if (kind === 'year') {
+            start = new Date(r.getFullYear(), 0, 1);
+            end = new Date(r.getFullYear(), 11, 31);
+            label = String(year(start));
+        } else { // month
+            start = new Date(r.getFullYear(), r.getMonth(), 1);
+            end = new Date(r.getFullYear(), r.getMonth() + 1, 0);
+            label = `${monthName(start, true)} ${year(start)}`;
+            kind = 'month';
+        }
+        return { kind, start: iso(start), end: iso(end), label };
+    }
+
+    /* the period `steps` periods before (negative) or after (positive) the one containing ref */
+    function shift(kind, ref, steps) {
+        const d = ref ? new Date(ref) : new Date();
+        if (kind === 'week') d.setDate(d.getDate() + 7 * steps);
+        else if (kind === 'quarter') d.setMonth(d.getMonth() + 3 * steps, 1);
+        else if (kind === 'year') d.setFullYear(d.getFullYear() + steps, 0, 1);
+        else d.setMonth(d.getMonth() + steps, 1);
+        return range(kind, d);
+    }
+
+    /* the last `count` periods, newest first */
+    function list(kind, count, ref) {
+        const out = [];
+        for (let i = 0; i < (count || 6); i++) out.push(shift(kind, ref, -i));
+        return out;
+    }
+
+    /* is a date / ISO timestamp inside the period? */
+    function contains(period, value) {
+        if (!value) return false;
+        const d = String(value).slice(0, 10);
+        return d >= period.start && d <= period.end;
+    }
+
+    window.ConworkPeriods = { range, shift, list, contains };
+})();

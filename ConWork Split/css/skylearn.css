@@ -545,3 +545,82 @@ html.dark .cwx-j2 .ha {
     --cw-c1: #60A5FA !important;
     --cw-c2: #93C5FD !important;
 }
+
+/* Phone widths: keep the top bar on one line inside the screen */
+@media (max-width: 640px) {
+    #main-header-subtitle { display: none; }
+    #main-header-title { max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 1rem; }
+    #main-header-title, #main-header-title + span { min-width: 0; }
+    header .space-x-4 > :not([hidden]) ~ :not([hidden]) { margin-left: 0.5rem; }
+    /* Open menu slides over the page instead of squeezing it; closed menu stays as an icon rail */
+    #app-sidebar.w-64 { position: fixed; top: 0; bottom: 0; left: 0; z-index: 60; box-shadow: 0 0 0 100vmax rgba(15, 23, 42, 0.35) !important; }
+    #app-sidebar.w-20 { width: 4rem !important; }
+    #app-sidebar ~ * { min-width: 0; }
+}
+
+/* ---------- Create project: color swatches, schedule switch, repeat pickers ---------- */
+.cp-color-grid { display: grid; grid-template-columns: repeat(6, 32px); gap: 14px 18px; padding: 4px; }
+button.cp-color-btn {
+    width: 32px !important; height: 32px !important; min-height: 0 !important; padding: 0 !important;
+    border-radius: 9999px !important; border: 0; position: relative; cursor: pointer;
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.12) !important;
+    transition: transform var(--dur) var(--ease-bounce), box-shadow var(--dur) ease;
+}
+button.cp-color-btn:hover { transform: scale(1.1); }
+button.cp-color-btn.ring-2 {
+    transform: scale(1.12);
+    box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 5px #0F172A !important;
+}
+button.cp-color-btn.ring-2::after {
+    content: "\2713"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #FFFFFF; font-size: 16px; font-weight: 800; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+button.cp-color-btn:focus-visible { outline: 3px solid var(--sky, #3B82F6); outline-offset: 4px; }
+html.dark button.cp-color-btn.ring-2 { box-shadow: 0 0 0 3px #0F172A, 0 0 0 5px #F8FAFC !important; }
+
+.cp-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px; background: #F1F5F9; border-radius: 14px; }
+.cp-seg-btn {
+    min-height: 40px; border-radius: 10px; font-size: 14px; font-weight: 600; color: #475569;
+    display: flex; align-items: center; justify-content: center; gap: 8px; padding: 6px 10px; border: 0; background: transparent;
+}
+.cp-seg-btn.is-active { background: #FFFFFF; color: #1D4ED8; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12); }
+html.dark .cp-seg { background: #1E293B; }
+html.dark .cp-seg-btn { color: #CBD5E1; }
+html.dark .cp-seg-btn.is-active { background: #334155; color: #93C5FD; }
+
+.cp-repeat { margin-top: 14px; padding: 14px; border: 1px solid #E2E8F0; border-radius: 14px; background: #F8FAFC; display: flex; flex-direction: column; gap: 14px; }
+html.dark .cp-repeat { background: #0F172A; border-color: #334155; }
+.cp-repeat.hidden { display: none; }
+.cp-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.cp-chip-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; max-width: 320px; }
+.cp-chip {
+    min-width: 40px; height: 36px; padding: 0 8px; border-radius: 10px; border: 1px solid #CBD5E1; background: #FFFFFF;
+    font-size: 14px; font-weight: 600; color: #334155; cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.cp-chip-grid .cp-chip { min-width: 0; padding: 0; }
+.cp-chip:hover { border-color: #3B82F6; }
+.cp-chip.is-on { background: #2563EB; border-color: #2563EB; color: #FFFFFF; }
+html.dark .cp-chip { background: #1E293B; border-color: #475569; color: #E2E8F0; }
+html.dark .cp-chip.is-on { background: #3B82F6; border-color: #3B82F6; color: #FFFFFF; }
+.cp-repeat input:disabled { opacity: 0.45; }
+.cp-rep-summary { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 10px; background: #EFF6FF; color: #1E3A8A; font-size: 14px; }
+.cp-rep-summary .cp-rep-dates { color: #475569; font-size: 13px; }
+.cp-rep-summary.is-empty { background: transparent; color: #64748B; padding: 0; }
+html.dark .cp-rep-summary { background: #172554; color: #BFDBFE; }
+html.dark .cp-rep-summary .cp-rep-dates { color: #94A3B8; }
+
+/* ---------- Messages: list and conversation side by side; on phones one at a time ---------- */
+.chat-back-btn { display: none; }
+@media (max-width: 767px) {
+    #view-messages .chat-list-pane { width: 100%; border-right: 0; }
+    #view-messages .chat-main-pane { display: none; }
+    #view-messages.chat-open .chat-list-pane { display: none; }
+    #view-messages.chat-open .chat-main-pane { display: flex; }
+    #view-messages.chat-open .chat-back-btn { display: inline-flex; }
+    #chat-messages-container { padding: 12px; }
+}
+
+/* ---------- Project type switch (3 choices) and budget box ---------- */
+.cp-seg.cp-seg-3 { grid-template-columns: repeat(3, 1fr); }
+.cp-budget-box { padding: 14px; border: 1px solid #E2E8F0; border-radius: 14px; background: #F8FAFC; }
+html.dark .cp-budget-box { background: #0F172A; border-color: #334155; }

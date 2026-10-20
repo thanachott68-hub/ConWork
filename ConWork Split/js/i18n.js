@@ -1,4 +1,4 @@
-﻿const th2en = {
+const th2en = {
     "แผงควบคุม": "Dashboard", "งานทั้งหมด": "All Projects", "ปฏิทิน": "Calendar", "ทีมงาน": "Team", "ข้อความ": "Messages", "บัญชีผู้ใช้": "Account",
     "การแจ้งเตือน": "Notifications", "ช่วยเหลือ": "Help", "โปรเจกต์ทั้งหมด": "All Projects", "สร้างโปรเจกต์": "Create Project",
     "กรองโปรเจกต์": "Filter Projects", "ทั้งหมด": "All", "กำลังดำเนินการ": "In Progress", "รอตรวจสอบ": "In Review", "เสร็จสิ้น": "Completed",
@@ -1256,6 +1256,77 @@ const th2enMore = {
     "ไฮไลท์ : การประชุมทีมและโครงการ": "Highlights: Team Meetings and Projects"
 };
 Object.keys(th2enMore).forEach(k => { if (!(k in th2en)) th2en[k] = th2enMore[k]; });
+Object.assign(th2enMore, {"กรุณาเลือกไฟล์รูปภาพ": "Please choose an image file", "กำหนด": "Due", "ทำโดย": "Done by", "รอตรวจโดย": "Awaiting review by", "ส่งเมื่อ": "Sent on", "ไม่มีกำหนด": "No due date", "อยู่ในเกณฑ์ดี": "on track", "เพิ่มรายละเอียด...": "Add details...", "กำหนดการโปรเจกต์": "Project schedule", "กำหนดวันเริ่มและวันจบ": "Start and end dates", "ทำซ้ำ (Repeat)": "Repeat", "เริ่มรอบแรกตั้งแต่วันที่": "First round on", "ทำซ้ำทุก": "Repeat every", "สัปดาห์": "week(s)", "เดือน": "month(s)", "ทำในวัน": "On these days", "ทำในวันที่ของทุกเดือน (เลือกได้หลายวัน)": "On these dates of the month (pick any)", "เดือนที่ไม่มีวันที่เลือก (เช่น 31) จะใช้วันสุดท้ายของเดือนแทน": "Months without the picked date (like the 31st) use their last day instead", "สิ้นสุดการทำซ้ำ": "Stop repeating", "ครบ": "After", "รอบ": "rounds", "ถึงวันที่": "On date", "ทุกฝ่าย": "All divisions", "กรุณาเลือกวันเริ่มรอบแรก": "Please pick the date of the first round", "กรุณาเลือกวันในสัปดาห์ที่ต้องทำซ้ำ": "Please pick the weekdays to repeat on", "กรุณาเลือกวันที่ของเดือนที่ต้องทำซ้ำ": "Please pick the dates of the month to repeat on", "กรุณาใส่จำนวนรอบ": "Please enter the number of rounds", "กรุณาเลือกวันสิ้นสุดการทำซ้ำ": "Please pick the date the repeat ends", "ไม่มีวันไหนตรงกับรูปแบบที่ตั้งไว้": "No dates match these repeat settings", "แดง": "Red", "ส้ม": "Orange", "เหลือง": "Yellow", "เขียวมะนาว": "Lime", "เขียว": "Green", "เขียวน้ำทะเล": "Teal", "ฟ้า": "Sky blue", "น้ำเงิน": "Blue", "กรมท่า": "Navy", "ม่วง": "Purple", "ชมพู": "Pink", "เทา": "Gray"});
+Object.assign(th2enMore, {"วันสิ้นสุด": "End date", "(ไม่บังคับ)": "(optional)", "เว้นว่างไว้ถ้าเป็นกิจกรรมวันเดียว": "Leave blank for a one-day event", "ตามวันที่ (1–31)": "By date (1–31)", "ตามวันในสัปดาห์": "By weekday", "ทำในวันของสัปดาห์ที่": "On the weekday of week", "สัปดาห์แรก": "First week", "สัปดาห์ที่ 2": "Second week", "สัปดาห์ที่ 3": "Third week", "สัปดาห์ที่ 4": "Fourth week", "สัปดาห์สุดท้าย": "Last week", "วันจันทร์": "Monday", "วันอังคาร": "Tuesday", "วันพุธ": "Wednesday", "วันพฤหัสบดี": "Thursday", "วันศุกร์": "Friday", "วันเสาร์": "Saturday", "วันอาทิตย์": "Sunday", "ของเดือน": "of the month"});
+Object.assign(th2enMore, {"รูปแบบ": "Type", "แผนก": "Division", "ทำงานร่วมกับทีม กำหนดผู้ดูแลและผู้เข้าร่วมได้": "Team work: choose managers and members", "โปรเจกต์ส่วนตัว เห็นได้เฉพาะคุณคนเดียว": "Personal project: only you can see it", "งานของทั้งแผนก เลือกแผนกที่รับผิดชอบอย่างน้อย 1 แผนก": "Work for a whole division: pick at least one division", "ใช้งบประมาณกับโปรเจกต์นี้": "Use a budget for this project", "ปิดไว้ = ติดตามเวลาอย่างเดียว": "Off = track time only", "งบประมาณรวม (บาท)": "Total budget (THB)", "กรุณาเลือกแผนกที่รับผิดชอบอย่างน้อย 1 แผนก": "Please pick at least one division", "ปิดโปรเจกต์": "Close Project", "เปิดโปรเจกต์อีกครั้ง": "Reopen Project", "ปิดแล้ว": "Closed", "ปิดโปรเจกต์แล้ว (ดูได้อย่างเดียว)": "Project closed (view only)", "เปิดโปรเจกต์อีกครั้งแล้ว": "Project reopened", "โปรเจกต์นี้ปิดแล้ว เปิดโปรเจกต์อีกครั้งก่อนแก้ไข": "This project is closed. Reopen it to make changes", "เวลาที่ประมาณไว้": "Estimated time", "(ชั่วโมง)": "(hours)", "งบของงาน": "Task budget", "(บาท)": "(THB)", "เช่น 4": "e.g. 4", "เวลาที่ใช้จริง": "Time spent", "เริ่มจับเวลา": "Start timer", "หยุดจับเวลา": "Stop timer", "ชั่วโมง": "Hours", "ทำอะไรไป (ไม่บังคับ)": "What you did (optional)", "ยังไม่มีการบันทึกเวลา": "No time logged yet", "ใส่จำนวนชั่วโมง 0.25 – 24": "Enter 0.25 – 24 hours", "ลบรายการเวลานี้?": "Delete this time entry?", "งานนี้เสร็จแล้ว": "This task is already done"});
+Object.assign(th2enMore, {"สร้างกลุ่มแชท": "New group chat", "ชื่อกลุ่ม": "Group name", "เช่น ทีมออกแบบ": "e.g. Design team", "สมาชิก": "Members", "สร้างกลุ่ม": "Create group", "กรุณาตั้งชื่อกลุ่ม": "Please name the group", "เลือกสมาชิกอย่างน้อย 1 คน": "Pick at least one member", "ยังสร้างกลุ่มไม่ได้ (ไม่ได้เชื่อมต่อฐานข้อมูล)": "Can't create a group (not connected to the database)", "ยังสร้างกลุ่มไม่ได้: ผู้ดูแลระบบต้องติดตั้งฐานข้อมูลแชทก่อน": "Can't create a group yet: the admin needs to install the chat database first", "สร้างกลุ่มแล้ว": "Group created", "ยังเปิดแชทโปรเจกต์ไม่ได้: ผู้ดูแลระบบต้องติดตั้งฐานข้อมูลแชทก่อน": "Can't open the project chat yet: the admin needs to install the chat database first", "เปิดแชทโปรเจกต์ไม่สำเร็จ": "Could not open the project chat", "ยังไม่มีสมาชิกคนอื่นในทีม": "No other team members yet", "ไฟล์และสื่อ": "Files & media", "เลือกแชทก่อน": "Open a chat first", "ไตรมาส": "Quarter", "ปี": "Year", "ก่อนหน้า": "Previous", "ถัดไป": "Next", "ไม่มีไฟล์ในช่วงเวลานี้": "No files in this period", "ปิด": "Close"});
+Object.keys(th2enMore).forEach(k => { if (!(k in th2en)) th2en[k] = th2enMore[k]; });
+
+// Sentences with a value inside ({0}, {1} = name, number or date); the value is translated too when it is Thai
+const th2enTemplates = {
+    "({0} ปี)": "({0} yrs)",
+    "+{0} จากงวดที่แล้ว": "+{0} from last period",
+    "{0} {1} น.": "{0} {1}",
+    "{0} จากงวดที่แล้ว": "{0} from last period",
+    "{0}% เสร็จสิ้น": "{0}% completed",
+    "{0}/{1} ทาสก์": "{0}/{1} tasks",
+    "{0}/{1} หัวข้อ": "{0}/{1} topics",
+    "{0}: {1} งาน": "{0}: {1} tasks",
+    "{0}:{1} น.": "{0}:{1}",
+    "{0}ที่ {1} {2} {3}": "{0}, {1} {2} {3}",
+    "กิจกรรม : {0} {1}": "Event : {0} {1}",
+    "ขั้นตอนที่ {0} : {1}": "Step {0} : {1}",
+    "งาน : {0}": "Task : {0}",
+    "งาน: {0}": "Task: {0}",
+    "งาน: {0} (รอการตรวจสอบ)": "Task: {0} (pending review)",
+    "ดาวน์โหลดไฟล์แนบ ({0})": "Download attachment ({0})",
+    "บันทึกการแก้ไข \"{0}\" แล้ว": "Changes to \"{0}\" saved",
+    "บันทึกการแก้ไขโปรเจกต์ \"{0}\" เรียบร้อยแล้ว!": "Project \"{0}\" updated!",
+    "บันทึกร่าง \"{0}\" แล้ว": "Draft \"{0}\" saved",
+    "บันทึกร่างล่าสุดเมื่อ {0}": "Draft last saved {0}",
+    "ปัญหา/อุปสรรค : มีงานค้าง {0} รายการ": "Issues/Obstacles : {0} pending items",
+    "ผลการดำเนินงาน : ความคืบหน้าโดยรวมอยู่ในเกณฑ์{0}": "Performance : Overall progress is {0}",
+    "พนักงาน ({0})": "Employees ({0})",
+    "พนักงาน {0} จากแผนก{1}": "Employee {0} from {1} department",
+    "มีงานใหม่ : {0}": "New task : {0}",
+    "ยังมีงานค้าง {0} รายการที่ต้องดำเนินการต่อ": "{0} pending items still need follow-up",
+    "รวม {0} ตำแหน่ง": "{0} positions in total",
+    "รวม {0} แผนก": "{0} departments in total",
+    "รอตรวจโดย : {0}": "Awaiting review by : {0}",
+    "รายละเอียดผลงานช่วงเวลา ({0} - {1})": "Work Details for Period ({0} - {1})",
+    "รายละเอียดผลงานตลอดปี ค.ศ. {0}": "Work Details for Year {0}",
+    "รายละเอียดผลงานรายวัน ({0} {1})": "Daily Work Details ({0} {1})",
+    "ลบโปรเจกต์ \"{0}\" เรียบร้อยแล้ว": "Project \"{0}\" deleted",
+    "วัน{0}ที่ {1} {2} {3}": "{0}, {1} {2} {3}",
+    "สถานะ: {0}": "Status: {0}",
+    "สมาชิก {0} คน": "{0} members",
+    "สร้างและเผยแพร่ \"{0}\" แล้ว": "\"{0}\" created and published",
+    "สร้างโปรเจกต์ \"{0}\" และเพิ่มลงปฏิทินเรียบร้อยแล้ว!": "Project \"{0}\" created and added to the calendar!",
+    "สั่งเมื่อ: {0} {1}": "Ordered on: {0} {1}",
+    "สั่งโดย: {0} {1}": "Assigned by: {0} {1}",
+    "ส่งคำเชิญไปยัง {0} เรียบร้อยแล้ว": "Invitation sent to {0}",
+    "อนุมัติงานแล้ว! รอตรวจลำดับต่อไป : {0}": "Task approved! Next reviewer : {0}",
+    "อัตราการปิดงานอยู่ที่ {0}%": "Completion rate is {0}%",
+    "อัปเดตแบบร่าง \"{0}\" แล้ว": "Draft \"{0}\" updated",
+    "เกิดข้อผิดพลาดในการลบหัวข้องาน: {0}": "Error deleting task topic: {0}",
+    "เกิดข้อผิดพลาดในการลบโปรเจกต์: {0}": "Error deleting project: {0}",
+    "เกินกำหนด {0} วัน": "{0} days overdue",
+    "เข้าร่วมการประชุม {0} ครั้ง และส่งมอบเอกสาร/งาน {1} ชิ้น": "Attended {0} meetings and delivered {1} documents/work items",
+    "เพิ่มกิจกรรม \"{0}\" เรียบร้อยแล้ว": "Event \"{0}\" added",
+    "เพิ่มหัวข้อ \"{0}\" แล้ว": "Topic \"{0}\" added",
+    "เริ่มต้นโปรเจกต์ \"{0}\" สำเร็จ! ขอให้ทีมทำงานอย่างราบรื่นนะครับ 🎉": "Project \"{0}\" started! Wishing your team smooth work ahead 🎉",
+    "เวลา {0}": "Time {0}",
+    "เหลือ {0} วัน": "{0} days left",
+    "แก้ไขหัวข้อ \"{0}\" แล้ว": "Topic \"{0}\" updated",
+    "แนบแล้ว {0} ไฟล์": "{0} files attached",
+    "ในช่วง{0}": "during {0}",
+    "ได้เข้าร่วม {0} โครงการและทำงานที่ได้รับมอบหมายเสร็จสิ้น {1} รายการ": "Joined {0} projects and completed {1} assigned tasks",
+    "ไม่สามารถลบงานได้: {0}": "Unable to delete task: {0}",
+    "ไฮไลท์ : การประชุมทีมและโครงการ {0} ครั้ง ช่วยสร้างความก้าวหน้าในงานที่รับผิดชอบ": "Highlights : {0} team and project meetings, driving progress on assigned work",
+    "■ {0} (สิ้นสุด)": "■ {0} (ends)",
+    "▶ {0} (เริ่ม)": "▶ {0} (starts)",
+    "💬 ข้อความใหม่จาก {0}: {1}": "💬 New message from {0}: {1}"
+};
 
 function translateString(thStr) {
     if (!thStr) return thStr;
@@ -1282,7 +1353,33 @@ function translateString(thStr) {
         }
     }
     
+    const fromTemplate = translateTemplate(normalized);
+    if (fromTemplate !== null) return thStr.replace(normalized, fromTemplate);
+
     return translatePhrases(thStr);
+}
+
+let templateList = null;
+function translateTemplate(str) {
+    if (!/[\u0E00-\u0E7F]/.test(str)) return null;
+    if (!templateList) {
+        templateList = Object.keys(th2enTemplates).map(key => {
+            const order = [];
+            const source = key.split(/\{(\d+)\}/).map((part, i) => {
+                if (i % 2) { order.push(+part); return '(.+?)'; }
+                return part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ +/g, '\\s+');
+            }).join('');
+            return { re: new RegExp('^' + source + '$'), order, en: th2enTemplates[key], weight: key.replace(/\{\d+\}/g, '').length };
+        }).sort((a, b) => b.weight - a.weight);
+    }
+    for (const t of templateList) {
+        const m = str.match(t.re);
+        if (!m) continue;
+        const values = {};
+        t.order.forEach((n, i) => { const v = m[i + 1].trim(); values[n] = /[\u0E00-\u0E7F]/.test(v) ? translateString(v) : v; });
+        return t.en.replace(/\{(\d+)\}/g, (_, n) => values[n] ?? '');
+    }
+    return null;
 }
 
 // Text that is not a whole dictionary entry (a sentence built around a name, a number or a link):
@@ -1304,7 +1401,7 @@ function translatePhrases(str) {
         phraseRe = new RegExp(keys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '\\s+')).join('|'), 'g');
     }
     let out = str.replace(phraseRe, m => '\u0001' + (phraseMap.get(m.replace(/\s+/g, ' ')) ?? m) + '\u0002');
-    out = out.replace(/([A-Za-z0-9.,!?:)%\u0E00-\u0E7F])\u0001/g, '$1 \u0001').replace(/\u0002([A-Za-z0-9(\u0E00-\u0E7F])/g, '\u0002 $1').replace(/[\u0001\u0002]/g, '');
+    out = out.replace(/\u0002\u0001/g, '\u0002 \u0001').replace(/([A-Za-z0-9.,!?:)%\u0E00-\u0E7F])\u0001/g, '$1 \u0001').replace(/\u0002([A-Za-z0-9(\u0E00-\u0E7F])/g, '\u0002 $1').replace(/[\u0001\u0002]/g, '');
     phraseCache.set(str, out);
     return out;
 }
@@ -1316,7 +1413,8 @@ function i18nIsEnglish() {
         if (saved.language) return saved.language === 'en';
     } catch (e) { }
     const cfg = window.CONWORK_CONFIG || {};
-    return (cfg.DEFAULT_LANGUAGE || 'en') === 'en';
+    const def = cfg.DEFAULT_LANGUAGE === 'th' || cfg.DEFAULT_LANGUAGE === 'en' ? cfg.DEFAULT_LANGUAGE : (cfg.DEVICE_LANGUAGE || 'en');
+    return def === 'en';
 }
 
 // Pop-up messages (alert / confirm / prompt) follow the language too
@@ -1328,6 +1426,13 @@ function i18nIsEnglish() {
         return original.call(window, message, ...rest);
     };
 });
+
+/* Text people wrote (chat messages, task/project names, descriptions, member and department names, file names)
+   is shown exactly as typed: anything inside an element marked like this is never translated. */
+const I18N_USER_CONTENT = '[data-no-i18n], [translate="no"], .notranslate, .project-name-display, .member-name, #profile-lang-text, #current-user-name, #current-user-dept, #up-name, #up-full-name, #up-nickname';
+function isUserContent(el) {
+    return !!(el && el.closest && el.closest(I18N_USER_CONTENT));
+}
 
 window.I18n = {
     observer: null,
@@ -1344,7 +1449,7 @@ window.I18n = {
         let node;
         while (node = walker.nextNode()) {
             const parent = node.parentElement;
-            if (!parent || parent.isContentEditable || parent.tagName === "SCRIPT" || parent.tagName === "STYLE" || parent.closest("#profile-lang-text") || parent.closest(".member-name") || parent.closest(".project-name-display") || parent.id === "current-user-name" || parent.id === "up-name" || parent.id === "up-full-name" || parent.id === "up-nickname") continue;
+            if (!parent || parent.isContentEditable || parent.tagName === "SCRIPT" || parent.tagName === "STYLE" || isUserContent(parent)) continue;
 
             let text = node.nodeValue;
             if (text.trim().length > 0) {
@@ -1367,6 +1472,7 @@ window.I18n = {
 
         const inputs = root.querySelectorAll ? root.querySelectorAll("[placeholder]") : [];
         inputs.forEach(el => {
+            if (isUserContent(el)) return;
             if (el._originalPlaceholder === undefined) {
                 el._originalPlaceholder = el.getAttribute('placeholder');
             }
@@ -1377,10 +1483,11 @@ window.I18n = {
             }
         });
 
-        ['title', 'aria-label'].forEach(attr => {
+        ['title', 'aria-label', 'data-placeholder'].forEach(attr => {
             const key = '_original_' + attr.replace('-', '_');
             const els = root.querySelectorAll ? root.querySelectorAll('[' + attr + ']') : [];
             els.forEach(el => {
+                if (isUserContent(el)) return; // e.g. a tooltip showing a person's or task's name
                 if (el[key] === undefined) el[key] = el.getAttribute(attr);
                 const value = isEn ? translateString(el[key]) : el[key];
                 if (el.getAttribute(attr) !== value) el.setAttribute(attr, value);
@@ -1395,6 +1502,7 @@ window.I18n = {
 
         const buttons = root.querySelectorAll ? root.querySelectorAll("input[type=\"button\"], input[type=\"submit\"]") : [];
         buttons.forEach(el => {
+            if (isUserContent(el)) return;
             if (el._originalValue === undefined) {
                 el._originalValue = el.value;
             }
@@ -1443,16 +1551,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 100);
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Create task: adding a department that is not in the list yet
+if (typeof th2enTemplates !== 'undefined') Object.assign(th2enTemplates, { "เพิ่มแผนก \"{0}\"": "Add department \"{0}\"" });
+if (typeof th2enTemplates !== 'undefined') Object.assign(th2enTemplates, {
+    "บันทึกเวลา {0} แล้ว": "Logged {0}",
+    "ยังมีงานที่ยังไม่เสร็จ {0} งาน ต้องการปิดโปรเจกต์เลยหรือไม่?": "{0} tasks are not done yet. Close the project anyway?",
+    "กำลังจับเวลางาน \"{0}\" อยู่ หยุดงานนั้นแล้วเริ่มงานนี้แทนหรือไม่?": "The timer is running on \"{0}\". Stop it and start this task instead?"
+});
+if (typeof th2enTemplates !== 'undefined') Object.assign(th2enTemplates, { "รูปภาพ ({0})": "Images ({0})", "ไฟล์ ({0})": "Files ({0})", "สร้างกลุ่มไม่สำเร็จ: {0}": "Could not create the group: {0}" });
+Object.assign(th2enMore, {"รายงาน": "Reports", "บัญชีและงบประมาณ": "Accounting and budget", "สรุปความคืบหน้า เวลา และงบประมาณ ตามโปรเจกต์ บุคคล หรือแผนก": "Progress, time and budget by project, person or division", "บันทึกรายรับรายจ่าย สมุดบัญชี และงบเทียบใช้จริง": "Income and expenses, ledgers and budget vs actual"});
+Object.keys(th2enMore).forEach(k => { th2en[k] = th2enMore[k]; });
+Object.assign(th2enMore, {"มีคำขอบันทึกรายการเงินรออนุมัติ": "A money request is waiting for approval", "คำขอของคุณได้รับอนุมัติแล้ว": "Your request was approved", "คำขอของคุณไม่ได้รับอนุมัติ": "Your request was not approved", "งานใหม่ถูกเพิ่ม": "New task added"});
+Object.keys(th2enMore).forEach(k => { th2en[k] = th2enMore[k]; });
+Object.assign(th2enMore, {"นัดประชุมของงานนี้": "Meetings for this task", "นัดประชุมสำหรับงานนี้": "Schedule a meeting for this task", "ยังไม่มีนัดประชุมสำหรับงานนี้": "No meetings for this task yet", "เชื่อมกับงาน:": "Linked to task:", "ยกเลิกการเชื่อม": "Unlink"});
+Object.keys(th2enMore).forEach(k => { th2en[k] = th2enMore[k]; });

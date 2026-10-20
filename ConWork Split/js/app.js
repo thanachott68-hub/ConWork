@@ -25,6 +25,7 @@ const App = {
 
     async init() {
         this._loadSettings();
+        this._initMobileSidebar();
         this.checkAuth();
         await this._loadData();
         this.bindEvents();
@@ -105,7 +106,7 @@ const App = {
         div.innerHTML = `
             <div class="flex items-center gap-2">
                 <div class="w-2 h-2 rounded-full ${randomColor}"></div>
-                <span class="text-sm font-medium text-gray-700 pointer-events-none">${posName}</span>
+                <span class="text-sm font-medium text-gray-700 pointer-events-none">${App._esc(posName)}</span>
             </div>
             <div class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button type="button" class="text-red-400 hover:text-red-600 transition-colors" onclick="App.deleteRolePosition(this)"><i class="fa-regular fa-trash-can"></i></button>
@@ -178,7 +179,7 @@ const App = {
         div.innerHTML = `
             <div class="flex items-center gap-2">
                 <div class="w-6 h-6 rounded ${s.bg} ${s.text} flex items-center justify-center text-[10px] shrink-0"><i class="${s.icon}"></i></div>
-                <span class="text-sm font-medium text-gray-700 pointer-events-none truncate">${deptName}</span>
+                <span class="text-sm font-medium text-gray-700 pointer-events-none truncate">${App._esc(deptName)}</span>
             </div>
             <div class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button type="button" class="text-red-400 hover:text-red-600 transition-colors" onclick="App.deleteRoleDepartment(this)"><i class="fa-regular fa-trash-can"></i></button>
@@ -485,6 +486,17 @@ const App = {
             posHtml = cleanDuplicates(posHtml, '.position-item');
             deptHtml = cleanDuplicates(deptHtml, '.dept-item');
 
+            /* the six sample departments that used to come with the app: drop them when the saved list is still exactly those, untouched */
+            if (deptHtml) {
+                const sample = ['ทีมออกแบบ', 'พัฒนาระบบ', 'การตลาด', 'ฝ่ายขาย', 'ฝ่ายบุคคล', 'บัญชี'];
+                const names = [...new DOMParser().parseFromString(deptHtml, 'text/html').querySelectorAll('.dept-item span')].map(s => s.textContent.trim());
+                if (names.length === sample.length && sample.every(n => names.includes(n))) {
+                    deptHtml = '';
+                    if (deptContainer) deptContainer.innerHTML = '';
+                    try { localStorage.setItem('conwork_role_settings', JSON.stringify(Object.assign({}, parsed, { deptHtml: '' }))); } catch (e) { }
+                }
+            }
+
             if (posContainer && posHtml) {
                 posContainer.innerHTML = posHtml;
                 // update count
@@ -569,6 +581,8 @@ const App = {
 
         const profileThemeText = document.getElementById('profile-theme-text');
         if (profileThemeText) profileThemeText.innerText = this.settings.darkMode ? 'มืด' : 'สว่าง';
+        const profileThemeBtn = document.getElementById('profile-theme-btn');
+        if (profileThemeBtn) profileThemeBtn.setAttribute('aria-checked', this.settings.darkMode ? 'true' : 'false');
 
         // Font size application
         const zoomMap = {
@@ -623,13 +637,25 @@ const App = {
         }
     },
 
+    /* reviewers' approvals and the other extra task fields live in tasks.details */
+    async _syncTaskDetailsToDB(task) {
+        if (!task || !window.conworkSupabase || !window.conworkSupabase.isAvailable() || String(task.id).startsWith('mock_')) return;
+        try {
+            await this._sbSaveSkippingMissing({ details: this._taskDetailsForDb(task) },
+                d => Object.keys(d).length ? window.conworkSupabase.client.from('tasks').update(d).eq('id', task.id) : Promise.resolve({}));
+        } catch (e) { console.error('Error syncing task details', e); }
+    },
+
     async _syncTaskStatusToDB(taskId, status) {
         if (window.conworkSupabase && window.conworkSupabase.isAvailable() && !String(taskId).startsWith('mock_')) {
             try {
                 const dbStatus = status === 'in-progress' ? 'in_progress' : (status === 'pending-review' ? 'in_review' : status);
-                await window.conworkSupabase.client.from('tasks').update({
-                    status: dbStatus
-                }).eq('id', taskId);
+                /* a task that is done gets its completion time (kept in details too, for databases without the column) */
+                const task = mockTasks.find(t => String(t.id) === String(taskId));
+                if (task) task.completedAt = status === 'done' ? (task.completedAt || new Date().toISOString()) : null;
+                const upd = { status: dbStatus, completed_at: task ? task.completedAt : null };
+                if (task) upd.details = this._taskDetailsForDb(task);
+                await this._sbSaveSkippingMissing(upd, d => window.conworkSupabase.client.from('tasks').update(d).eq('id', taskId));
             } catch(e) { console.error('Error syncing status', e); }
         }
     },
@@ -871,7 +897,22 @@ const App = {
                                         managerIds.push(p.owner_id);
                                     }
 
+                                    /* repeat settings saved only in this browser (before the schedule column existed): copy them to the database once */
+                                    const sched = App._loadProjectSchedule(p.id, p.schedule);
+                                    if (sched && 'schedule' in p && !(p.schedule && p.schedule.mode === 'repeat')) {
+                                        window.conworkSupabase.client.from('projects').update({ schedule: sched }).eq('id', p.id)
+                                            .then(r => { if (r && r.error) console.warn('[projects] could not copy schedule to the database', r.error.message); });
+                                    }
+                                    const meta = App._loadProjectMeta(p.id);
+                                    const projectType = p.project_type || meta.projectType || 'project';
+                                    /* a Single (personal) project is visible only to the person who created it */
+                                    if (projectType === 'single' && p.owner_id && App.state.currentUser && String(p.owner_id) !== String(App.state.currentUser.id)) return;
                                     mockProjects.push({
+                                        projectType,
+                                        ownerId: p.owner_id || null,
+                                        budgetEnabled: p.budget_enabled != null ? !!p.budget_enabled : !!meta.budgetEnabled,
+                                        budgetAmount: p.budget_amount != null ? Number(p.budget_amount) : (meta.budgetAmount != null ? meta.budgetAmount : null),
+                                        closedAt: p.closed_at || meta.closedAt || null,
                                         id: p.id,
                                         name: p.name,
                                         description: p.description || '',
@@ -886,6 +927,7 @@ const App = {
                                         color: p.color || 'bg-blue-500',
                                         teams: Array.isArray(p.departments) ? p.departments : [],
                                         teamDept: Array.isArray(p.departments) ? p.departments.join(', ') : '',
+                                        schedule: sched,
                                         tags: []
                                     });
                                 });
@@ -907,6 +949,7 @@ const App = {
                                 if (tasksData) {
                                     mockTasks.length = 0; // Clear mock
                                     tasksData.forEach(t => {
+                                        const details = (t.details && typeof t.details === 'object') ? t.details : {};
                                         mockTasks.push({
                                             id: t.id,
                                             projectId: t.project_id,
@@ -914,14 +957,29 @@ const App = {
                                             title: t.title,
                                             description: t.description || '',
                                             dueDate: t.due_date ? t.due_date.split('T')[0] : '',
-                                            dueTime: t.due_date && t.due_date.includes('T') ? t.due_date.split('T')[1].substring(0,5) : '',
+                                            dueTime: details.dueTime || (t.due_date && t.due_date.includes('T') ? t.due_date.split('T')[1].substring(0,5) : ''),
                                             status: t.status === 'in_progress' ? 'in-progress' : (t.status === 'in_review' ? 'pending-review' : t.status),
                                             priority: t.priority || 'medium',
                                             subtasks: t.subtasks || [],
-                                            assignees: t.task_assignees ? t.task_assignees.map(ta => ta.user_id) : []
+                                            assignees: t.task_assignees ? t.task_assignees.map(ta => ta.user_id) : [],
+                                            creatorId: t.creator_id || null,
+                                            tag: details.tag || '',
+                                            visibility: details.visibility || 'all',
+                                            repeat: !!details.repeat,
+                                            notifications: details.notifications || undefined,
+                                            reviewers: details.reviewers || [],
+                                            departments: details.departments || [],
+                                            relatedUsers: details.relatedUsers || [],
+                                            isDraft: !!details.isDraft,
+                                            estimateMinutes: t.estimate_minutes != null ? t.estimate_minutes : (details.estimateMinutes != null ? details.estimateMinutes : null),
+                                            budgetAmount: t.budget_amount != null ? Number(t.budget_amount) : (details.budgetAmount != null ? details.budgetAmount : null),
+                                            completedAt: t.completed_at || details.completedAt || null,
+                                            timeLogs: Array.isArray(details.timeLogs) ? details.timeLogs : []
                                         });
                                     });
                                 }
+
+                                await App._loadTimeLogs(mockTasks.map(t => t.id));
 
                                 // --- FETCH TASK SECTIONS (mockTaskSections) ---
                                 const { data: sectionsData } = await window.conworkSupabase.client
@@ -936,7 +994,7 @@ const App = {
                                             id: s.id,
                                             projectId: s.project_id,
                                             title: s.title || s.name || 'ไม่มีชื่อ',
-                                            color: s.color || 'bg-emerald-500',
+                                            color: s.color || App._loadTopicColor(s.id) || 'bg-emerald-500',
                                             order: s.display_order || 0
                                         });
                                     });
@@ -947,10 +1005,13 @@ const App = {
                                 if (eventsData) {
                                     mockEvents.length = 0; // Clear mock
                                     eventsData.forEach(ev => {
+                                        const startDay = ev.start_time ? ev.start_time.split('T')[0] : '';
+                                        const endDay = ev.end_time ? ev.end_time.split('T')[0] : '';
                                         mockEvents.push({
                                             id: ev.id,
                                             title: ev.title,
-                                            date: ev.start_time ? ev.start_time.split('T')[0] : '',
+                                            date: startDay,
+                                            endDate: endDay > startDay ? endDay : '',
                                             time: (ev.start_time && ev.start_time.includes('T')) ? ev.start_time.split('T')[1].substring(0,5) : '',
                                             projectId: ev.project_id || '',
                                             note: ev.description || '',
@@ -958,11 +1019,13 @@ const App = {
                                             userIds: [ev.organizer_id], // Simplified for UI
                                             createdInTab: 'all',
                                             color: ev.color || 'bg-blue-500',
-                                            files: []
+                                            files: [],
+                                            taskId: ev.task_id || null
                                         });
                                     });
                                 }
-                                await this.fetchNotificationsFromSupabase();
+                                await this._startServerReminders();
+                                this.loadPlanUsage();
                             }
                         }
                     }
@@ -984,7 +1047,7 @@ const App = {
                                 name: this.state.currentUser.name || this.state.currentUser.email.split('@')[0],
                                 role: this.state.currentUser.role || 'worker',
                                 department: '',
-                                avatar: this.state.currentUser.avatar || 'https://i.pravatar.cc/150',
+                                avatar: this.state.currentUser.avatar || this._initialsAvatar(this.state.currentUser.name || this.state.currentUser.email),
                                 status: 'online'
                             });
                         }
@@ -1464,7 +1527,7 @@ const App = {
         }
 
         // Update header title
-        const titleMap = { dashboard: 'แดชบอร์ดส่วนตัว', projects: 'งานทั้งหมด', calendar: 'ปฏิทิน', messages: 'ข้อความ', team: 'ทีมงาน', 'work-report': 'สร้างรายงาน', 'add-member': 'เพิ่มพนักงานใหม่', 'role-settings': 'ตั้งค่าพนักงาน' };
+        const titleMap = { dashboard: 'แดชบอร์ดส่วนตัว', projects: 'งานทั้งหมด', calendar: 'ปฏิทิน', messages: 'ข้อความ', team: 'ทีมงาน', 'work-report': 'รายงาน', accounting: 'บัญชีและงบประมาณ', 'add-member': 'เพิ่มพนักงานใหม่', 'role-settings': 'ตั้งค่าพนักงาน' };
         const titleEl = document.getElementById('main-header-title');
         if (titleEl && titleMap[viewName]) titleEl.textContent = titleMap[viewName];
 
@@ -1474,7 +1537,10 @@ const App = {
                 subtitleEl.textContent = 'รายชื่อพนักงานทั้งหมดในบริษัท';
                 subtitleEl.classList.remove('hidden');
             } else if (viewName === 'work-report') {
-                subtitleEl.textContent = 'สร้างรายงานจากกิจกรรมโครงการที่คุณรับผิดชอบ';
+                subtitleEl.textContent = 'สรุปความคืบหน้า เวลา และงบประมาณ ตามโปรเจกต์ บุคคล หรือแผนก';
+                subtitleEl.classList.remove('hidden');
+            } else if (viewName === 'accounting') {
+                subtitleEl.textContent = 'บันทึกรายรับรายจ่าย สมุดบัญชี และงบเทียบใช้จริง';
                 subtitleEl.classList.remove('hidden');
             } else if (viewName === 'dashboard') {
                 subtitleEl.textContent = 'สรุปข้อมูลกิจกรรมและงานส่วนตัวของคุณ';
@@ -1503,6 +1569,13 @@ const App = {
         }
         if (viewName === 'work-report' && typeof WorkReport !== 'undefined') {
             WorkReport.init();
+        }
+        if (viewName === 'accounting' && typeof Accounting !== 'undefined') {
+            Accounting.init();
+        }
+        if (viewName === 'role-settings') {
+            this.renderPlanUsage();
+            this.loadPlanUsage();
         }
     },
 
@@ -1555,6 +1628,18 @@ const App = {
 
     openRoleModal() {
         this.switchView('role-settings');
+    },
+
+    // Phones: start with the menu closed, and close it again when the page behind it is tapped
+    _initMobileSidebar() {
+        const sidebar = document.getElementById('app-sidebar');
+        if (!sidebar || window.innerWidth > 640) return;
+        if (sidebar.classList.contains('w-64')) this.toggleSidebar();
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth > 640 || !sidebar.classList.contains('w-64')) return;
+            if (sidebar.contains(e.target) || e.target.closest('#sidebar-toggle')) return;
+            this.toggleSidebar();
+        }, true);
     },
 
     toggleSidebar() {
@@ -1827,7 +1912,7 @@ const App = {
                         <div onclick="App.state.currentProject='${p.id}'; App.switchView('tasks')" class="flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-100">
                             <div class="w-12 h-12 rounded-xl ${color.bg} ${color.text} flex items-center justify-center text-xl shrink-0"><i class="fa-solid ${color.icon}"></i></div>
                             <div class="flex-1 min-w-0">
-                                <h4 class="font-bold text-gray-800 truncate">${p.name || 'ไม่มีชื่อ'}</h4>
+                                <h4 class="font-bold text-gray-800 truncate" data-no-i18n>${App._esc(p.name || 'ไม่มีชื่อ')}</h4>
                                 <div class="flex items-center gap-4 mt-1">
                                     <div class="text-xs text-gray-500 font-medium">${progress}%</div>
                                     <div class="text-xs text-gray-400"><i class="fa-regular fa-clock"></i> Due: ${p.endDate || 'ไม่มีกำหนด'}</div>
@@ -1914,7 +1999,7 @@ const App = {
             let legendHtml = '';
             projectIds.forEach((pid, idx) => {
                 const color = colors[idx % colors.length];
-                legendHtml += `<div class="flex items-center gap-2 text-xs text-gray-600"><div class="w-2.5 h-2.5 rounded-full" style="background-color: ${color}"></div> <span class="truncate max-w-[120px]" title="${projectMap[pid]}">${projectMap[pid]}</span></div>`;
+                legendHtml += `<div class="flex items-center gap-2 text-xs text-gray-600"><div class="w-2.5 h-2.5 rounded-full" style="background-color: ${color}"></div> <span class="truncate max-w-[120px]" title="${App._esc(projectMap[pid])}">${App._esc(projectMap[pid])}</span></div>`;
             });
             if (projectIds.length === 0) {
                 legendHtml = '<div class="text-xs text-gray-400">ยังไม่มีข้อมูลโปรเจกต์</div>';
@@ -2113,9 +2198,9 @@ const App = {
                         const hPct = (count / bin.total) * 100;
                         const color = colors[pidx % colors.length];
                         const roundedClass = runningPct === 0 ? 'rounded-t-sm' : ''; 
-                        barHtml += `<div class="w-full ${roundedClass} group-hover:opacity-80 transition-opacity relative" style="height: ${hPct}%; background-color: ${color}" title="${projectMap[pid]}: ${count} งาน">
+                        barHtml += `<div class="w-full ${roundedClass} group-hover:opacity-80 transition-opacity relative" style="height: ${hPct}%; background-color: ${color}" title="${App._esc(projectMap[pid])}: ${count} งาน">
                                         <div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded pointer-events-none z-30 whitespace-nowrap transition-opacity">
-                                            ${projectMap[pid]}: ${count} งาน
+                                            ${App._esc(projectMap[pid])}: ${count} งาน
                                         </div>
                                     </div>`;
                         runningPct += hPct;
@@ -2289,15 +2374,18 @@ const App = {
                         <div class="flex items-center gap-2">
                             ${p.pinned ? '<i class="fa-solid fa-thumbtack text-blue-500 transform -rotate-45" title="ปักหมุดแล้ว"></i>' : ''}
                             <span class="px-2 py-1 text-xs font-semibold rounded-full ${badgeColor} shrink-0">${statusLabel}</span>
+                            ${p.closedAt ? '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-800 text-white shrink-0"><i class="fa-solid fa-lock mr-1"></i>ปิดแล้ว</span>' : ''}
+                            ${p.projectType === 'single' ? '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-white/80 text-gray-600 border border-gray-200 shrink-0"><i class="fa-solid fa-user mr-1"></i>ส่วนตัว</span>' : ''}
+                            ${p.projectType === 'division' ? '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-white/80 text-gray-600 border border-gray-200 shrink-0"><i class="fa-solid fa-sitemap mr-1"></i>แผนก</span>' : ''}
                         </div>
                         <button class="text-gray-400 hover:text-gray-600 p-1 shrink-0" onclick="App.projectOptions(event, '${p.id}')"><i class="fa-solid fa-ellipsis-vertical"></i></button>
                     </div>
-                    <h3 class="font-bold text-gray-800 mb-2 line-clamp-2 project-name-display" title="${p.name}">${p.name}</h3>
+                    <h3 class="font-bold text-gray-800 mb-2 line-clamp-2 project-name-display" title="${App._esc(p.name)}" data-no-i18n>${App._esc(p.name)}</h3>
                     <div class="flex items-center space-x-2 mb-auto shrink-0">
                         <div class="flex -space-x-2">
                             ${p.team.slice(0, 3).map(id => {
                 const u = mockUsers.find(user => String(user.id) === String(id));
-                return u ? `<img class="w-8 h-8 rounded-full border-2 border-white bg-white" src="${u.avatar}" title="${u.name}">` : '';
+                return u ? `<img class="w-8 h-8 rounded-full border-2 border-white bg-white" src="${App._safeUrl(u.avatar)}" title="${App._esc(u.name)}" data-no-i18n>` : '';
             }).join('')}
                             ${p.team.length > 3 ? `<div class="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-600">+${p.team.length - 3}</div>` : ''}
                         </div>
@@ -2341,7 +2429,7 @@ const App = {
                             const isManager = managers.includes(uid);
                             const roleText = isManager ? 'ผู้ดูแลโครงการ' : 'ผู้ดูแลโครงการร่วม';
                             const ringClass = isManager ? 'ring-2 ring-blue-500 ring-offset-1' : 'ring-1 ring-gray-300';
-                            return `<img src="${u.avatar}" class="w-6 h-6 rounded-full ${ringClass} cursor-help hover:scale-110 transition-transform bg-white object-cover" title="${u.name} (${roleText})" alt="${u.name}">`;
+                            return `<img src="${App._safeUrl(u.avatar)}" class="w-6 h-6 rounded-full ${ringClass} cursor-help hover:scale-110 transition-transform bg-white object-cover" title="${App._esc(u.name)} (${roleText})" alt="${App._esc(u.name)}">`;
                         }
                         return '';
                     }).join('');
@@ -2374,6 +2462,7 @@ const App = {
     },
 
     addTaskSection() {
+        if (this._projectIsClosed(this.state.currentProject)) return;
         const isManager = this.state.currentUser && ['admin', 'reviewer2', 'reviewer1', 'manager', 'supervisor'].includes(this.state.currentUser.role);
         if (!this.hasPermission('สร้างหัวข้องาน')) {
             App._showToast('คุณไม่มีสิทธิ์สร้างหัวข้องาน', 'error');
@@ -2439,10 +2528,9 @@ const App = {
                 // --- Supabase DB Sync ---
                 if (window.conworkSupabase && window.conworkSupabase.isAvailable() && !['p1', 'p2', 'p3', 'p4'].includes(String(this.state.currentProject))) {
                     try {
-                        const { error } = await window.conworkSupabase.client.from('task_sections').update({
-                            title: title,
-                            color: colorInput.value
-                        }).eq('id', sec.id);
+                        const { error } = await this._sbSaveSkippingMissing({ title: title, color: colorInput.value },
+                            d => window.conworkSupabase.client.from('task_sections').update(d).eq('id', sec.id));
+                        this._saveTopicColor(sec.id, colorInput.value);
                         if (error) console.error("Error updating task_section", error);
                     } catch (e) { console.error(e); }
                 }
@@ -2461,11 +2549,14 @@ const App = {
             // --- Supabase DB Sync ---
             if (window.conworkSupabase && window.conworkSupabase.isAvailable() && !['p1', 'p2', 'p3', 'p4'].includes(String(this.state.currentProject))) {
                 try {
-                    const { data, error } = await window.conworkSupabase.client.from('task_sections').insert({
+                    /* a column this database lacks (e.g. color) is left out instead of stopping the topic from being created */
+                    const { data, error } = await this._sbSaveSkippingMissing({
                         project_id: this.state.currentProject,
                         title: title,
-                        color: finalColor
-                    }).select().single();
+                        color: finalColor,
+                        display_order: existing.length
+                    }, d => window.conworkSupabase.client.from('task_sections').insert(d).select().single());
+                    if (data && !data.color) this._saveTopicColor(data.id, finalColor);
                     
                     if (error) {
                         console.error("Error inserting task_section", error);
@@ -2645,6 +2736,7 @@ const App = {
     },
 
     createTaskInSection(sectionId) {
+        if (this.state.currentProject && this._projectIsClosed(this.state.currentProject)) return;
         if (!this.state.currentProject) {
             this._showToast('กรุณาเลือกโปรเจกต์ก่อน', 'error');
             return;
@@ -2708,7 +2800,7 @@ const App = {
 
             assigneesHtml = `<div class="flex items-center -space-x-1.5 relative z-30">`;
             shownUsers.forEach((u, idx) => {
-                assigneesHtml += `<img src="${u.avatar}" class="w-6 h-6 rounded-full border border-white relative z-[${10 - idx}] shadow-sm" title="${u.name}">`;
+                assigneesHtml += `<img src="${App._safeUrl(u.avatar)}" class="w-6 h-6 rounded-full border border-white relative z-[${10 - idx}] shadow-sm" title="${App._esc(u.name)}" data-no-i18n>`;
             });
             if (remaining > 0) {
                 assigneesHtml += `<div class="w-6 h-6 rounded-full border border-white bg-gray-100 flex items-center justify-center text-[9px] font-bold text-gray-600 relative z-0 shadow-sm">+${remaining}</div>`;
@@ -2808,13 +2900,13 @@ const App = {
                                 onclick="event.stopPropagation()"
                                 onchange="App.toggleCardSubtask('${t.id}', ${idx})"
                                 class="w-4 h-4 text-blue-600 border-gray-300 rounded shrink-0 ${(!canEditSubtask || t.status === 'done') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}">
-                            <span class="text-xs truncate flex-1 ${st.done ? 'line-through text-gray-400' : 'text-gray-700'}">${st.text}</span>
+                            <span class="text-xs truncate flex-1 ${st.done ? 'line-through text-gray-400' : 'text-gray-700'}" data-no-i18n>${App._esc(st.text)}</span>
                             ${st.files && st.files.length > 0 ? `<i class="fa-solid fa-paperclip text-[10px] text-gray-400"></i>` : ''}
                             ${st.description ? `<i class="fa-solid fa-align-left text-[10px] text-gray-400"></i>` : ''}
                             ${st.completedBy || st.lastModifiedBy ? (() => {
                                 const actorId = st.completedBy || st.lastModifiedBy;
                                 const actor = mockUsers.find(u => u.id == actorId);
-                                return actor ? `<img src="${actor.avatar}" class="w-4 h-4 rounded-full border border-gray-200 ml-1 shrink-0 shadow-sm" title="ทำโดย: ${actor.name}">` : '';
+                                return actor ? `<img src="${App._safeUrl(actor.avatar)}" class="w-4 h-4 rounded-full border border-gray-200 ml-1 shrink-0 shadow-sm" title="ทำโดย: ${App._esc(actor.name)}" data-no-i18n>` : '';
                             })() : ''}
                             ${(canEditSubtask && t.status !== 'done' && t.status !== 'pending-review') ? `
                                 <button type="button" onclick="event.stopPropagation(); App.deleteSubtaskDirect('${t.id}', ${idx})" class="text-gray-400 hover:text-red-500 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 opacity-0 group-hover/st:opacity-100 transition-all shrink-0" title="ลบคำสั่งย่อย">
@@ -2892,7 +2984,7 @@ const App = {
             ${pendingOverlay}
             ${doneOverlay}
             ${rejectedOverlay}
-            <p class="font-medium text-sm text-gray-800 mb-1 group-hover:text-blue-600 transition-colors">${t.title}</p>
+            <p class="font-medium text-sm text-gray-800 mb-1 group-hover:text-blue-600 transition-colors" data-no-i18n>${App._esc(t.title)}</p>
             ${t.isDraft ? '<div class="mb-2"><span class="text-xs text-blue-500 font-bold bg-blue-50 px-2 py-1 rounded border border-blue-200 inline-flex items-center"><i class="fa-solid fa-pen-ruler mr-1.5"></i> บันทึกแบบร่าง</span></div>' : ''}
             ${(t.isRejected && (t.status === 'in-progress' || t.status === 'todo')) ? '<div class="mb-2"><span class="text-xs text-red-600 font-bold bg-red-50 px-2 py-1 rounded border border-red-200 inline-flex items-center"><i class="fa-solid fa-rotate-left mr-1.5"></i> ส่งกลับแก้ไข</span></div>' : ''}
             ${(isDone && isRevealed) ? '<div class="mb-2"><span class="text-xs text-green-600 font-bold bg-green-50 px-2 py-1 rounded border border-green-200 inline-flex items-center"><i class="fa-solid fa-circle-check mr-1.5"></i> เสร็จสิ้น</span></div>' : ''}
@@ -2901,7 +2993,7 @@ const App = {
                     const activeRev = this._getActiveReviewer(t);
                     if (activeRev) {
                         const au = mockUsers.find(mu => mu.id === activeRev.userId);
-                        if (au) return `<div class="mb-2"><span class="text-[10px] text-purple-600 font-semibold bg-purple-50 px-2 py-1 rounded border border-purple-200 inline-flex items-center"><i class="fa-solid fa-user-clock mr-1.5"></i> รอตรวจโดย : ${au.name}</span></div>`;
+                        if (au) return `<div class="mb-2"><span class="text-[10px] text-purple-600 font-semibold bg-purple-50 px-2 py-1 rounded border border-purple-200 inline-flex items-center"><i class="fa-solid fa-user-clock mr-1.5"></i> รอตรวจโดย : ${App._esc(au.name)}</span></div>`;
                     }
                 }
                 return '';
@@ -3144,7 +3236,7 @@ const App = {
                     <div class="task-section-header rounded-2xl px-4 py-3 mb-3 flex items-center justify-between text-white shadow-md cursor-grab active:cursor-grabbing"
                          style="background-color: ${sec.color}">
                         <div class="flex items-center gap-2 min-w-0">
-                            <span class="font-bold text-sm truncate">${sec.title}</span>
+                            <span class="font-bold text-sm truncate" data-no-i18n>${App._esc(sec.title)}</span>
                             ${this.hasPermission('สร้างหัวข้องาน') ? `
                             <button type="button"
                                 class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white/20 transition-colors shrink-0 relative z-50"
@@ -3320,7 +3412,7 @@ const App = {
         container.innerHTML = this.state.tempSubtasks.map((st, idx) => `
             <div class="flex items-center gap-3 bg-white p-2 rounded-lg border border-transparent hover:border-gray-100 transition-colors">
                 <input type="checkbox" ${st.done ? 'checked' : ''} onchange="App.toggleTempSubtask(${idx})" class="w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer">
-                <input type="text" value="${st.text}" onchange="App.updateTempSubtask(${idx}, this.value)" class="flex-1 bg-transparent border-none focus:outline-none text-sm text-gray-700 ${st.done ? 'line-through text-gray-400' : ''}">
+                <input type="text" value="${App._esc(st.text)}" onchange="App.updateTempSubtask(${idx}, this.value)" class="flex-1 bg-transparent border-none focus:outline-none text-sm text-gray-700 ${st.done ? 'line-through text-gray-400' : ''}">
                 <button type="button" onclick="App.removeTempSubtask(${idx})" class="text-gray-400 hover:text-red-500 w-7 h-7 flex items-center justify-center rounded-md hover:bg-red-50 transition-colors" title="ลบคำสั่งย่อย">
                     <i class="fa-solid fa-trash-can text-[10px]"></i>
                 </button>
@@ -3375,7 +3467,7 @@ const App = {
         titleEl.className = isReadOnly ? "w-full border border-gray-200 rounded-xl py-2.5 px-4 text-sm shadow-sm bg-gray-50 text-gray-500 outline-none" : "w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm bg-white";
 
         const descEl = document.getElementById('sd-desc');
-        descEl.innerHTML = st.description || '';
+        descEl.innerHTML = App._cleanHtml(st.description || '');
         if (isReadOnly) {
             descEl.setAttribute('contenteditable', 'false');
             descEl.className = "w-full py-3 px-4 focus:outline-none text-sm min-h-[100px] max-h-[300px] overflow-y-auto bg-gray-50 text-gray-500";
@@ -3414,7 +3506,7 @@ const App = {
         if (task && task.subtasks && task.subtasks[subtaskIdx]) {
             const st = task.subtasks[subtaskIdx];
             st.text = document.getElementById('sd-title').value.trim() || st.text;
-            st.description = document.getElementById('sd-desc').innerHTML.trim();
+            st.description = App._cleanHtml(document.getElementById('sd-desc').innerHTML.trim());
             st.files = [...this.state.tempSubtaskFiles];
             
             if (this.state.currentUser) {
@@ -3472,18 +3564,18 @@ const App = {
             const fileUrl = f.url || '#';
             return `
                 <div class="flex items-center justify-between p-3 border border-gray-100 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow group">
-                    <a href="${fileUrl}" download="${f.name}" target="_blank" class="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer hover:opacity-80 transition-opacity" title="คลิกเพื่อดาวน์โหลด/เปิดไฟล์">
+                    <a href="${App._safeUrl(fileUrl) || '#'}" download="${App._esc(f.name)}" data-no-i18n target="_blank" class="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer hover:opacity-80 transition-opacity" title="คลิกเพื่อดาวน์โหลด/เปิดไฟล์">
                         ${isImage ?
                     `<img src="${f.url}" class="w-10 h-10 object-cover rounded-md border border-gray-200 shrink-0 shadow-sm">` :
                     `<div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-md flex items-center justify-center shrink-0 border border-gray-200"><i class="fa-solid fa-file-lines text-lg"></i></div>`
                 }
                         <div class="flex flex-col min-w-0">
-                            <span class="text-sm font-semibold text-blue-600 hover:underline truncate">${f.name}</span>
+                            <span class="text-sm font-semibold text-blue-600 hover:underline truncate" data-no-i18n>${App._esc(f.name)}</span>
                             <span class="text-[10px] text-gray-400 mt-0.5">${sizeKB} KB</span>
                         </div>
                     </a>
                     <div class="flex items-center gap-1 shrink-0 ml-2">
-                        <a href="${fileUrl}" download="${f.name}" target="_blank" class="text-gray-400 hover:text-blue-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 transition-colors" title="ดาวน์โหลด">
+                        <a href="${App._safeUrl(fileUrl) || '#'}" download="${App._esc(f.name)}" data-no-i18n target="_blank" class="text-gray-400 hover:text-blue-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 transition-colors" title="ดาวน์โหลด">
                             <i class="fa-solid fa-download text-sm"></i>
                         </a>
                         ${!this.state.currentSubtaskIsReadOnly ? `
@@ -3552,6 +3644,7 @@ const App = {
             const activeRev = this._getActiveReviewer(task);
             if (activeRev) {
                 activeRev.approved = true;
+                this._syncTaskDetailsToDB(task);
 
                 // Check if there are still more unapproved reviewers
                 const nextRev = this._getActiveReviewer(task);
@@ -3596,14 +3689,6 @@ const App = {
     cancelTaskSubmission(taskId) {
         const task = mockTasks.find(t => t.id === taskId);
         if (!task) return;
-
-        // Simulate checking if manager is reviewing (30% chance for prototype demonstration)
-        const isManagerReviewing = Math.random() < 0.3;
-
-        if (isManagerReviewing) {
-            this._showToast('หัวหน้ากำลังตรวจสอบงานของคุณอยู่ ไม่สามารถยกเลิกได้', 'error');
-            return;
-        }
 
         this.state.taskToCancelSubmit = taskId;
         document.getElementById('cancel-submission-task-name').textContent = task.title || 'ไม่มีชื่อ';
@@ -3650,6 +3735,7 @@ const App = {
 
             if (task.reviewers && task.reviewers.length > 0) {
                 task.reviewers.forEach(r => r.approved = false);
+                this._syncTaskDetailsToDB(task);
             }
 
             if (this.state.revealedTasks && this.state.revealedTasks[taskId]) {
@@ -4000,9 +4086,9 @@ const App = {
                             <img src="${u.avatar}" class="w-16 h-16 rounded-full object-cover border border-gray-200 shadow-sm">
                             <span class="absolute bottom-0 right-0 w-3.5 h-3.5 border-2 border-white rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-300'}"></span>
                         </div>
-                        <h4 class="font-bold text-gray-800 text-sm mb-1 line-clamp-1 w-full px-2" title="${u.name}">${u.name}</h4>
+                        <h4 class="font-bold text-gray-800 text-sm mb-1 line-clamp-1 w-full px-2" title="${App._esc(u.name)}" data-no-i18n>${App._esc(u.name)}</h4>
                         <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1">${roleLabel}</span>
-                        <p class="text-xs text-gray-500 truncate w-full px-2 mt-1">${u.department}</p>
+                        <p class="text-xs text-gray-500 truncate w-full px-2 mt-1" data-no-i18n>${App._esc(u.department)}</p>
                     </div>
                 `;
             }
@@ -4016,10 +4102,10 @@ const App = {
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
-                                <h4 class="font-bold text-gray-800 text-sm">${u.name}</h4>
+                                <h4 class="font-bold text-gray-800 text-sm" data-no-i18n>${App._esc(u.name)}</h4>
                                 <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${roleLabel}</span>
                             </div>
-                            <p class="text-xs text-gray-500 mt-0.5">${u.department} ${u.username ? `• @${u.username}` : ''}</p>
+                            <p class="text-xs text-gray-500 mt-0.5" data-no-i18n>${App._esc(u.department)} ${u.username ? `• @${App._esc(u.username)}` : ''}</p>
                         </div>
                     </div>
                     <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -4087,7 +4173,7 @@ const App = {
             html += `
                 <div class="mb-6">
                     <h3 class="text-xs font-bold text-gray-500 mb-3 flex items-center gap-2 tracking-wider">
-                        <i class="fa-solid fa-users text-gray-400"></i> <span class="dept-name-translatable">${dept}</span> - (${members.length})
+                        <i class="fa-solid fa-users text-gray-400"></i> <span class="dept-name-translatable">${App._esc(dept)}</span> - (${members.length})
                     </h3>
                     <div class="${deptContainerClass}">
                         ${members.map(buildMemberHtml).join('')}
@@ -4365,9 +4451,10 @@ const App = {
         // 2. Manual Events
         mockEvents.forEach(e => {
             if (e.type !== 'project' && this._isEventVisibleByTab(e)) {
+                const evEnd = e.endDate && e.endDate > e.date ? e.endDate : e.date;
                 totalTasks++;
-                if (e.date === todayStr) todayTasks++;
-                if (e.date >= startWeekStr && e.date <= endWeekStr) weekTasks++;
+                if (e.date <= todayStr && evEnd >= todayStr) todayTasks++;
+                if (e.date <= endWeekStr && evEnd >= startWeekStr) weekTasks++;
             }
         });
 
@@ -4389,7 +4476,12 @@ const App = {
 
         // 4. Recurring Schedules
         mockProjects.forEach(p => {
-            if (this._isVisibleByTab(p.id) && p.schedule && p.schedule.days && p.schedule.days.length > 0) {
+            if (this._isVisibleByTab(p.id) && p.schedule && p.schedule.mode === 'repeat') {
+                /* repeating project: count its rounds today and this week */
+                const rounds = this._projectOccurrences(p, startWeekStr, endWeekStr);
+                if (rounds.includes(todayStr)) todayTasks++;
+                weekTasks += rounds.length;
+            } else if (this._isVisibleByTab(p.id) && p.schedule && p.schedule.days && p.schedule.days.length > 0) {
                 totalTasks++; // Count the recurring schedule itself as 1 total task entity
 
                 // Check if it happens today
@@ -4493,8 +4585,8 @@ const App = {
                         ${dayEvents.map(e => `
                             <div class="group relative text-[9px] truncate px-1 py-[1px] rounded-sm font-medium ${e.colorClass} cursor-pointer shadow-sm border ${e.borderClass || 'border-transparent'} leading-tight"
                                 onclick="event.stopPropagation(); App.calendarEventClick('${e.projectId || ''}', '${e.id}');"
-                                title="${e.title}">
-                                ${e.time ? `<span class="opacity-75 mr-0.5">${e.time}</span>` : ''}<span class="project-name-display">${e.title}</span>
+                                title="${App._esc(e.title)}">
+                                ${e.time ? `<span class="opacity-75 mr-0.5">${e.time}</span>` : ''}<span class="project-name-display" data-no-i18n>${App._esc(e.title)}</span>
                             </div>
                         `).join('')}
                     </div>
@@ -4596,7 +4688,7 @@ const App = {
                         <div class="group relative p-2 rounded-lg border shadow-sm ${e.colorClass} ${e.borderClass || 'border-transparent'} cursor-pointer hover:shadow-md transition-shadow"
                             onclick="event.stopPropagation(); App.calendarEventClick('${e.projectId || ''}', '${e.id}')">
                             <div class="flex justify-between items-start">
-                                <div class="font-bold text-xs leading-tight line-clamp-2 pr-2 project-name-display">${e.title}</div>
+                                <div class="font-bold text-xs leading-tight line-clamp-2 pr-2 project-name-display" data-no-i18n>${App._esc(e.title)}</div>
                             </div>
                             ${e.time ? `<div class="text-[10px] opacity-80 mt-1"><i class="fa-regular fa-clock mr-0.5"></i>${e.time}</div>` : ''}
                         </div>
@@ -4646,7 +4738,7 @@ const App = {
                         </div>
                         <div class="flex-1 flex justify-between items-start">
                             <div>
-                                <h4 class="font-bold text-base mb-1 project-name-display">${e.title}</h4>
+                                <h4 class="font-bold text-base mb-1 project-name-display" data-no-i18n>${App._esc(e.title)}</h4>
                                 ${e.projectId ? `<div class="text-xs opacity-75 mt-1"><i class="fa-solid fa-briefcase mr-1"></i> เชื่อมโยงโปรเจกต์</div>` : ''}
                             </div>
                         </div>
@@ -4682,8 +4774,11 @@ const App = {
 
             // 1. Regular Events (manual)
             if (chkEvents || chkMeetings) {
+                const monthFirst = `${mStr}-01`, monthLast = `${mStr}-${String(daysInM).padStart(2, '0')}`;
                 mockEvents.forEach(e => {
-                    if (e.date && e.date.startsWith(mStr) && e.type !== 'project') {
+                    /* an event with an end date shows on every day from its date to the end date */
+                    const evEnd = e.endDate && e.endDate > e.date ? e.endDate : e.date;
+                    if (e.date && e.date <= monthLast && evEnd >= monthFirst && e.type !== 'project') {
                         // Skip based on specific filters
                         if (e.type === 'meeting' && !chkMeetings) return;
                         if (e.type !== 'meeting' && e.type !== 'deadline' && !chkEvents) return;
@@ -4702,7 +4797,15 @@ const App = {
                                     br = `border-${match[1]}-300`;
                                 }
                             }
-                            events.push({ ...e, colorClass: cl, borderClass: br });
+                            if (evEnd === e.date) {
+                                events.push({ ...e, colorClass: cl, borderClass: br });
+                            } else {
+                                for (let d = 1; d <= daysInM; d++) {
+                                    const ds = `${mStr}-${String(d).padStart(2, '0')}`;
+                                    if (ds < e.date || ds > evEnd) continue;
+                                    events.push({ ...e, date: ds, time: ds === e.date ? e.time : '', title: ds === e.date ? e.title : `↳ ${e.title}`, colorClass: cl, borderClass: br });
+                                }
+                            }
                         }
                     }
                 });
@@ -4715,7 +4818,16 @@ const App = {
                         const colors = _getProjColors(p.id, 'bg-emerald-50 text-emerald-700', 'border-emerald-200');
                         /* one colored bar from the start date to the end date: an entry on every day in between */
                         const s0 = p.startDate || p.dueDate, e0 = p.dueDate || p.startDate;
-                        if (s0 && e0 && s0 <= e0) {
+                        if (p.schedule && p.schedule.mode === 'repeat') {
+                            const solid = /^bg-[a-z]+-\d+$/.test(p.color || '') ? p.color : 'bg-blue-500';
+                            const from = `${mStr}-01`, to = `${mStr}-${String(daysInM).padStart(2, '0')}`;
+                            this._projectOccurrences(p, from, to).forEach(ds => {
+                                events.push({
+                                    id: 'proj-rep-' + p.id + '-' + ds, date: ds, title: `🔄 ${p.name}`, time: '', projectId: p.id,
+                                    colorClass: `${solid} text-white`, borderClass: 'border-transparent'
+                                });
+                            });
+                        } else if (s0 && e0 && s0 <= e0) {
                             const solid = /^bg-[a-z]+-\d+$/.test(p.color || '') ? p.color : 'bg-blue-500';
                             for (let d = 1; d <= daysInM; d++) {
                                 const ds = `${mStr}-${String(d).padStart(2, '0')}`;
@@ -4751,7 +4863,7 @@ const App = {
                 mockProjects.forEach(p => {
                     if (this._isVisibleByTab(p.id)) {
                         const colors = _getProjColors(p.id, 'bg-purple-50 text-purple-700', 'border-purple-200');
-                        if (p.schedule && p.schedule.days && p.schedule.days.length > 0) {
+                        if (p.schedule && p.schedule.mode !== 'repeat' && p.schedule.days && p.schedule.days.length > 0) {
                             for (let d = 1; d <= daysInM; d++) {
                                 const date = new Date(y, mm, d);
                                 const dayOfWeek = String(date.getDay());
@@ -4803,6 +4915,7 @@ const App = {
         const d = this._myDept();
         if (!p || !d) return false;
         const list = Array.isArray(p.teams) && p.teams.length ? p.teams : String(p.teamDept || '').split(',').map(x => x.trim());
+        if (list.includes(App.ALL_DEPTS)) return true;
         return list.includes(d);
     },
 
@@ -4864,7 +4977,8 @@ const App = {
     },
 
     calendarEventClick(projectId, eventId) {
-        if (eventId && eventId.startsWith('ev-')) {
+        /* events saved in the database have their own ids, not 'ev-...' */
+        if (eventId && (eventId.startsWith('ev-') || mockEvents.some(e => e.id === eventId))) {
             this.openCreateEventModal(eventId);
         } else if (eventId && eventId.startsWith('task-due-')) {
             const taskId = eventId.replace('task-due-', '');
@@ -5020,7 +5134,7 @@ const App = {
                     
                     <div class="pl-2">
                         <div class="flex justify-between items-start">
-                            <h5 class="text-xs font-bold text-gray-800 pr-2 project-name-display">${e.title}</h5>
+                            <h5 class="text-xs font-bold text-gray-800 pr-2 project-name-display" data-no-i18n>${App._esc(e.title)}</h5>
                         </div>
                         ${e.time ? `<div class="text-[10px] text-gray-500 mt-0.5 font-medium"><i class="fa-regular fa-clock mr-1"></i>${e.time}</div>` : ''}
                         ${avatarsHtml}
@@ -5062,6 +5176,13 @@ const App = {
 
         const proj = mockProjects.find(p => p.id === id);
         if (proj) {
+            const closeBtn = document.getElementById('pcm-close-btn');
+            if (closeBtn) {
+                closeBtn.innerHTML = proj.closedAt
+                    ? '<i class="fa-solid fa-lock-open text-blue-500 w-4"></i> <span>เปิดโปรเจกต์อีกครั้ง</span>'
+                    : '<i class="fa-solid fa-lock text-green-600 w-4"></i> <span>ปิดโปรเจกต์</span>';
+                closeBtn.style.display = this.hasPermission('แก้ไขโปรเจกต์') ? '' : 'none';
+            }
             const pinBtn = document.getElementById('pcm-pin-btn');
             if (pinBtn) {
                 if (proj.pinned) {
@@ -5218,6 +5339,42 @@ const App = {
         document.getElementById('project-context-menu').classList.add('hidden');
     },
 
+    /* close a project (it becomes read-only: no new topics or tasks) or open it again */
+    async toggleCloseProjectFromMenu() {
+        document.getElementById('project-context-menu').classList.add('hidden');
+        const proj = mockProjects.find(p => p.id === this._contextProjectId);
+        if (!proj) return;
+        if (!this.hasPermission('แก้ไขโปรเจกต์')) { App._showToast('คุณไม่มีสิทธิ์แก้ไขโปรเจกต์', 'error'); return; }
+        const closing = !proj.closedAt;
+        if (closing) {
+            const open = mockTasks.filter(t => t.projectId === proj.id && !t.isDraft && t.status !== 'done').length;
+            if (open > 0 && !confirm(`ยังมีงานที่ยังไม่เสร็จ ${open} งาน ต้องการปิดโปรเจกต์เลยหรือไม่?`)) return;
+        }
+        proj.closedAt = closing ? new Date().toISOString() : null;
+        if (closing) proj.status = 'completed';
+        this._saveProjectMeta(proj.id, { closedAt: proj.closedAt });
+        if (window.conworkSupabase && window.conworkSupabase.isAvailable()) {
+            try {
+                const { error } = await this._sbSaveSkippingMissing({ closed_at: proj.closedAt },
+                    d => Object.keys(d).length ? window.conworkSupabase.client.from('projects').update(d).eq('id', proj.id) : Promise.resolve({}));
+                if (error) console.warn('Could not save project closing', error.message);
+            } catch (e) { console.warn(e); }
+        }
+        this._saveData();
+        this.renderProjects();
+        App._showToast(closing ? 'ปิดโปรเจกต์แล้ว (ดูได้อย่างเดียว)' : 'เปิดโปรเจกต์อีกครั้งแล้ว', 'success');
+    },
+
+    /* a closed project only allows viewing; returns true (and says so) when it is closed */
+    _projectIsClosed(projectId) {
+        const proj = mockProjects.find(p => String(p.id) === String(projectId));
+        if (proj && proj.closedAt) {
+            App._showToast('โปรเจกต์นี้ปิดแล้ว เปิดโปรเจกต์อีกครั้งก่อนแก้ไข', 'error');
+            return true;
+        }
+        return false;
+    },
+
     editProjectFromMenu() {
         document.getElementById('project-context-menu').classList.add('hidden');
         const proj = mockProjects.find(p => p.id === this._contextProjectId);
@@ -5241,9 +5398,21 @@ const App = {
 
         // Restore color
         if (proj.color) {
-            const btn = document.querySelector(`.cp-color-btn[data-color="${proj.color}"]`);
+            const btn = document.querySelector(`.cp-color-btn:not(.cev-color-btn)[data-color="${proj.color}"]`)
+                || document.querySelector(`.cp-color-btn:not(.cev-color-btn)[data-color="${this._oldProjectColors[proj.color] || ''}"]`);
             if (btn) this.selectProjectColor(btn);
         }
+
+        // Restore the schedule (fixed dates or repeat)
+        this._fillCpSchedule(proj.schedule && proj.schedule.mode === 'repeat' ? proj.schedule : null);
+
+        // Restore type and budget
+        this.setProjectType(proj.projectType || 'project');
+        const budgetOn = document.getElementById('cp-budget-enabled');
+        if (budgetOn) budgetOn.checked = !!proj.budgetEnabled;
+        const budgetAmt = document.getElementById('cp-budget-amount');
+        if (budgetAmt) budgetAmt.value = proj.budgetAmount != null ? proj.budgetAmount : '';
+        this._cpBudgetToggle();
 
         // Restore manager
         if (proj.managers && proj.managers.length > 0) {
@@ -5276,8 +5445,8 @@ const App = {
         }
         this._renderCpSelectedMembers();
 
-        // Restore schedule
-        if (proj.schedule) {
+        // Restore the retired weekly appointment settings (older projects only)
+        if (proj.schedule && Array.isArray(proj.schedule.days)) {
             if (proj.schedule.timeStart) document.getElementById('cp-time-start').value = proj.schedule.timeStart;
             if (proj.schedule.timeEnd) document.getElementById('cp-time-end').value = proj.schedule.timeEnd;
 
@@ -5392,6 +5561,43 @@ const App = {
         }, 50);
     },
 
+    /* project type: 'project' (team work), 'single' (personal, only I can see it), 'division' (a whole department) */
+    setProjectType(type) {
+        const t = ['project', 'single', 'division'].includes(type) ? type : 'project';
+        const input = document.getElementById('cp-project-type');
+        if (input) input.value = t;
+        ['project', 'single', 'division'].forEach(k => {
+            const b = document.getElementById('cp-type-' + k);
+            if (b) { b.classList.toggle('is-active', k === t); b.setAttribute('aria-pressed', String(k === t)); }
+        });
+        const show = (id, on) => document.getElementById(id)?.classList.toggle('hidden', !on);
+        show('cp-managers-field', t !== 'single');
+        show('cp-comanagers-field', t === 'project');
+        show('cp-members-field', t === 'project');
+        show('cp-teams-field', t !== 'single');
+        const hint = document.getElementById('cp-type-hint');
+        if (hint) hint.textContent = t === 'single' ? 'โปรเจกต์ส่วนตัว เห็นได้เฉพาะคุณคนเดียว'
+            : t === 'division' ? 'งานของทั้งแผนก เลือกแผนกที่รับผิดชอบอย่างน้อย 1 แผนก'
+            : 'ทำงานร่วมกับทีม กำหนดผู้ดูแลและผู้เข้าร่วมได้';
+    },
+
+    _cpBudgetToggle() {
+        const on = !!document.getElementById('cp-budget-enabled')?.checked;
+        document.getElementById('cp-budget-amount-row')?.classList.toggle('hidden', !on);
+    },
+
+    /* project type, budget and closing date are also kept in this browser, so they work before the database has those columns */
+    _saveProjectMeta(id, meta) {
+        try {
+            const map = JSON.parse(localStorage.getItem('conwork_project_meta') || '{}');
+            map[id] = Object.assign({}, map[id] || {}, meta);
+            localStorage.setItem('conwork_project_meta', JSON.stringify(map));
+        } catch (e) { }
+    },
+    _loadProjectMeta(id) {
+        try { return JSON.parse(localStorage.getItem('conwork_project_meta') || '{}')[id] || {}; } catch (e) { return {}; }
+    },
+
     _outsideClickHandler(e) {
         const pairs = [
             { drop: 'manager-dropdown', trigger: 'manager-dropdown' },
@@ -5435,6 +5641,13 @@ const App = {
         if (startInput) startInput.value = '';
         if (endInput) endInput.value = '';
         if (recurStart) recurStart.value = todayStr;
+        this._fillCpSchedule(null);
+        this.setProjectType('project');
+        const budgetOn = document.getElementById('cp-budget-enabled');
+        if (budgetOn) budgetOn.checked = false;
+        const budgetAmt = document.getElementById('cp-budget-amount');
+        if (budgetAmt) budgetAmt.value = '';
+        this._cpBudgetToggle();
 
         // Populate time dropdowns
         const timeStartSel = document.getElementById('cp-time-start');
@@ -5477,8 +5690,12 @@ const App = {
         const teamDrop = document.getElementById('team-dropdown');
         if (teamDrop) {
             const fromSettings = [...document.querySelectorAll('#dept-list-container .dept-item span')].map(x => x.textContent.trim());
-            const teams = [...new Set([...mockUsers.map(u => u.department), ...fromSettings])].filter(Boolean);
-            teamDrop.innerHTML = (teams.length ? '' : '<div class="px-4 py-2 text-sm text-gray-400">ยังไม่มีฝ่าย/แผนก</div>') + teams.map(t => `
+            const teams = [...new Set([...mockUsers.map(u => u.department), ...fromSettings])].filter(t => t && t !== App.ALL_DEPTS);
+            teamDrop.innerHTML = `
+                <div class="flex items-center px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm font-semibold text-blue-700 border-b border-gray-100 transition-colors"
+                    onclick="App._selectTeam(App.ALL_DEPTS)">
+                    <i class="fa-solid fa-building mr-2 text-blue-500 text-xs"></i>${App.ALL_DEPTS}
+                </div>` + (teams.length ? '' : '<div class="px-4 py-2 text-sm text-gray-400">ยังไม่มีฝ่าย/แผนก</div>') + teams.map(t => `
                 <div class="flex items-center px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-700 transition-colors"
                     onclick="App._selectTeam('${t}')">
                     <i class="fa-solid fa-users mr-2 text-blue-400 text-xs"></i>${t}
@@ -5523,8 +5740,8 @@ const App = {
                 onclick="App._dropdownSelectUser('${dropdownId}', '${u.id}')">
                 <img src="${u.avatar}" class="w-7 h-7 rounded-full mr-2">
                 <div>
-                    <div class="text-sm font-medium text-gray-800">${u.name}</div>
-                    <div class="text-xs text-gray-400">${u.department}</div>
+                    <div class="text-sm font-medium text-gray-800" data-no-i18n>${App._esc(u.name)}</div>
+                    <div class="text-xs text-gray-400" data-no-i18n>${App._esc(u.department)}</div>
                 </div>
             </div>
         `).join('');
@@ -5541,6 +5758,8 @@ const App = {
 
     _selectTeam(teamName) {
         if (!App._cpSelectedTeams) App._cpSelectedTeams = [];
+        if (teamName === App.ALL_DEPTS) App._cpSelectedTeams = [];
+        else App._cpSelectedTeams = App._cpSelectedTeams.filter(t => t !== App.ALL_DEPTS);
         if (!App._cpSelectedTeams.includes(teamName)) {
             App._cpSelectedTeams.push(teamName);
             App._renderCpSelectedTeams();
@@ -5699,8 +5918,277 @@ const App = {
         if (endCountInput) endCountInput.classList.toggle('bg-white', val === 'count');
     },
 
+    /* the "every division" choice in a project's divisions list */
+    ALL_DEPTS: 'ทุกฝ่าย',
+
+    /* colors from the earlier palette, so editing an older project still highlights its swatch */
+    _oldProjectColors: {
+        'bg-red-500': 'bg-red-600', 'bg-amber-400': 'bg-amber-500', 'bg-green-500': 'bg-green-600', 'bg-emerald-400': 'bg-teal-500',
+        'bg-cyan-500': 'bg-sky-500', 'bg-blue-500': 'bg-blue-600', 'bg-purple-500': 'bg-violet-600', 'bg-pink-500': 'bg-pink-600',
+        'bg-rose-500': 'bg-pink-600', 'bg-slate-500': 'bg-slate-600'
+    },
+
+    setProjectScheduleMode(mode) {
+        const repeat = mode === 'repeat';
+        const modeInput = document.getElementById('cp-schedule-mode');
+        if (modeInput) modeInput.value = repeat ? 'repeat' : 'range';
+        [['cp-mode-range', !repeat], ['cp-mode-repeat', repeat]].forEach(([id, on]) => {
+            const b = document.getElementById(id);
+            if (b) { b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', String(on)); }
+        });
+        document.getElementById('cp-repeat-panel')?.classList.toggle('hidden', !repeat);
+        document.getElementById('cp-end-wrap')?.classList.toggle('hidden', repeat);
+        document.getElementById('cp-range-dash')?.classList.toggle('hidden', repeat);
+        const lbl = document.getElementById('cp-start-label');
+        if (lbl) lbl.textContent = repeat ? 'เริ่มรอบแรกตั้งแต่วันที่' : 'เริ่มต้น';
+        /* nothing picked yet: start from the first date's weekday and day of the month */
+        const start = document.getElementById('cp-start-date')?.value;
+        if (repeat && start) {
+            const pick = (sel, val) => {
+                if (document.querySelector(sel + '.is-on')) return;
+                const b = document.querySelector(`${sel}[data-d="${val}"]`);
+                if (b) { b.classList.add('is-on'); b.setAttribute('aria-pressed', 'true'); }
+            };
+            pick('.cp-wd', new Date(start + 'T00:00:00').getDay());
+            pick('.cp-md', +start.slice(8, 10));
+        }
+        this._cpRepeatUpdate();
+    },
+
+    _cpChip(btn) {
+        btn.classList.toggle('is-on');
+        btn.setAttribute('aria-pressed', String(btn.classList.contains('is-on')));
+        this._cpRepeatUpdate();
+    },
+
+    /* monthly repeat: on dates of the month (1-31), or on a weekday of a given week (e.g. Wednesday of the last week) */
+    _cpMonthMode(mode) {
+        const byWeekday = mode === 'weekday';
+        const input = document.getElementById('cp-rep-month-mode');
+        if (input) input.value = byWeekday ? 'weekday' : 'date';
+        [['cp-mmode-date', !byWeekday], ['cp-mmode-weekday', byWeekday]].forEach(([id, on]) => {
+            const b = document.getElementById(id);
+            if (b) { b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', String(on)); }
+        });
+        document.getElementById('cp-rep-mdate')?.classList.toggle('hidden', byWeekday);
+        document.getElementById('cp-rep-mweekday')?.classList.toggle('hidden', !byWeekday);
+        this._cpRepeatUpdate();
+    },
+
+    /* put a schedule into the form; null means a fixed start/end project */
+    _fillCpSchedule(sch) {
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+        const r = sch || {};
+        set('cp-rep-every', r.every || 1);
+        set('cp-rep-unit', r.unit || 'week');
+        set('cp-rep-count', r.count || 12);
+        set('cp-rep-until', r.until || '');
+        const endRadio = document.getElementById(r.endType === 'date' ? 'cp-rep-end-date' : 'cp-rep-end-count');
+        if (endRadio) endRadio.checked = true;
+        document.querySelectorAll('.cp-wd').forEach(b => {
+            const on = sch ? (r.weekdays || []).map(String).includes(b.dataset.d) : false;
+            b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on));
+        });
+        document.querySelectorAll('.cp-md').forEach(b => {
+            const on = sch ? (r.monthDays || []).map(String).includes(b.dataset.d) : false;
+            b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on));
+        });
+        set('cp-rep-nth', r.nth != null ? String(r.nth) : '-1');
+        set('cp-rep-nthday', r.nthDay != null ? String(r.nthDay) : '3');
+        this._cpMonthMode(r.monthMode === 'weekday' ? 'weekday' : 'date');
+        this.setProjectScheduleMode(sch ? 'repeat' : 'range');
+    },
+
+    /* read the repeat settings from the form: null for a fixed-date project, {error} when something is missing */
+    _readCpSchedule() {
+        if (document.getElementById('cp-schedule-mode')?.value !== 'repeat') return null;
+        const start = document.getElementById('cp-start-date')?.value;
+        const unit = document.getElementById('cp-rep-unit')?.value || 'week';
+        const every = Math.max(1, Math.min(99, parseInt(document.getElementById('cp-rep-every')?.value, 10) || 1));
+        const endType = document.querySelector('input[name="cp-rep-end"]:checked')?.value || 'count';
+        const count = Math.max(1, Math.min(500, parseInt(document.getElementById('cp-rep-count')?.value, 10) || 0));
+        const until = document.getElementById('cp-rep-until')?.value || '';
+        const weekdays = [...document.querySelectorAll('.cp-wd.is-on')].map(b => b.dataset.d);
+        const monthDays = [...document.querySelectorAll('.cp-md.is-on')].map(b => +b.dataset.d).sort((a, b) => a - b);
+        const monthMode = document.getElementById('cp-rep-month-mode')?.value === 'weekday' ? 'weekday' : 'date';
+        const nth = parseInt(document.getElementById('cp-rep-nth')?.value, 10) || -1;
+        const nthDay = parseInt(document.getElementById('cp-rep-nthday')?.value, 10) || 0;
+        if (!start) return { error: 'กรุณาเลือกวันเริ่มรอบแรก' };
+        if (unit === 'week' && !weekdays.length) return { error: 'กรุณาเลือกวันในสัปดาห์ที่ต้องทำซ้ำ' };
+        if (unit === 'month' && monthMode === 'date' && !monthDays.length) return { error: 'กรุณาเลือกวันที่ของเดือนที่ต้องทำซ้ำ' };
+        if (endType === 'count' && !(parseInt(document.getElementById('cp-rep-count')?.value, 10) > 0)) return { error: 'กรุณาใส่จำนวนรอบ' };
+        if (endType === 'date' && !until) return { error: 'กรุณาเลือกวันสิ้นสุดการทำซ้ำ' };
+        if (endType === 'date' && until < start) return { error: 'วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น' };
+        const sch = { mode: 'repeat', every, unit, weekdays: unit === 'week' ? weekdays : [], monthDays: unit === 'month' && monthMode === 'date' ? monthDays : [], endType, count: endType === 'count' ? count : null, until: endType === 'date' ? until : null };
+        if (unit === 'month' && monthMode === 'weekday') Object.assign(sch, { monthMode, nth, nthDay });
+        const all = this._projectOccurrences({ startDate: start, schedule: sch });
+        if (!all.length) return { error: 'ไม่มีวันไหนตรงกับรูปแบบที่ตั้งไว้' };
+        sch.lastDate = all[all.length - 1];
+        return sch;
+    },
+
+    /* every date (YYYY-MM-DD) a repeating project runs on, optionally only those between from and to */
+    _projectOccurrences(p, from, to) {
+        const sch = p && p.schedule;
+        if (!sch || sch.mode !== 'repeat' || !p.startDate) return [];
+        const pad = n => String(n).padStart(2, '0');
+        const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        const start = new Date(p.startDate + 'T00:00:00');
+        const every = Math.max(1, sch.every || 1);
+        const limitCount = sch.endType === 'count' ? Math.max(1, sch.count || 1) : Infinity;
+        const until = sch.endType === 'date' && sch.until ? sch.until : null;
+        const hardStop = new Date(start); hardStop.setFullYear(hardStop.getFullYear() + 10);
+        const weekdays = (sch.weekdays || []).map(String);
+        const monthDays = (sch.monthDays || []).map(Number);
+        const startWeek = new Date(start); startWeek.setDate(start.getDate() - start.getDay());
+        const out = [];
+        let n = 0;
+        for (const d = new Date(start); d <= hardStop; d.setDate(d.getDate() + 1)) {
+            const ds = iso(d);
+            if (until && ds > until) break;
+            if (to && ds > to) break;
+            let hit = false;
+            if (sch.unit === 'day') {
+                hit = Math.round((d - start) / 86400000) % every === 0;
+            } else if (sch.unit === 'week') {
+                const weeks = Math.floor(Math.round((d - startWeek) / 86400000) / 7);
+                hit = weeks % every === 0 && weekdays.includes(String(d.getDay()));
+            } else {
+                const months = (d.getFullYear() - start.getFullYear()) * 12 + d.getMonth() - start.getMonth();
+                const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+                const day = d.getDate();
+                if (sch.monthMode === 'weekday') {
+                    /* nth = 1..4 for the first..fourth such weekday of the month, -1 for the last one */
+                    const week = sch.nth === -1 ? (day + 7 > last ? -1 : 0) : Math.ceil(day / 7);
+                    hit = months % every === 0 && d.getDay() === Number(sch.nthDay) && week === Number(sch.nth);
+                } else {
+                    hit = months % every === 0 && (monthDays.includes(day) || (day === last && monthDays.some(m => m > last)));
+                }
+            }
+            if (!hit) continue;
+            n++;
+            if (!from || ds >= from) out.push(ds);
+            if (n >= limitCount) break;
+        }
+        return out;
+    },
+
+    /* show or hide the weekday / day-of-month pickers and write the summary line under the repeat settings */
+    _cpRepeatUpdate() {
+        const unit = document.getElementById('cp-rep-unit')?.value || 'week';
+        document.getElementById('cp-rep-week-row')?.classList.toggle('hidden', unit !== 'week');
+        document.getElementById('cp-rep-month-row')?.classList.toggle('hidden', unit !== 'month');
+        const endType = document.querySelector('input[name="cp-rep-end"]:checked')?.value || 'count';
+        const cnt = document.getElementById('cp-rep-count'), until = document.getElementById('cp-rep-until');
+        if (cnt) cnt.disabled = endType !== 'count';
+        if (until) until.disabled = endType !== 'date';
+        const box = document.getElementById('cp-rep-summary');
+        if (!box || document.getElementById('cp-schedule-mode')?.value !== 'repeat') return;
+        const en = typeof i18nIsEnglish === 'function' && i18nIsEnglish();
+        const start = document.getElementById('cp-start-date')?.value;
+        const sch = this._readCpSchedule();
+        if (!start || !sch || sch.error) {
+            box.className = 'cp-rep-summary is-empty';
+            box.textContent = en ? 'Pick a first date and the days to repeat on to see the rounds.' : 'เลือกวันเริ่มและวันที่ต้องทำซ้ำ แล้วจะเห็นรอบทั้งหมดตรงนี้';
+            return;
+        }
+        const all = this._projectOccurrences({ startDate: start, schedule: sch });
+        const fmt = ds => new Date(ds + 'T00:00:00').toLocaleDateString(en ? 'en-GB' : 'th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+        const unitTxt = en ? { day: 'day', week: 'week', month: 'month' }[sch.unit] + (sch.every > 1 ? 's' : '') : { day: 'วัน', week: 'สัปดาห์', month: 'เดือน' }[sch.unit];
+        const dayNames = en ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] : ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
+        let rule = en ? `Every ${sch.every > 1 ? sch.every + ' ' : ''}${unitTxt}` : `ทุก ${sch.every > 1 ? sch.every + ' ' : ''}${unitTxt}`;
+        if (sch.unit === 'week') rule += (en ? ' on ' : ' วัน ') + ['1', '2', '3', '4', '5', '6', '0'].filter(d => sch.weekdays.includes(d)).map(d => dayNames[+d]).join(', ');
+        if (sch.unit === 'month' && sch.monthMode === 'weekday') {
+            const nthTxt = en ? { 1: 'first', 2: 'second', 3: 'third', 4: 'fourth', '-1': 'last' }[sch.nth] : { 1: 'สัปดาห์แรก', 2: 'สัปดาห์ที่ 2', 3: 'สัปดาห์ที่ 3', 4: 'สัปดาห์ที่ 4', '-1': 'สัปดาห์สุดท้าย' }[sch.nth];
+            const fullDays = en ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] : ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์'];
+            rule += en ? ` on the ${nthTxt} ${fullDays[sch.nthDay]}` : ` ${fullDays[sch.nthDay]}ของ${nthTxt}`;
+        } else if (sch.unit === 'month') rule += (en ? ' on day ' : ' วันที่ ') + sch.monthDays.join(', ');
+        const preview = all.slice(0, 4).map(fmt).join(' · ') + (all.length > 4 ? ' …' : '');
+        box.className = 'cp-rep-summary';
+        box.innerHTML = `<b>${rule}</b><span>${en ? `${all.length} rounds · ${fmt(all[0])} to ${fmt(all[all.length - 1])}` : `${all.length} รอบ · ${fmt(all[0])} ถึง ${fmt(all[all.length - 1])}`}</span><span class="cp-rep-dates">${preview}</span>`;
+    },
+
+    /* chat safety: text written by people is always shown as text, never run as HTML */
+    _esc(t) {
+        return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    },
+    /* a message's text: escaped, with web links made clickable (line breaks are kept by whitespace-pre-wrap) */
+    _richText(t) {
+        return this._esc(t).replace(/\bhttps?:\/\/[^\s<]+/g, url => {
+            const clean = url.replace(/[.,!?)]+$/, '');
+            return `<a href="${clean}" target="_blank" rel="noopener noreferrer" class="underline break-all">${clean}</a>` + url.slice(clean.length);
+        });
+    },
+    /* formatted text people wrote (task descriptions, event notes): keep the formatting, drop anything that could run.
+       Uses DOMPurify; if it did not load, the text is kept as plain text instead. */
+    _cleanHtml(html) {
+        const src = String(html == null ? '' : html);
+        if (!src) return '';
+        if (window.DOMPurify && typeof window.DOMPurify.sanitize === 'function') {
+            if (!this._purifyHooked) {
+                /* links open in a new tab and never get access to the app */
+                window.DOMPurify.addHook('afterSanitizeAttributes', node => {
+                    if (node.tagName === 'A' && node.hasAttribute('href')) {
+                        node.setAttribute('target', '_blank');
+                        node.setAttribute('rel', 'noopener noreferrer');
+                    }
+                });
+                this._purifyHooked = true;
+            }
+            return window.DOMPurify.sanitize(src, {
+                ALLOWED_TAGS: ['b', 'strong', 'i', 'em', 'u', 's', 'strike', 'del', 'br', 'p', 'div', 'span', 'ul', 'ol', 'li',
+                    'a', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'code', 'pre', 'hr', 'sub', 'sup', 'font'],
+                ALLOWED_ATTR: ['href', 'target', 'rel', 'style', 'class', 'color'],
+                ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:|#)/i
+            });
+        }
+        /* no sanitizer: plain text with line breaks (DOMParser makes an inert document: nothing in it loads or runs) */
+        const doc = new DOMParser().parseFromString(
+            src.replace(/<\s*br\s*\/?>/gi, '\n').replace(/<\/(p|div|li|h\d)>/gi, '\n'), 'text/html');
+        doc.querySelectorAll('script,style').forEach(n => n.remove());
+        return this._esc((doc.body.textContent || '').replace(/\n{3,}/g, '\n\n').trim()).replace(/\n/g, '<br>');
+    },
+    /* only picture/file addresses that are safe to put in src/href */
+    _safeUrl(u) {
+        const s = String(u || '').trim();
+        return /^(https?:|blob:|data:(image|application|text|audio|video)\/)/i.test(s) ? this._esc(s) : '';
+    },
+
+    /* a plain picture with a person's initials, for people without a profile picture (instead of a stock photo of someone else) */
+    _initialsAvatar(name) {
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(String(name || 'U').trim() || 'U')}&background=DBEAFE&color=1D4ED8`;
+    },
+
+    /* topic colors also live in this browser, so they survive when the task_sections table has no color column yet */
+    _saveTopicColor(id, color) {
+        try {
+            const map = JSON.parse(localStorage.getItem('conwork_topic_colors') || '{}');
+            map[id] = color;
+            localStorage.setItem('conwork_topic_colors', JSON.stringify(map));
+        } catch (e) { }
+    },
+    _loadTopicColor(id) {
+        try { return JSON.parse(localStorage.getItem('conwork_topic_colors') || '{}')[id] || null; } catch (e) { return null; }
+    },
+
+    /* repeat settings also live in this browser, so they survive when the projects table has no schedule column yet */
+    _saveProjectSchedule(id, sch) {
+        try {
+            const map = JSON.parse(localStorage.getItem('conwork_project_schedules') || '{}');
+            if (sch) map[id] = sch; else delete map[id];
+            localStorage.setItem('conwork_project_schedules', JSON.stringify(map));
+        } catch (e) { }
+    },
+    _loadProjectSchedule(id, fromDb) {
+        if (fromDb && typeof fromDb === 'object' && fromDb.mode === 'repeat') return fromDb;
+        try {
+            const map = JSON.parse(localStorage.getItem('conwork_project_schedules') || '{}');
+            return map[id] || null;
+        } catch (e) { return null; }
+    },
+
     selectProjectColor(btn) {
-        document.querySelectorAll('.cp-color-btn').forEach(b => {
+        document.querySelectorAll('.cp-color-btn:not(.cev-color-btn)').forEach(b => {
             b.classList.remove('ring-2', 'ring-offset-2', 'ring-gray-400', 'scale-110');
         });
         btn.classList.add('ring-2', 'ring-offset-2', 'ring-gray-400', 'scale-110');
@@ -5721,10 +6209,10 @@ const App = {
         // Reset color
         const colorInput = document.getElementById('cp-color');
         if (colorInput) {
-            colorInput.value = 'bg-blue-500';
-            document.querySelectorAll('.cp-color-btn').forEach(b => {
+            colorInput.value = 'bg-blue-600';
+            document.querySelectorAll('.cp-color-btn:not(.cev-color-btn)').forEach(b => {
                 b.classList.remove('ring-2', 'ring-offset-2', 'ring-gray-400', 'scale-110');
-                if (b.getAttribute('data-color') === 'bg-blue-500') {
+                if (b.getAttribute('data-color') === 'bg-blue-600') {
                     b.classList.add('ring-2', 'ring-offset-2', 'ring-gray-400', 'scale-110');
                 }
             });
@@ -5801,14 +6289,38 @@ const App = {
         document.getElementById('cp-name').classList.remove('border-red-500');
 
         const startDate = document.getElementById('cp-start-date')?.value;
-        const endDate = document.getElementById('cp-end-date')?.value;
+        const schedule = this._readCpSchedule();
+        if (schedule && schedule.error) { App._showToast(schedule.error, 'error'); return; }
+        /* a repeating project ends on its last round, so lists, status and the database keep working with one end date */
+        const endDate = schedule ? schedule.lastDate : document.getElementById('cp-end-date')?.value;
         if (!startDate || !endDate) { App._showToast('กรุณาเลือกวันเริ่มต้นและวันสิ้นสุดของโครงการ', 'error'); return; }
         if (endDate < startDate) { App._showToast('วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น', 'error'); return; }
+        if (schedule) delete schedule.lastDate;
         const desc = document.getElementById('cp-desc')?.value?.trim();
         const color = document.getElementById('cp-color')?.value || 'bg-blue-500';
+        /* type decides who is in the project: Single = only me, Division = a department (+ its managers), Project = chosen people */
+        const projectType = document.getElementById('cp-project-type')?.value || 'project';
+        const budgetEnabled = !!document.getElementById('cp-budget-enabled')?.checked;
+        const budgetRaw = document.getElementById('cp-budget-amount')?.value;
+        const budgetAmount = budgetEnabled && budgetRaw !== '' ? Math.max(0, parseFloat(budgetRaw) || 0) : null;
+        if (projectType === 'division' && !(App._cpSelectedTeams || []).length) {
+            App._showToast('กรุณาเลือกแผนกที่รับผิดชอบอย่างน้อย 1 แผนก', 'error');
+            return;
+        }
+        if (projectType === 'single') {
+            App._cpSelectedManagers = [this.state.currentUser.id];
+            App._cpSelectedCoManagers = [];
+            App._cpSelectedMembers = [];
+            App._cpSelectedTeams = [];
+        } else if (projectType === 'division') {
+            App._cpSelectedCoManagers = [];
+            App._cpSelectedMembers = [];
+        }
         const managers = App._cpSelectedManagers || [];
         const comanagers = App._cpSelectedCoManagers || [];
         const teams = App._cpSelectedTeams || [];
+        const metaFields = { projectType, budgetEnabled, budgetAmount };
+        const metaDb = { project_type: projectType, budget_enabled: budgetEnabled, budget_amount: budgetAmount };
 
         // Collect selected days
         const selectedDays = [];
@@ -5846,12 +6358,15 @@ const App = {
                 proj.teamDept = teams.join(', ');
                 proj.teams = teams;
                 proj.team = teamMembers;
-                proj.schedule = null;
+                proj.schedule = schedule;
+                this._saveProjectSchedule(proj.id, schedule);
+                Object.assign(proj, metaFields);
+                this._saveProjectMeta(proj.id, metaFields);
 
                 // --- Update Supabase Project ---
                 if (window.conworkSupabase && window.conworkSupabase.isAvailable() && !['p1', 'p2', 'p3', 'p4'].includes(String(proj.id))) {
                     try {
-                        const upd = { name: name, description: desc, color: color, start_date: startDate || null, due_date: endDate || null, departments: teams };
+                        const upd = { name: name, description: desc, color: color, start_date: startDate || null, due_date: endDate || null, departments: teams, schedule: schedule, ...metaDb };
                         const { error: upErr } = await this._sbSaveSkippingMissing(upd, d => window.conworkSupabase.client.from('projects').update(d).eq('id', proj.id));
                         if (upErr) console.error('Error updating project', upErr);
 
@@ -5935,7 +6450,9 @@ const App = {
                         progress_pct: 0,
                         start_date: startDate || null,
                         due_date: endDate || null,
-                        departments: teams
+                        departments: teams,
+                        schedule: schedule,
+                        ...metaDb
                     };
 
                     /* columns this database does not have yet (conwork-projects.sql adds them) are left out instead of failing */
@@ -5944,7 +6461,9 @@ const App = {
                         
                     if (insErr) {
                         console.error("Error creating project:", insErr);
-                        alert(`เกิดข้อผิดพลาดในการสร้างโปรเจกต์:\n${insErr.message}`);
+                        const planMsg = this.planLimitMessage(insErr);
+                        if (planMsg) { this._showToast(planMsg, 'error'); this.loadPlanUsage(); }
+                        else alert(`เกิดข้อผิดพลาดในการสร้างโปรเจกต์:\n${insErr.message}`);
                         return;
                     } else if (insertedProj) {
                         newId = insertedProj.id;
@@ -6004,10 +6523,14 @@ const App = {
                 comanagers: comanagers,
                 teamDept: teams.join(', '),
                 teams: teams,
-                schedule: null
+                schedule: schedule,
+                ownerId: this.state.currentUser.id,
+                ...metaFields
             };
 
             mockProjects.push(newProject);
+            this._saveProjectSchedule(newProject.id, schedule);
+            this._saveProjectMeta(newProject.id, metaFields);
 
             // --- Link to calendar: add start & end events + recurring schedule ---
             if (startDate) {
@@ -6041,14 +6564,22 @@ const App = {
         this.closeCreateProjectModal();
     },
 
-    _showToast(message, type = 'info') {
+    _showToast(message, type = 'info', userText = '') {
         const existing = document.getElementById('app-toast');
         if (existing) existing.remove();
         const color = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
         const toast = document.createElement('div');
         toast.id = 'app-toast';
         toast.className = `fixed bottom-6 left-1/2 -translate-x-1/2 ${color} text-white px-6 py-3 rounded-xl shadow-xl text-sm font-medium z-[9999] flex items-center space-x-2 transition-all`;
-        toast.innerHTML = `<i class="fa-solid fa-${type === 'success' ? 'circle-check' : 'circle-info'}"></i><span>${message}</span>`;
+        toast.innerHTML = `<i class="fa-solid fa-${type === 'success' ? 'circle-check' : 'circle-info'}"></i><span></span>`;
+        toast.querySelector('span').textContent = message; // messages can contain what people typed: never run it as HTML
+        /* optional part written by a person (e.g. a chat message): shown as typed, never translated */
+        if (userText) {
+            const quoted = document.createElement('span');
+            quoted.setAttribute('data-no-i18n', '');
+            quoted.textContent = userText;
+            toast.appendChild(quoted);
+        }
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     },
@@ -6058,11 +6589,13 @@ const App = {
     },
 
     // --- Create Event Modal Logic ---
-    openCreateEventModal(eventId = null) {
+    /* prefill (optional): { taskId, projectId, title, date } — a meeting made from a task */
+    openCreateEventModal(eventId = null, prefill = null) {
         const modal = document.getElementById('create-event-modal');
         if (!modal) return;
 
         this.state.editingEventId = eventId;
+        this.state.cevTaskId = null;
         const titleEl = document.getElementById('cev-modal-title');
         const deleteBtn = document.getElementById('cev-delete-btn');
 
@@ -6070,6 +6603,7 @@ const App = {
         document.getElementById('cev-title').value = '';
         document.getElementById('cev-date').value = this.state.selectedDate || '';
         document.getElementById('cev-time').value = '';
+        if (document.getElementById('cev-end-date')) document.getElementById('cev-end-date').value = '';
         document.getElementById('cev-note').innerHTML = '';
         
         this.state.cevFiles = [];
@@ -6080,12 +6614,7 @@ const App = {
         this.setEventCalType(initCalType);
         this.setEventType('event');
 
-        const defColor = 'bg-blue-500';
-        if (document.getElementById('cev-color')) document.getElementById('cev-color').value = defColor;
-        document.querySelectorAll('.cev-color-btn').forEach(btn => {
-            btn.classList.remove('ring-2', 'ring-offset-2', 'ring-gray-400', 'scale-110');
-            if (btn.getAttribute('data-color') === defColor) btn.classList.add('ring-2', 'ring-offset-2', 'ring-gray-400', 'scale-110');
-        });
+        this._markEventColor('bg-blue-600');
 
         // Populate project select
         const projSelect = document.getElementById('cev-project');
@@ -6093,7 +6622,7 @@ const App = {
             let html = '<option value="">— ไม่เชื่อมโยง —</option>';
             mockProjects.forEach(p => {
                 if (p.status !== 'deleted') {
-                    html += `<option value="${p.id}">${p.name}</option>`;
+                    html += `<option value="${p.id}" data-no-i18n>${App._esc(p.name)}</option>`;
                 }
             });
             projSelect.innerHTML = html;
@@ -6108,7 +6637,8 @@ const App = {
                 document.getElementById('cev-title').value = ev.title;
                 document.getElementById('cev-date').value = ev.date;
                 if (ev.time) document.getElementById('cev-time').value = ev.time;
-                if (ev.note) document.getElementById('cev-note').innerHTML = ev.note;
+                if (ev.endDate && document.getElementById('cev-end-date')) document.getElementById('cev-end-date').value = ev.endDate;
+                if (ev.note) document.getElementById('cev-note').innerHTML = App._cleanHtml(ev.note);
                 
                 this.state.cevFiles = [...(ev.files || [])];
                 this.renderCevFiles();
@@ -6117,20 +6647,92 @@ const App = {
                     document.getElementById('cev-cal-type').value = ev.createdInTab;
                     this.setEventCalType(ev.createdInTab);
                 }
-                const evColor = ev.color || 'bg-blue-500';
-                if (document.getElementById('cev-color')) document.getElementById('cev-color').value = evColor;
-                document.querySelectorAll('.cev-color-btn').forEach(btn => {
-                    btn.classList.remove('ring-2', 'ring-offset-2', 'ring-gray-400', 'scale-110');
-                    if (btn.getAttribute('data-color') === evColor) btn.classList.add('ring-2', 'ring-offset-2', 'ring-gray-400', 'scale-110');
-                });
+                this._markEventColor(ev.color || 'bg-blue-600');
                 this.setEventType(ev.type || 'event');
+                this.state.cevTaskId = ev.taskId || null;
             }
         } else {
             if (titleEl) titleEl.innerText = 'สร้างกิจกรรมใหม่';
             if (deleteBtn) deleteBtn.classList.add('hidden');
+            if (prefill) {
+                if (prefill.title) document.getElementById('cev-title').value = prefill.title;
+                if (prefill.date) document.getElementById('cev-date').value = prefill.date;
+                if (prefill.projectId && projSelect) projSelect.value = prefill.projectId;
+                if (prefill.taskId) { this.state.cevTaskId = prefill.taskId; this.setEventType('meeting'); }
+            }
         }
+        this._renderEventTaskLink();
 
         modal.classList.remove('hidden');
+    },
+
+    /* the "linked to task" chip in the event form */
+    _renderEventTaskLink() {
+        const box = document.getElementById('cev-task-link');
+        if (!box) return;
+        const task = this.state.cevTaskId ? mockTasks.find(t => String(t.id) === String(this.state.cevTaskId)) : null;
+        box.classList.toggle('hidden', !this.state.cevTaskId);
+        box.classList.toggle('flex', !!this.state.cevTaskId);
+        const name = document.getElementById('cev-task-name');
+        if (name) name.textContent = task ? task.title : (this.state.cevTaskId ? '—' : '');
+    },
+    unlinkEventTask() {
+        this.state.cevTaskId = null;
+        this._renderEventTaskLink();
+    },
+
+    /* "นัดประชุมสำหรับงานนี้": the event form, already linked to the task and its project */
+    scheduleMeetingForTask(taskId) {
+        const task = mockTasks.find(t => String(t.id) === String(taskId));
+        if (!task) return;
+        const today = new Date();
+        const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const en = typeof i18nIsEnglish === 'function' && i18nIsEnglish();
+        this.openCreateEventModal(null, {
+            taskId: task.id, projectId: task.projectId || '',
+            title: (en ? 'Meeting: ' : 'ประชุม: ') + (task.title || ''),
+            date: task.dueDate && task.dueDate >= iso ? iso : (this.state.selectedDate || iso)
+        });
+    },
+
+    /* meetings linked to the task, in its detail panel */
+    _renderTaskMeetings(task) {
+        const list = document.getElementById('tdv-meetings-list');
+        const count = document.getElementById('tdv-meetings-count');
+        if (!list || !task) return;
+        const meetings = mockEvents.filter(e => e.taskId && String(e.taskId) === String(task.id))
+            .sort((a, b) => `${a.date} ${a.time || ''}`.localeCompare(`${b.date} ${b.time || ''}`));
+        if (count) count.textContent = meetings.length ? String(meetings.length) : '';
+        if (!meetings.length) {
+            list.innerHTML = '<p class="text-xs text-gray-400">ยังไม่มีนัดประชุมสำหรับงานนี้</p>';
+            return;
+        }
+        const en = typeof i18nIsEnglish === 'function' && i18nIsEnglish();
+        list.innerHTML = meetings.map(e => {
+            const d = e.date ? new Date(e.date + 'T00:00:00') : null;
+            const when = d && !isNaN(d) ? d.toLocaleDateString(en ? 'en-GB' : 'th-TH', { day: 'numeric', month: 'short' }) : '';
+            return `<button type="button" onclick="App.openTaskMeeting('${this._esc(e.id)}')" class="w-full text-left flex items-center gap-2 text-xs bg-pink-50/60 hover:bg-pink-50 rounded-lg px-2 py-1.5">
+                <i class="fa-regular fa-calendar text-pink-500"></i>
+                <span class="font-semibold text-gray-700 shrink-0 tabular-nums">${this._esc(when)}${e.time ? ' ' + this._esc(e.time) : ''}</span>
+                <span class="text-gray-600 truncate flex-1" data-no-i18n>${this._esc(e.title)}</span>
+            </button>`;
+        }).join('');
+    },
+    /* a meeting from the task panel: show it on the calendar and open it */
+    openTaskMeeting(eventId) {
+        const ev = mockEvents.find(e => String(e.id) === String(eventId));
+        if (!ev) return;
+        this.closeTaskDetailViewModal();
+        this.switchView('calendar');
+        if (ev.date) {
+            const [y, m, d] = ev.date.split('-');
+            this.state.calendarYear = parseInt(y);
+            this.state.calendarMonth = parseInt(m) - 1;
+            this.state.calendarDate = parseInt(d);
+            this.state.selectedDate = ev.date;
+            if (this.renderCalendar) this.renderCalendar();
+        }
+        this.openCreateEventModal(ev.id);
     },
 
     closeCreateEventModal() {
@@ -6183,17 +6785,17 @@ const App = {
             const fileUrl = file.url || '#';
             html += `
                 <div class="flex items-center justify-between p-2 bg-gray-50 border border-gray-100 rounded-lg group">
-                    <a href="${fileUrl}" download="${file.name}" target="_blank" class="flex items-center gap-3 overflow-hidden flex-1 hover:opacity-80 transition-opacity cursor-pointer" title="คลิกเพื่อดาวน์โหลด/เปิดไฟล์">
+                    <a href="${App._safeUrl(fileUrl) || '#'}" download="${App._esc(file.name)}" data-no-i18n target="_blank" class="flex items-center gap-3 overflow-hidden flex-1 hover:opacity-80 transition-opacity cursor-pointer" title="คลิกเพื่อดาวน์โหลด/เปิดไฟล์">
                         <div class="w-8 h-8 rounded bg-white flex items-center justify-center shrink-0 border border-gray-200 shadow-sm">
                             ${icon}
                         </div>
                         <div class="flex flex-col min-w-0">
-                            <span class="text-sm font-medium text-blue-600 hover:underline truncate">${file.name}</span>
+                            <span class="text-sm font-medium text-blue-600 hover:underline truncate" data-no-i18n>${App._esc(file.name)}</span>
                             <span class="text-[10px] text-gray-400">${file.size}</span>
                         </div>
                     </a>
                     <div class="flex items-center gap-1 shrink-0 ml-2">
-                        <a href="${fileUrl}" download="${file.name}" target="_blank" class="text-gray-400 hover:text-blue-600 p-1.5 rounded-lg hover:bg-blue-50 transition-colors" title="ดาวน์โหลด">
+                        <a href="${App._safeUrl(fileUrl) || '#'}" download="${App._esc(file.name)}" data-no-i18n target="_blank" class="text-gray-400 hover:text-blue-600 p-1.5 rounded-lg hover:bg-blue-50 transition-colors" title="ดาวน์โหลด">
                             <i class="fa-solid fa-download"></i>
                         </a>
                         <button type="button" onclick="App.removeCevFile(${index})" class="text-gray-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition-colors cev-delete-file-btn" title="ลบไฟล์">
@@ -6229,12 +6831,19 @@ const App = {
     },
 
     selectEventColor(btn) {
-        document.querySelectorAll('.cev-color-btn').forEach(b => {
-            b.classList.remove('ring-2', 'ring-offset-2', 'ring-gray-400', 'scale-110');
-        });
-        btn.classList.add('ring-2', 'ring-offset-2', 'ring-gray-400', 'scale-110');
+        this._markEventColor(btn.getAttribute('data-color'));
+    },
+
+    /* highlight an event color; colors from the older palette map to the nearest one in the project palette */
+    _markEventColor(color) {
+        const known = c => !!document.querySelector(`.cev-color-btn[data-color="${c}"]`);
+        const value = known(color) ? color : (known(this._oldProjectColors[color]) ? this._oldProjectColors[color] : 'bg-blue-600');
         const colorInput = document.getElementById('cev-color');
-        if (colorInput) colorInput.value = btn.getAttribute('data-color');
+        if (colorInput) colorInput.value = value;
+        document.querySelectorAll('.cev-color-btn').forEach(b => {
+            b.classList.toggle('ring-2', b.getAttribute('data-color') === value);
+            b.classList.remove('ring-offset-2', 'ring-gray-400', 'scale-110');
+        });
     },
 
     setEventCalType(type) {
@@ -6273,7 +6882,7 @@ const App = {
         const date = document.getElementById('cev-date').value;
         const time = document.getElementById('cev-time').value;
         const projId = document.getElementById('cev-project').value;
-        const note = document.getElementById('cev-note').innerHTML;
+        const note = App._cleanHtml(document.getElementById('cev-note').innerHTML);
         const calType = document.getElementById('cev-cal-type') ? document.getElementById('cev-cal-type').value : (this.state.calTab || 'all');
         const color = document.getElementById('cev-color') ? document.getElementById('cev-color').value : 'bg-blue-500';
 
@@ -6281,9 +6890,20 @@ const App = {
             this._showToast("กรุณากรอกชื่อกิจกรรมและวันที่ให้ครบถ้วน", "error");
             return;
         }
+        /* optional end date: blank or the same day means a one-day event */
+        let endDate = document.getElementById('cev-end-date') ? document.getElementById('cev-end-date').value : '';
+        if (endDate && endDate < date) {
+            this._showToast('วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น', 'error');
+            return;
+        }
+        if (endDate === date) endDate = '';
 
         const isUpdate = !!this.state.editingEventId;
-        const isSupabaseId = isUpdate && !this.state.editingEventId.startsWith('ev-');
+        const isSupabaseId = isUpdate && !String(this.state.editingEventId).startsWith('ev-');
+        /* linked task (events.task_id): 1 task : N meetings */
+        const taskId = this.state.cevTaskId || null;
+        const linkedTask = taskId ? mockTasks.find(t => String(t.id) === String(taskId)) : null;
+        const taskPeople = linkedTask ? [...(linkedTask.assignees || []), ...(linkedTask.relatedUsers || [])].filter(Boolean) : [];
         
         let savedDbEvent = null;
         
@@ -6304,6 +6924,7 @@ const App = {
                      startTime = dt.toISOString();
                      endTime = dt.toISOString();
                 }
+                if (endDate) endTime = new Date(endDate).toISOString();
                 
                 const dbEvent = {
                     company_id: compId,
@@ -6315,10 +6936,14 @@ const App = {
                     start_time: startTime,
                     end_time: endTime,
                     project_id: projId || null,
-                    attendee_ids: [this.state.currentUser.id]
+                    task_id: taskId || null,
+                    /* a meeting for a task invites the people on that task (the database tells them: 'event_invite') */
+                    attendee_ids: [...new Set([this.state.currentUser.id, ...taskPeople].map(String))]
                 };
-                
+
                 if (isSupabaseId) {
+                     /* editing keeps the people already invited (re-adding them would invite them again) */
+                     delete dbEvent.attendee_ids;
                      savedDbEvent = await window.conworkSupabase.updateCalendarEvent(this.state.editingEventId, dbEvent);
                 } else if (!isUpdate) {
                      savedDbEvent = await window.conworkSupabase.createCalendarEvent(dbEvent);
@@ -6334,6 +6959,7 @@ const App = {
             if (ev) {
                 ev.title = title;
                 ev.date = date;
+                ev.endDate = endDate;
                 ev.time = time;
                 ev.projectId = projId;
                 ev.note = note;
@@ -6341,6 +6967,7 @@ const App = {
                 ev.createdInTab = calType;
                 ev.color = color;
                 ev.files = [...(this.state.cevFiles || [])];
+                ev.taskId = taskId;
             }
             this._showToast("แก้ไขกิจกรรมเรียบร้อยแล้ว", "success");
         } else {
@@ -6348,6 +6975,7 @@ const App = {
                 id: (savedDbEvent && savedDbEvent.id) ? savedDbEvent.id : 'ev-' + Date.now(),
                 title: title,
                 date: date,
+                endDate: endDate,
                 time: time,
                 projectId: projId,
                 note: note,
@@ -6355,7 +6983,8 @@ const App = {
                 userIds: [this.state.currentUser.id],
                 createdInTab: calType,
                 color: color,
-                files: [...(this.state.cevFiles || [])]
+                files: [...(this.state.cevFiles || [])],
+                taskId: taskId
             };
             mockEvents.push(newEv);
             this._showToast("สร้างกิจกรรมเรียบร้อยแล้ว", "success");
@@ -6366,6 +6995,8 @@ const App = {
             this.renderCalendar();
         }
         this.closeCreateEventModal();
+        /* the task panel shows its meetings */
+        if (linkedTask && String(this.state.viewingTaskId) === String(linkedTask.id)) this._renderTaskMeetings(linkedTask);
     },
 
     deleteCalEvent() {
@@ -6414,6 +7045,7 @@ const App = {
     },
 
     createTask() {
+        if (this.state.currentProject && this._projectIsClosed(this.state.currentProject)) return;
         if (!this.state.currentProject) {
             this._showToast("กรุณาเลือกโปรเจกต์ก่อนสร้าง Task", "error");
             return;
@@ -6459,11 +7091,175 @@ const App = {
         document.getElementById('task-detail-view-modal').classList.add('hidden');
     },
 
+    /* a task's budget is asked only when its project uses a budget */
+    _toggleTaskBudgetField(projectId) {
+        const proj = mockProjects.find(p => String(p.id) === String(projectId));
+        document.getElementById('ct-budget-field')?.classList.toggle('hidden', !(proj && proj.budgetEnabled));
+    },
+
+    /* ===== Time spent on tasks =====
+       Each entry: { id, taskId, projectId, userId, startedAt, endedAt, minutes, note }.
+       Saved in the time_logs table; until that table exists, inside the task's details (task.timeLogs). */
+    _fmtMinutes(min) {
+        const m = Math.max(0, Math.round(min || 0));
+        const h = Math.floor(m / 60), r = m % 60;
+        const en = typeof i18nIsEnglish === 'function' && i18nIsEnglish();
+        if (en) return h ? `${h}h ${String(r).padStart(2, '0')}m` : `${r}m`;
+        return h ? `${h} ชม. ${r} นาที` : `${r} นาที`;
+    },
+    _taskTimeLogs(task) { return Array.isArray(task && task.timeLogs) ? task.timeLogs : []; },
+    _taskMinutesSpent(task) { return this._taskTimeLogs(task).reduce((s, l) => s + (Number(l.minutes) || 0), 0); },
+    _runningTimer() {
+        try { return JSON.parse(localStorage.getItem('conwork_running_timer') || 'null'); } catch (e) { return null; }
+    },
+
+    async toggleTaskTimer(taskId) {
+        const task = mockTasks.find(t => String(t.id) === String(taskId));
+        if (!task) return;
+        const running = this._runningTimer();
+        if (running && String(running.taskId) === String(taskId)) {
+            const ended = new Date();
+            const minutes = Math.max(1, Math.round((ended - new Date(running.startedAt)) / 60000));
+            try { localStorage.removeItem('conwork_running_timer'); } catch (e) { }
+            await this._saveTimeLog(task, { startedAt: running.startedAt, endedAt: ended.toISOString(), minutes, note: '' });
+            App._showToast(`บันทึกเวลา ${this._fmtMinutes(minutes)} แล้ว`, 'success');
+        } else {
+            if (running) {
+                const other = mockTasks.find(t => String(t.id) === String(running.taskId));
+                if (!confirm(`กำลังจับเวลางาน "${other ? other.title : ''}" อยู่ หยุดงานนั้นแล้วเริ่มงานนี้แทนหรือไม่?`)) return;
+                if (other) await this.toggleTaskTimer(other.id);
+            }
+            if (task.status === 'done') { App._showToast('งานนี้เสร็จแล้ว', 'error'); return; }
+            try { localStorage.setItem('conwork_running_timer', JSON.stringify({ taskId: task.id, startedAt: new Date().toISOString() })); } catch (e) { }
+        }
+        this._renderTaskTime(task);
+    },
+
+    async addManualTime(taskId) {
+        const task = mockTasks.find(t => String(t.id) === String(taskId));
+        if (!task) return;
+        const hoursEl = document.getElementById('tdv-time-manual');
+        const noteEl = document.getElementById('tdv-time-note');
+        const hours = parseFloat(hoursEl ? hoursEl.value : '');
+        if (!(hours > 0) || hours > 24) { App._showToast('ใส่จำนวนชั่วโมง 0.25 – 24', 'error'); return; }
+        const minutes = Math.round(hours * 60);
+        const ended = new Date();
+        await this._saveTimeLog(task, { startedAt: new Date(ended - minutes * 60000).toISOString(), endedAt: ended.toISOString(), minutes, note: noteEl ? noteEl.value.trim() : '' });
+        if (hoursEl) hoursEl.value = '';
+        if (noteEl) noteEl.value = '';
+        App._showToast(`บันทึกเวลา ${this._fmtMinutes(minutes)} แล้ว`, 'success');
+        this._renderTaskTime(task);
+    },
+
+    async _saveTimeLog(task, entry) {
+        const me = this.state.currentUser || {};
+        const log = Object.assign({ id: 'tl-' + Date.now(), taskId: task.id, projectId: task.projectId, userId: me.id }, entry);
+        let savedToTable = false;
+        if (window.conworkSupabase && window.conworkSupabase.isAvailable() && !String(task.id).startsWith('t')) {
+            const { data, error } = await window.conworkSupabase.client.from('time_logs').insert({
+                task_id: task.id, project_id: task.projectId || null, user_id: me.id,
+                started_at: log.startedAt, ended_at: log.endedAt, minutes: log.minutes, note: log.note || null
+            }).select().single();
+            if (!error && data) { log.id = data.id; savedToTable = true; }
+            else if (error && !/PGRST205|42P01|Could not find the table|does not exist/i.test((error.code || '') + ' ' + (error.message || ''))) console.warn('time_logs:', error.message);
+        }
+        task.timeLogs = [...this._taskTimeLogs(task), log];
+        if (!savedToTable) this._syncTaskDetailsToDB(task); // no time_logs table yet: keep the log with the task
+        this._saveData();
+    },
+
+    async deleteTimeLog(taskId, logId) {
+        const task = mockTasks.find(t => String(t.id) === String(taskId));
+        if (!task) return;
+        const log = this._taskTimeLogs(task).find(l => String(l.id) === String(logId));
+        if (!log || String(log.userId) !== String(this.state.currentUser?.id)) return;
+        if (!confirm('ลบรายการเวลานี้?')) return;
+        task.timeLogs = this._taskTimeLogs(task).filter(l => l !== log);
+        if (window.conworkSupabase && window.conworkSupabase.isAvailable() && !String(log.id).startsWith('tl-')) {
+            try { await window.conworkSupabase.client.from('time_logs').delete().eq('id', log.id); } catch (e) { }
+        } else {
+            this._syncTaskDetailsToDB(task);
+        }
+        this._renderTaskTime(task);
+    },
+
+    /* the "time actually spent" box in the task detail view */
+    _renderTaskTime(task) {
+        const box = document.getElementById('tdv-time-box');
+        if (!box || !task) return;
+        const spent = this._taskMinutesSpent(task);
+        const est = Number(task.estimateMinutes) || 0;
+        const totalEl = document.getElementById('tdv-time-total');
+        if (totalEl) totalEl.textContent = est ? `${this._fmtMinutes(spent)} / ${this._fmtMinutes(est)}` : this._fmtMinutes(spent);
+        const bar = document.getElementById('tdv-time-bar');
+        if (bar) {
+            bar.classList.toggle('hidden', !est);
+            const pct = est ? Math.min(100, Math.round(spent / est * 100)) : 0;
+            const fill = bar.firstElementChild;
+            if (fill) { fill.style.width = pct + '%'; fill.className = 'h-full ' + (spent > est ? 'bg-red-500' : spent > est * 0.8 ? 'bg-amber-500' : 'bg-blue-600'); }
+        }
+        const running = this._runningTimer();
+        const isMine = running && String(running.taskId) === String(task.id);
+        const btn = document.getElementById('tdv-timer-btn');
+        if (btn) {
+            btn.innerHTML = isMine
+                ? `<i class="fa-solid fa-stop"></i> <span>หยุดจับเวลา</span> <span class="tabular-nums" id="tdv-timer-live"></span>`
+                : '<i class="fa-solid fa-play"></i> <span>เริ่มจับเวลา</span>';
+            btn.className = 'w-full rounded-lg py-2.5 text-sm font-semibold flex items-center justify-center gap-2 border transition-colors '
+                + (isMine ? 'border-red-500 bg-red-50 text-red-700 hover:bg-red-100' : 'border-blue-600 text-blue-700 hover:bg-blue-50');
+            btn.disabled = task.status === 'done' && !isMine;
+        }
+        clearInterval(this._timerTick);
+        if (isMine) {
+            const tick = () => {
+                const el = document.getElementById('tdv-timer-live');
+                if (!el) { clearInterval(this._timerTick); return; }
+                const s = Math.floor((Date.now() - new Date(running.startedAt)) / 1000);
+                el.textContent = `${String(Math.floor(s / 3600)).padStart(2, '0')}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+            };
+            tick();
+            this._timerTick = setInterval(tick, 1000);
+        }
+        const list = document.getElementById('tdv-time-list');
+        if (list) {
+            const logs = [...this._taskTimeLogs(task)].sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)));
+            const myId = String(this.state.currentUser?.id || '');
+            list.innerHTML = logs.length ? logs.map(l => {
+                const u = mockUsers.find(x => String(x.id) === String(l.userId)) || (String(l.userId) === myId ? this.state.currentUser : null);
+                const when = l.startedAt ? new Date(l.startedAt).toLocaleDateString(typeof i18nIsEnglish === 'function' && i18nIsEnglish() ? 'en-GB' : 'th-TH', { day: 'numeric', month: 'short' }) : '';
+                const del = String(l.userId) === myId ? `<button type="button" class="text-gray-300 hover:text-red-500 shrink-0" title="ลบ" onclick="App.deleteTimeLog('${this._esc(task.id)}','${this._esc(l.id)}')"><i class="fa-solid fa-xmark"></i></button>` : '';
+                return `<div class="flex items-center gap-2 text-xs bg-gray-50 rounded-lg px-2 py-1.5">
+                    <span class="font-semibold text-gray-800 tabular-nums shrink-0">${this._fmtMinutes(l.minutes)}</span>
+                    <span class="text-gray-500 shrink-0">${this._esc(when)}</span>
+                    <span class="text-gray-600 truncate flex-1" data-no-i18n>${this._esc((u && u.name) || '')}${l.note ? ' · ' + this._esc(l.note) : ''}</span>
+                    ${del}
+                </div>`;
+            }).join('') : '<p class="text-xs text-gray-400">ยังไม่มีการบันทึกเวลา</p>';
+        }
+    },
+
+    /* load time entries from the time_logs table (if it exists) into the tasks */
+    async _loadTimeLogs(taskIds) {
+        if (!taskIds.length || !window.conworkSupabase || !window.conworkSupabase.isAvailable()) return;
+        try {
+            const { data, error } = await window.conworkSupabase.client.from('time_logs').select('*').in('task_id', taskIds);
+            if (error || !Array.isArray(data)) return; // table not there yet: entries stay in task details
+            const byTask = {};
+            data.forEach(r => { (byTask[r.task_id] = byTask[r.task_id] || []).push({ id: r.id, taskId: r.task_id, projectId: r.project_id, userId: r.user_id, startedAt: r.started_at, endedAt: r.ended_at, minutes: r.minutes || 0, note: r.note || '' }); });
+            mockTasks.forEach(t => {
+                const fromTable = byTask[t.id] || [];
+                const local = this._taskTimeLogs(t).filter(l => String(l.id).startsWith('tl-')); // made before the table existed
+                t.timeLogs = [...fromTable, ...local];
+            });
+        } catch (e) { }
+    },
+
     openTaskDetailView(taskId, subtaskIdx = null) {
         const task = mockTasks.find(t => t.id === taskId);
         if (!task) return;
-        
+
         this.state.viewingTaskId = taskId;
+        setTimeout(() => { this._renderTaskTime(task); this._renderTaskMeetings(task); }, 0);
         
         if (subtaskIdx === null && task.subtasks && task.subtasks.length > 0) {
             subtaskIdx = 0;
@@ -6472,10 +7268,11 @@ const App = {
         
         const currentData = (subtaskIdx !== null && task.subtasks && task.subtasks[subtaskIdx]) ? task.subtasks[subtaskIdx] : task;
         
-        const creator = mockUsers.find(u => u.id === task.creatorId) || mockUsers[0];
+        /* the person who created the task; when unknown say so instead of showing someone else */
+        const creator = mockUsers.find(u => String(u.id) === String(task.creatorId)) || { name: 'ไม่ระบุ' };
         if (document.getElementById('tdv-creator-avatar')) {
-            document.getElementById('tdv-creator-avatar').src = creator?.avatar || '';
-            document.getElementById('tdv-creator-name').textContent = `สั่งโดย: ${creator?.name} ${creator?.role ? '('+creator.role+')' : ''}`;
+            document.getElementById('tdv-creator-avatar').src = creator.avatar || this._initialsAvatar(creator.name);
+            document.getElementById('tdv-creator-name').textContent = `สั่งโดย: ${creator.name} ${creator.role ? '('+creator.role+')' : ''}`;
         }
         
         const createDate = new Date(task.createdAt || Date.now());
@@ -6501,7 +7298,7 @@ const App = {
         }
         
         if (document.getElementById('tdv-title')) document.getElementById('tdv-title').value = currentData.text || currentData.title || '';
-        if (document.getElementById('tdv-desc')) document.getElementById('tdv-desc').innerHTML = currentData.description || '';
+        if (document.getElementById('tdv-desc')) document.getElementById('tdv-desc').innerHTML = App._cleanHtml(currentData.description || '');
 
         const fileList = document.getElementById('tdv-file-list');
         if (fileList) {
@@ -6513,7 +7310,7 @@ const App = {
                                 <i class="fa-solid fa-file-lines text-gray-400 text-lg group-hover:text-blue-500 transition-colors"></i>
                             </div>
                             <div class="min-w-0 flex-1">
-                                <div class="text-sm font-semibold text-gray-800 truncate group-hover:text-blue-600 transition-colors">${f.name}</div>
+                                <div class="text-sm font-semibold text-gray-800 truncate group-hover:text-blue-600 transition-colors" data-no-i18n>${App._esc(f.name)}</div>
                                 <div class="text-[10px] text-gray-400 font-medium">${f.size ? (f.size / 1024).toFixed(1) + ' KB' : 'Unknown Size'}</div>
                             </div>
                         </div>
@@ -6563,7 +7360,7 @@ const App = {
                     return `
                         <div class="flex items-center gap-2">
                             <img src="${u.avatar}" class="w-6 h-6 rounded-full border border-gray-200 object-cover">
-                            <span class="text-xs text-gray-700 font-medium">${u.name} ${u.role ? `(${u.role})` : ''}</span>
+                            <span class="text-xs text-gray-700 font-medium" data-no-i18n>${App._esc(u.name)} ${u.role ? `(${u.role})` : ''}</span>
                         </div>
                     `;
                 }).join('');
@@ -6578,7 +7375,7 @@ const App = {
                 subtasksEl.innerHTML = task.subtasks.map((st, idx) => `
                     <div class="flex items-start gap-2 p-2 rounded cursor-pointer transition-colors ${this.state.viewingSubtaskIdx === idx ? 'bg-blue-50 border border-blue-200 shadow-sm' : 'hover:bg-gray-50 border border-transparent'}" onclick="App.openTaskDetailView('${task.id}', ${idx})">
                         <input type="checkbox" ${st.done ? 'checked' : ''} onchange="event.stopPropagation(); App.toggleCardSubtask('${task.id}', ${idx}); setTimeout(() => App.openTaskDetailView('${task.id}', ${idx}), 50)" class="mt-0.5 rounded text-blue-600 border-gray-300 focus:ring-blue-500 w-4 h-4 shrink-0">
-                        <span class="text-xs ${st.done ? 'text-gray-400 line-through' : 'text-gray-700 font-medium'}">${idx+1}. ${st.text}</span>
+                        <span class="text-xs ${st.done ? 'text-gray-400 line-through' : 'text-gray-700 font-medium'}" data-no-i18n>${idx+1}. ${App._esc(st.text)}</span>
                     </div>
                 `).join('');
             } else {
@@ -6682,11 +7479,11 @@ const App = {
                             <i class="fa-solid ${f.type === 'image' ? 'fa-image text-blue-500' : 'fa-file-lines text-gray-400'} text-lg group-hover:text-blue-500 transition-colors"></i>
                         </div>
                         <div class="min-w-0 flex-1">
-                            <div class="text-sm font-semibold text-gray-800 truncate group-hover:text-blue-600 transition-colors">${f.name}</div>
+                            <div class="text-sm font-semibold text-gray-800 truncate group-hover:text-blue-600 transition-colors" data-no-i18n>${App._esc(f.name)}</div>
                             <div class="text-[10px] text-gray-400 font-medium">${f.size}</div>
                         </div>
                     </div>
-                    <a href="${f.url}" download="${f.name}" target="_blank" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors shrink-0" title="ดาวน์โหลด">
+                    <a href="${App._safeUrl(f.url) || '#'}" download="${App._esc(f.name)}" data-no-i18n target="_blank" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors shrink-0" title="ดาวน์โหลด">
                         <i class="fa-solid fa-download"></i>
                     </a>
                 </div>
@@ -6711,7 +7508,7 @@ const App = {
             else currentData.title = titleEl.value.trim() || currentData.title;
         }
         if (descEl) {
-            const newDesc = descEl.innerHTML.trim();
+            const newDesc = App._cleanHtml(descEl.innerHTML.trim());
             if (newDesc !== '' && newDesc !== '<br>') {
                 currentData.description = newDesc;
             }
@@ -6773,7 +7570,7 @@ const App = {
         document.getElementById('ct-title').value = task.title;
         if (task.dueDate && document.getElementById('ct-due-date')) document.getElementById('ct-due-date').value = task.dueDate;
         if (task.dueTime && document.getElementById('ct-due-time')) document.getElementById('ct-due-time').value = task.dueTime;
-        if (task.description && document.getElementById('ct-desc')) document.getElementById('ct-desc').innerHTML = task.description;
+        if (task.description && document.getElementById('ct-desc')) document.getElementById('ct-desc').innerHTML = App._cleanHtml(task.description);
         const tagInput = document.getElementById('ct-tag');
         if (tagInput && task.tag) tagInput.value = task.tag;
         if (task.priority) {
@@ -6826,6 +7623,17 @@ const App = {
         // Load related users
         this.state.ctRelatedUsers = [...(task.relatedUsers || [])];
         this.renderRelatedUsers();
+
+        // Load divisions / departments
+        this.state.ctDepartments = [...(task.departments || [])];
+        this.renderDepartments();
+
+        // Planned time and budget
+        const estEl = document.getElementById('ct-estimate-hours');
+        if (estEl) estEl.value = task.estimateMinutes ? +(task.estimateMinutes / 60).toFixed(2) : '';
+        const budEl = document.getElementById('ct-budget-amount');
+        if (budEl) budEl.value = task.budgetAmount != null ? task.budgetAmount : '';
+        this._toggleTaskBudgetField(task.projectId);
 
         // Assignees pre-fill
         this.state.ctAssignees = [...(task.assignees || [])];
@@ -7028,7 +7836,7 @@ const App = {
 
     _collectTaskFormData() {
         return {
-            description: document.getElementById('ct-desc')?.innerHTML || '',
+            description: App._cleanHtml(document.getElementById('ct-desc')?.innerHTML || ''),
             tag: document.getElementById('ct-tag')?.value || '',
             priority: document.getElementById('ct-priority')?.value || 'medium',
             visibility: document.getElementById('ct-visibility')?.value || 'all',
@@ -7039,7 +7847,24 @@ const App = {
                 chat: !!document.getElementById('ct-notif-chat')?.checked,
                 daysBefore: document.getElementById('ct-notif-days')?.value || '1'
             },
-            reviewers: JSON.parse(JSON.stringify(this.state.ctReviewers || []))
+            reviewers: JSON.parse(JSON.stringify(this.state.ctReviewers || [])),
+            departments: [...(this.state.ctDepartments || [])],
+            estimateMinutes: (() => { const v = parseFloat(document.getElementById('ct-estimate-hours')?.value); return v > 0 ? Math.round(v * 60) : null; })(),
+            budgetAmount: (() => { const v = parseFloat(document.getElementById('ct-budget-amount')?.value); return v >= 0 ? v : null; })()
+        };
+    },
+
+    /* task fields the tasks table has no column of its own for; kept together in tasks.details */
+    _taskDetailsForDb(task) {
+        return {
+            tag: task.tag || '', visibility: task.visibility || 'all', repeat: !!task.repeat,
+            notifications: task.notifications || null, reviewers: task.reviewers || [],
+            departments: task.departments || [], relatedUsers: task.relatedUsers || [],
+            dueTime: task.dueTime || '', isDraft: !!task.isDraft,
+            estimateMinutes: task.estimateMinutes != null ? task.estimateMinutes : null,
+            budgetAmount: task.budgetAmount != null ? task.budgetAmount : null,
+            completedAt: task.completedAt || null,
+            timeLogs: task.timeLogs || []
         };
     },
 
@@ -7122,6 +7947,19 @@ const App = {
         this.renderRelatedUsers();
         document.getElementById('ct-related-search').value = '';
 
+        // Reset planned time and budget
+        const estReset = document.getElementById('ct-estimate-hours');
+        if (estReset) estReset.value = '';
+        const budReset = document.getElementById('ct-budget-amount');
+        if (budReset) budReset.value = '';
+        this._toggleTaskBudgetField(this.state.currentProject);
+
+        // Reset divisions / departments
+        this.state.ctDepartments = [];
+        this.renderDepartments();
+        const deptInput = document.getElementById('ct-dept-search');
+        if (deptInput) deptInput.value = '';
+
         // Set current user as default assignee ONLY if not on "assign" tab
         if (this.state.supervisorTaskFilter !== 'assign') {
             const curUser = this.state.currentUser;
@@ -7178,13 +8016,16 @@ const App = {
                         if (dueDate) {
                             combinedDateTime = dueDate + (dueTime ? 'T' + dueTime + ':00' : 'T00:00:00');
                         }
-                        const { error: upErr } = await window.conworkSupabase.client.from('tasks').update({
+                        const { error: upErr } = await this._sbSaveSkippingMissing({
                             title: title,
-                            description: extra.desc || null,
+                            description: extra.description || null,
                             priority: extra.priority || 'medium',
                             due_date: combinedDateTime,
-                            subtasks: this.state.ctSubtasks || []
-                        }).eq('id', task.id);
+                            subtasks: this.state.ctSubtasks || [],
+                            estimate_minutes: extra.estimateMinutes,
+                            budget_amount: extra.budgetAmount,
+                            details: this._taskDetailsForDb(task)
+                        }, d => window.conworkSupabase.client.from('tasks').update(d).eq('id', task.id));
                         if (upErr) alert(`เกิดข้อผิดพลาดในการอัปเดตงาน:\n${upErr.message}`);
 
                         // Also update assignees for existing tasks
@@ -7227,18 +8068,19 @@ const App = {
                         section_id: targetSectionId || null,
                         creator_id: this.state.currentUser.id,
                         title: title,
-                        description: extra.desc || null,
+                        description: extra.description || null,
                         status: 'todo',
                         priority: extra.priority || 'medium',
                         due_date: combinedDateTime,
-                        subtasks: this.state.ctSubtasks || []
+                        subtasks: this.state.ctSubtasks || [],
+                        estimate_minutes: extra.estimateMinutes,
+                        budget_amount: extra.budgetAmount,
+                        details: this._taskDetailsForDb({ ...extra, relatedUsers: [...this.state.ctRelatedUsers], dueTime, isDraft: saveType === 'draft' })
                     };
 
-                    const { data: insertedTask, error: insErr } = await window.conworkSupabase.client
-                        .from('tasks')
-                        .insert(dbTaskData)
-                        .select()
-                        .single();
+                    /* columns this database does not have yet (subtasks, details) are left out instead of failing */
+                    const { data: insertedTask, error: insErr } = await this._sbSaveSkippingMissing(dbTaskData,
+                        d => window.conworkSupabase.client.from('tasks').insert(d).select().single());
 
                     if (insErr) {
                         console.error('Error creating task on Supabase', insErr);
@@ -7285,14 +8127,9 @@ const App = {
             });
             this.state.editingTaskId = newTaskId;
 
-            if (saveType !== 'draft') {
-                if (combinedAssignees && combinedAssignees.length > 0) {
-                    combinedAssignees.forEach(uid => {
-                        this.addNotification('task', 'คุณได้รับมอบหมายงานใหม่', `งาน: ${title}`, { view: 'tasks', projectId: this.state.currentProject, taskId: newTaskId, targetUserId: String(uid) });
-                    });
-                } else {
-                    this.addNotification('task', 'งานใหม่ถูกเพิ่ม', `มีงานใหม่ : ${title}`, { view: 'tasks', projectId: this.state.currentProject, taskId: newTaskId });
-                }
+            /* assignees are told by the database (task_assignees trigger → 'task_assigned'); only a task with nobody on it notes itself here */
+            if (saveType !== 'draft' && !(combinedAssignees && combinedAssignees.length > 0)) {
+                this.addNotification('task', 'งานใหม่ถูกเพิ่ม', `มีงานใหม่ : ${title}`, { view: 'tasks', projectId: this.state.currentProject, taskId: newTaskId });
             }
 
             const proj = mockProjects.find(p => p.id === this.state.currentProject);
@@ -7379,8 +8216,8 @@ const App = {
                         <div class="p-2 hover:bg-gray-50 cursor-pointer flex items-center gap-3 transition-colors" onclick="App.addReviewer('${u.id}')">
                             <img src="${u.avatar}" class="w-8 h-8 rounded-full border border-gray-200">
                             <div>
-                                <p class="text-sm font-semibold text-gray-800">${u.name}</p>
-                                <p class="text-[10px] text-gray-500">${u.department || 'ไม่มีแผนก'}</p>
+                                <p class="text-sm font-semibold text-gray-800" data-no-i18n>${App._esc(u.name)}</p>
+                                <p class="text-[10px] text-gray-500" data-no-i18n>${App._esc(u.department || 'ไม่มีแผนก')}</p>
                             </div>
                         </div>
                     `;
@@ -7439,7 +8276,7 @@ const App = {
                 <div class="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-lg p-2">
                     <div class="flex items-center gap-2">
                         <img src="${user.avatar}" class="w-6 h-6 rounded-full border border-gray-200">
-                        <span class="text-sm font-medium text-gray-700">${user.name}</span>
+                        <span class="text-sm font-medium text-gray-700" data-no-i18n>${App._esc(user.name)}</span>
                         ${r.approved ? '<i class="fa-solid fa-check-circle text-green-500 text-xs ml-1" title="ตรวจผ่านแล้ว"></i>' : ''}
                     </div>
                     <div class="flex items-center gap-2">
@@ -7472,7 +8309,7 @@ const App = {
                 <div class="flex items-center space-x-3 p-2 hover:bg-blue-50 cursor-pointer transition-colors" onclick="App.addAssignee('${u.id}')">
                     <img src="${u.avatar}" class="w-8 h-8 rounded-full border border-gray-200">
                     <div>
-                        <p class="text-sm font-semibold text-gray-800">${u.name}</p>
+                        <p class="text-sm font-semibold text-gray-800" data-no-i18n>${App._esc(u.name)}</p>
                         <p class="text-[10px] text-gray-500">${u.role}</p>
                     </div>
                 </div>
@@ -7508,7 +8345,7 @@ const App = {
             return `
                 <div class="flex items-center bg-gray-100 rounded-full pl-1 pr-2 py-1 text-xs text-gray-700 border border-gray-200">
                     <img src="${u.avatar}" class="w-5 h-5 rounded-full mr-1.5 border border-gray-200">
-                    ${u.name} 
+                    ${App._esc(u.name)} 
                     <i class="fa-solid fa-xmark ml-2 text-gray-400 cursor-pointer hover:text-gray-600 p-0.5" onclick="event.stopPropagation(); App.removeAssignee('${u.id}')"></i>
                 </div>
             `;
@@ -7521,7 +8358,7 @@ const App = {
         if (!drop) return;
         if (!this.state.ctDivisions) this.state.ctDivisions = [];
         
-        const mockDivs = ['ฝ่ายพัฒนาธุรกิจ', 'ฝ่ายบริหาร', 'ฝ่ายวิศวกรรม', 'ฝ่ายการตลาด'];
+        const mockDivs = [...document.querySelectorAll('#dept-list-container .dept-item span')].map(x => x.textContent.trim()).filter(Boolean);
         query = (query || '').toLowerCase().trim();
         const availableDivs = mockDivs.filter(d => !this.state.ctDivisions.includes(d) && d.toLowerCase().includes(query));
 
@@ -7532,7 +8369,7 @@ const App = {
                 <div class="flex items-center space-x-3 p-2 hover:bg-blue-50 cursor-pointer transition-colors" onclick="App.addDivision('${d}')">
                     <i class="fa-solid fa-building text-blue-400"></i>
                     <div>
-                        <p class="text-sm font-semibold text-gray-800">${d}</p>
+                        <p class="text-sm font-semibold text-gray-800">${App._esc(d)}</p>
                     </div>
                 </div>
             `).join('');
@@ -7574,28 +8411,46 @@ const App = {
         if (!drop) return;
         if (!this.state.ctDepartments) this.state.ctDepartments = [];
         
-        const mockDepts = [...new Set(mockUsers.map(u => u.department))].filter(Boolean);
-        query = (query || '').toLowerCase().trim();
-        const availableDepts = mockDepts.filter(d => !this.state.ctDepartments.includes(d) && d.toLowerCase().includes(query));
-
-        if (availableDepts.length === 0) {
-            drop.innerHTML = `<div class="p-3 text-sm text-gray-500 text-center">ไม่พบแผนก</div>`;
-        } else {
-            drop.innerHTML = availableDepts.map(d => `
-                <div class="flex items-center space-x-3 p-2 hover:bg-blue-50 cursor-pointer transition-colors" onclick="App.addDepartment('${d}')">
-                    <i class="fa-solid fa-users text-blue-400"></i>
+        /* same list as the project form: members' departments, the departments from Settings, and "ทุกฝ่าย" */
+        const fromSettings = [...document.querySelectorAll('#dept-list-container .dept-item span')].map(x => x.textContent.trim());
+        const mockDepts = [...new Set([...mockUsers.map(u => u.department), ...fromSettings])].filter(d => d && d !== App.ALL_DEPTS);
+        const raw = (query || '').trim();
+        query = raw.toLowerCase();
+        const chosen = this.state.ctDepartments;
+        const availableDepts = mockDepts.filter(d => !chosen.includes(d) && d.toLowerCase().includes(query));
+        const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const pick = d => `App.addDepartment(decodeURIComponent('${encodeURIComponent(d).replace(/'/g, '%27')}'))`;
+        const row = (d, icon, cls) => `
+                <div class="flex items-center space-x-3 p-2 hover:bg-blue-50 cursor-pointer transition-colors ${cls || ''}" onclick="${pick(d)}">
+                    <i class="fa-solid ${icon} text-blue-400"></i>
                     <div>
-                        <p class="text-sm font-semibold text-gray-800">${d}</p>
+                        <p class="text-sm font-semibold text-gray-800">${esc(d)}</p>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+
+        let html = '';
+        if (!chosen.includes(App.ALL_DEPTS) && App.ALL_DEPTS.toLowerCase().includes(query)) html += row(App.ALL_DEPTS, 'fa-building', 'border-b border-gray-100');
+        html += availableDepts.map(d => row(d, 'fa-users')).join('');
+        /* a name that is not in the list yet can be added as a new department */
+        if (raw && raw !== App.ALL_DEPTS && !mockDepts.some(d => d.toLowerCase() === query) && !chosen.includes(raw)) {
+            html += `
+                <div class="flex items-center space-x-3 p-2 hover:bg-blue-50 cursor-pointer transition-colors border-t border-gray-100" onclick="${pick(raw)}">
+                    <i class="fa-solid fa-plus text-blue-500"></i>
+                    <p class="text-sm font-semibold text-blue-700">เพิ่มแผนก "${esc(raw)}"</p>
+                </div>`;
         }
+        drop.innerHTML = html || `<div class="p-3 text-sm text-gray-500 text-center">ไม่พบแผนก</div>`;
         drop.classList.remove('hidden');
     },
 
     addDepartment(deptName) {
         if (!this.state.ctDepartments) this.state.ctDepartments = [];
+        deptName = String(deptName || '').trim();
+        if (!deptName) return;
         if (!this.state.ctDepartments.includes(deptName)) {
+            /* "ทุกฝ่าย" replaces single departments, and picking a department replaces "ทุกฝ่าย" */
+            if (deptName === App.ALL_DEPTS) this.state.ctDepartments = [];
+            else this.state.ctDepartments = this.state.ctDepartments.filter(d => d !== App.ALL_DEPTS);
             this.state.ctDepartments.push(deptName);
             this.renderDepartments();
 
@@ -7621,10 +8476,11 @@ const App = {
     renderDepartments() {
         const container = document.getElementById('ct-dept-tags');
         if (!container) return;
-        container.innerHTML = this.state.ctDepartments.map(d => `
+        const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        container.innerHTML = (this.state.ctDepartments || []).map(d => `
             <div class="flex items-center bg-gray-100 rounded-full pl-3 pr-2 py-1 text-xs text-gray-700 border border-gray-200">
-                <i class="fa-solid fa-users mr-1.5 text-gray-500"></i> ${d}
-                <i class="fa-solid fa-xmark ml-2 text-gray-400 cursor-pointer hover:text-gray-600 p-0.5" onclick="event.stopPropagation(); App.removeDepartment('${d}')"></i>
+                <i class="fa-solid ${d === App.ALL_DEPTS ? 'fa-building' : 'fa-users'} mr-1.5 text-gray-500"></i> ${esc(d)}
+                <i class="fa-solid fa-xmark ml-2 text-gray-400 cursor-pointer hover:text-gray-600 p-0.5" onclick="event.stopPropagation(); App.removeDepartment(decodeURIComponent('${encodeURIComponent(d).replace(/'/g, '%27')}'))"></i>
             </div>
         `).join('');
     },
@@ -7643,7 +8499,7 @@ const App = {
                 <div class="flex items-center space-x-3 p-2 hover:bg-blue-50 cursor-pointer transition-colors" onclick="App.addRelatedUser('${u.id}')">
                     <img src="${u.avatar}" class="w-8 h-8 rounded-full border border-gray-200">
                     <div>
-                        <p class="text-sm font-semibold text-gray-800">${u.name}</p>
+                        <p class="text-sm font-semibold text-gray-800" data-no-i18n>${App._esc(u.name)}</p>
                         <p class="text-[10px] text-gray-500">${u.role}</p>
                     </div>
                 </div>
@@ -7679,7 +8535,7 @@ const App = {
             return `
                 <div class="flex items-center bg-gray-100 rounded-full pl-1 pr-2 py-1 text-xs text-gray-700 border border-gray-200">
                     <img src="${u.avatar}" class="w-5 h-5 rounded-full mr-1.5 border border-gray-200">
-                    ${u.name} 
+                    ${App._esc(u.name)} 
                     <i class="fa-solid fa-xmark ml-2 text-gray-400 cursor-pointer hover:text-gray-600 p-0.5" onclick="event.stopPropagation(); App.removeRelatedUser('${u.id}')"></i>
                 </div>
             `;
@@ -7716,11 +8572,18 @@ const App = {
             }
 
             if (window.conworkSupabase && window.conworkSupabase.isAvailable()) {
+                await this._ensureTeamRoom(); // the team's own room, kept in sync with the team's members
                 const dbChannels = await window.conworkSupabase.fetchUserDirectChannels();
                 if (dbChannels && dbChannels.length > 0) {
                     dbChannels.forEach(c => {
                         const existingIdx = mockChats.findIndex(mc => mc.id === c.id || (c.supabaseChannelId && mc.supabaseChannelId === c.supabaseChannelId) || (c.userId && mc.userId === c.userId));
-                        if (existingIdx !== -1) {
+                        if (existingIdx !== -1 && String(c.id).startsWith('chan-') && mockChats[existingIdx].id !== c.id) {
+                            /* a group room saved earlier as a chat with one person: replace it with the room */
+                            const old = mockChats[existingIdx];
+                            mockMessages.forEach(m => { if (m.chatId === old.id) m.chatId = c.id; });
+                            if (this.state.currentChat === old.id) this.state.currentChat = c.id;
+                            mockChats[existingIdx] = c;
+                        } else if (existingIdx !== -1) {
                             mockChats[existingIdx].name = c.name || mockChats[existingIdx].name;
                             mockChats[existingIdx].subtitle = c.subtitle || mockChats[existingIdx].subtitle;
                             if (c.avatar) mockChats[existingIdx].avatar = c.avatar;
@@ -7733,6 +8596,7 @@ const App = {
             }
 
             mockChats.forEach(c => {
+                if (c.userId) c.status = 'offline'; // a saved "online" is old news; live presence sets it again
                 if (c.userId) {
                     const u = mockUsers.find(mu => String(mu.id) === String(c.userId));
                     if (u) {
@@ -7758,6 +8622,10 @@ const App = {
         window.conworkSupabase.subscribeGlobalUserMessages((newMsg) => {
             this.handleIncomingGlobalMessage(newMsg);
         });
+        /* a new chat someone started with me shows up in the list without reloading the page */
+        window.conworkSupabase.subscribeMyNewChats(() => {
+            this.loadUserChats().then(() => { if (this.state.currentView === 'messages') this.renderChatList(); });
+        });
     },
 
     handleIncomingGlobalMessage(newMsg) {
@@ -7775,6 +8643,12 @@ const App = {
 
         let targetChat = mockChats.find(c => c.supabaseChannelId === newMsg.channel_id || c.id === newMsg.channel_id);
 
+        /* a room we have not listed yet (e.g. a new group): reload the list once, then try again */
+        if (!targetChat && !newMsg._afterReload && typeof this.loadUserChats === 'function') {
+            this.loadUserChats().then(() => this.handleIncomingGlobalMessage(Object.assign({}, newMsg, { _afterReload: true })));
+            return;
+        }
+
         if (!targetChat) {
             const senderUser = mockUsers.find(u => String(u.id) === String(newMsg.sender_id));
             const senderId = senderUser ? senderUser.id : newMsg.sender_id;
@@ -7786,19 +8660,7 @@ const App = {
         const isContentFile = newMsg.content && (newMsg.content.startsWith('data:application/') || newMsg.content.match(/\.(pdf|docx|xlsx|zip)(\?.*)?$/i));
         const msgType = isContentImage ? 'image' : (isContentFile ? 'file' : 'text');
 
-        const messageObj = {
-            id: newMsg.id || 'm-' + Math.random(),
-            chatId: targetChat ? targetChat.id : newMsg.channel_id,
-            senderId: newMsg.sender_id,
-            text: newMsg.content,
-            type: msgType,
-            timestamp: timeStr,
-            replyTo: null
-        };
-
-        if (!mockMessages.some(m => m.id === newMsg.id || (m.text === newMsg.content && String(m.senderId) === String(newMsg.sender_id)))) {
-            mockMessages.push(messageObj);
-        }
+        if (!this._acceptIncomingMessage(newMsg, targetChat ? targetChat.id : newMsg.channel_id, msgType, timeStr)) return;
 
         const isCurrentlyViewingThisChat = this.state.currentView === 'messages' && this.state.currentChat === targetChat?.id;
 
@@ -7819,13 +8681,22 @@ const App = {
             const senderName = mockUsers.find(u => String(u.id) === String(newMsg.sender_id))?.name || 'ผู้ใช้';
             const displayPreview = msgType === 'image' ? '[ส่งรูปภาพ]' : (msgType === 'file' ? '[ส่งไฟล์แนบ]' : newMsg.content);
             if (typeof this._showToast === 'function') {
-                this._showToast(`💬 ข้อความใหม่จาก ${senderName}: ${displayPreview.substring(0, 35)}`, 'info');
+                const isEn = typeof i18nIsEnglish === 'function' && i18nIsEnglish();
+                this._showToast(isEn ? '💬 New message from' : '💬 ข้อความใหม่จาก', 'info', ` ${senderName}: ${String(displayPreview).substring(0, 35)}`);
             }
         }
     },
 
     getOrCreateChat(chatIdOrUserId, userObj = null) {
         let chatId = String(chatIdOrUserId);
+        /* group / project rooms are listed as 'chan-<id>' and are never turned into a chat with one person */
+        if (chatId.startsWith('chan-')) {
+            const room = mockChats.find(c => c.id === chatId);
+            if (room) return room;
+            const placeholder = { id: chatId, supabaseChannelId: chatId.slice(5), name: 'กลุ่มสนทนา', subtitle: 'กรุ๊ป', type: 'group', icon: 'fa-users', color: 'bg-green-600', status: 'online', unreadCount: 0 };
+            mockChats.push(placeholder);
+            return placeholder;
+        }
         if (!chatId.startsWith('user-') && chatId !== 'note') {
             chatId = 'user-' + chatId;
         }
@@ -7854,7 +8725,7 @@ const App = {
 
         const name = user ? user.name : chatId.replace('user-', '');
         const dept = user ? (user.department ? `${user.department} (${user.role === 'admin' ? 'แอดมิน' : user.role === 'reviewer2' ? 'ผู้บริหาร' : user.role === 'reviewer1' ? 'ผู้จัดการ' : 'พนักงาน'})` : (user.role || 'ส่วนตัว')) : 'พนักงาน';
-        const status = user ? (user.status || 'online') : 'online';
+        const status = 'offline'; // becomes "online" only when the other person has the chat open (realtime presence)
         const color = user ? (user.color || 'bg-blue-500') : 'bg-blue-500';
         const icon = user ? (user.icon || 'fa-user') : 'fa-user';
 
@@ -7878,10 +8749,185 @@ const App = {
         return chat;
     },
 
+    /* ===== Group rooms ===== */
+    /* a simple modal for the chat screens; content is built by the caller (text already escaped) */
+    _chatModal(innerHtml) {
+        this._closeChatModal();
+        const wrap = document.createElement('div');
+        wrap.id = 'chat-dyn-modal';
+        wrap.className = 'fixed inset-0 z-[150] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4';
+        wrap.innerHTML = `<div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden" role="dialog" aria-modal="true">${innerHtml}</div>`;
+        wrap.addEventListener('click', e => { if (e.target === wrap) this._closeChatModal(); });
+        document.body.appendChild(wrap);
+        return wrap;
+    },
+    _closeChatModal() { document.getElementById('chat-dyn-modal')?.remove(); },
+
+    openCreateGroupChat() {
+        const myId = String(this.state.currentUser?.id || '');
+        const people = mockUsers.filter(u => String(u.id) !== myId);
+        const rows = people.length ? people.map(u => `
+            <label class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                <input type="checkbox" class="cg-member w-4 h-4 accent-blue-600" value="${this._esc(u.id)}">
+                <img src="${this._safeUrl(u.avatar) || this._esc(this._initialsAvatar(u.name))}" class="w-8 h-8 rounded-full object-cover" alt="">
+                <span class="min-w-0"><span class="block text-sm font-medium text-gray-800 truncate" data-no-i18n>${this._esc(u.name)}</span>
+                <span class="block text-xs text-gray-500 truncate" data-no-i18n>${this._esc(u.department || '')}</span></span>
+            </label>`).join('') : '<p class="text-sm text-gray-500 px-3 py-4">ยังไม่มีสมาชิกคนอื่นในทีม</p>';
+        this._chatModal(`
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800">สร้างกลุ่มแชท</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-600" onclick="App._closeChatModal()" aria-label="ปิด"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="px-5 pt-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">ชื่อกลุ่ม</label>
+                <input type="text" id="cg-name" maxlength="80" placeholder="เช่น ทีมออกแบบ" class="w-full border border-gray-200 rounded-xl py-2.5 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label class="block text-sm font-semibold text-gray-700 mt-4 mb-1.5">สมาชิก</label>
+            </div>
+            <div class="px-2 pb-2 overflow-y-auto flex-1 min-h-0">${rows}</div>
+            <div class="px-5 py-4 border-t border-gray-100 flex justify-end gap-2">
+                <button type="button" class="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50" onclick="App._closeChatModal()">ยกเลิก</button>
+                <button type="button" class="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700" onclick="App.createGroupChat()">สร้างกลุ่ม</button>
+            </div>`);
+        setTimeout(() => document.getElementById('cg-name')?.focus(), 50);
+    },
+
+    async createGroupChat() {
+        const name = (document.getElementById('cg-name')?.value || '').trim();
+        const members = [...document.querySelectorAll('#chat-dyn-modal .cg-member:checked')].map(x => x.value);
+        if (!name) { App._showToast('กรุณาตั้งชื่อกลุ่ม', 'error'); return; }
+        if (!members.length) { App._showToast('เลือกสมาชิกอย่างน้อย 1 คน', 'error'); return; }
+        const sb = window.conworkSupabase;
+        if (!sb || !sb.isAvailable()) { App._showToast('ยังสร้างกลุ่มไม่ได้ (ไม่ได้เชื่อมต่อฐานข้อมูล)', 'error'); return; }
+        const res = await sb._chatRpc('create_group_chat', { p_name: name, p_members: members, p_project: null });
+        if (res.missing) { App._showToast('ยังสร้างกลุ่มไม่ได้: ผู้ดูแลระบบต้องติดตั้งฐานข้อมูลแชทก่อน', 'error'); return; }
+        if (!res.data) { App._showToast('สร้างกลุ่มไม่สำเร็จ: ' + ((res.error && res.error.message) || ''), 'error'); return; }
+        this._closeChatModal();
+        await this._openRoom(res.data);
+        App._showToast('สร้างกลุ่มแล้ว', 'success');
+    },
+
+    /* reload the chat list and open the room with this database id */
+    async _openRoom(roomId) {
+        await this.loadUserChats();
+        if (this.state.currentView !== 'messages') this.switchView('messages');
+        const chat = mockChats.find(c => c.supabaseChannelId === roomId);
+        this.renderChatList();
+        await this.switchChat(chat ? chat.id : 'chan-' + roomId);
+    },
+
+    /* the project's own chat room (everyone in the project is in it) */
+    async openProjectChatFromMenu() {
+        document.getElementById('project-context-menu')?.classList.add('hidden');
+        const projectId = this._contextProjectId;
+        const sb = window.conworkSupabase;
+        if (!projectId || !sb || !sb.isAvailable()) return;
+        const res = await sb._chatRpc('ensure_project_chat', { p_project: projectId });
+        if (res.missing) { App._showToast('ยังเปิดแชทโปรเจกต์ไม่ได้: ผู้ดูแลระบบต้องติดตั้งฐานข้อมูลแชทก่อน', 'error'); return; }
+        if (!res.data) { App._showToast('เปิดแชทโปรเจกต์ไม่สำเร็จ', 'error'); return; }
+        await this._openRoom(res.data);
+    },
+
+    /* the team's room (everyone in my current team), created and kept in sync once per visit */
+    async _ensureTeamRoom() {
+        const sb = window.conworkSupabase;
+        const company = this.state.currentUser?.workspaceId;
+        if (this._teamRoomChecked || !sb || !sb.isAvailable() || !/^[0-9a-f-]{36}$/i.test(String(company || ''))) return false;
+        this._teamRoomChecked = true;
+        const res = await sb._chatRpc('ensure_team_chat', { p_company: company });
+        return !!res.data;
+    },
+
+    /* ===== Files & media of a chat, by period ===== */
+    openChatFiles() {
+        const chat = mockChats.find(c => c.id === this.state.currentChat);
+        if (!chat) { App._showToast('เลือกแชทก่อน', 'error'); return; }
+        this.state.chatFilesPeriod = this.state.chatFilesPeriod || { kind: 'all', ref: new Date().toISOString() };
+        this._chatModal(`
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <div class="min-w-0"><h3 class="text-lg font-bold text-gray-800">ไฟล์และสื่อ</h3>
+                <p class="text-xs text-gray-500 truncate" data-no-i18n>${this._esc(chat.name)}</p></div>
+                <button type="button" class="text-gray-400 hover:text-gray-600" onclick="App._closeChatModal()" aria-label="ปิด"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="px-5 py-3 border-b border-gray-100 flex flex-wrap items-center gap-2">
+                <select id="cf-kind" class="border border-gray-200 rounded-lg py-1.5 px-2 text-sm" onchange="App._chatFilesSetKind(this.value)">
+                    <option value="all">ทั้งหมด</option><option value="week">สัปดาห์</option><option value="month">เดือน</option>
+                    <option value="quarter">ไตรมาส</option><option value="year">ปี</option>
+                </select>
+                <button type="button" id="cf-prev" class="w-8 h-8 rounded-lg border border-gray-200 hover:bg-gray-50" onclick="App._chatFilesStep(-1)" aria-label="ก่อนหน้า"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                <span id="cf-label" class="text-sm font-semibold text-gray-700 min-w-[8rem] text-center" data-no-i18n></span>
+                <button type="button" id="cf-next" class="w-8 h-8 rounded-lg border border-gray-200 hover:bg-gray-50" onclick="App._chatFilesStep(1)" aria-label="ถัดไป"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+            </div>
+            <div id="cf-list" class="px-3 py-3 overflow-y-auto flex-1 min-h-0"></div>`);
+        document.getElementById('cf-kind').value = this.state.chatFilesPeriod.kind;
+        this._renderChatFiles();
+    },
+    _chatFilesSetKind(kind) {
+        this.state.chatFilesPeriod = { kind, ref: new Date().toISOString() };
+        this._renderChatFiles();
+    },
+    _chatFilesStep(steps) {
+        const p = this.state.chatFilesPeriod;
+        if (!p || p.kind === 'all' || !window.ConworkPeriods) return;
+        const next = ConworkPeriods.shift(p.kind, new Date(p.ref), steps);
+        this.state.chatFilesPeriod = { kind: p.kind, ref: next.start + 'T00:00:00' };
+        this._renderChatFiles();
+    },
+    _msgDate(m) {
+        if (m.createdAt) return String(m.createdAt).slice(0, 10);
+        const p = String(m.timestamp || '').split(' ')[0].split('/');
+        if (p.length !== 3) return '';
+        const y = +p[2] > 2400 ? +p[2] - 543 : +p[2];
+        return `${y}-${p[1]}-${p[0]}`;
+    },
+    _renderChatFiles() {
+        const list = document.getElementById('cf-list');
+        if (!list) return;
+        const p = this.state.chatFilesPeriod || { kind: 'all' };
+        const period = p.kind !== 'all' && window.ConworkPeriods ? ConworkPeriods.range(p.kind, new Date(p.ref)) : null;
+        const label = document.getElementById('cf-label');
+        if (label) label.textContent = period ? period.label : (typeof i18nIsEnglish === 'function' && i18nIsEnglish() ? 'All time' : 'ทุกช่วงเวลา');
+        ['cf-prev', 'cf-next'].forEach(id => { const b = document.getElementById(id); if (b) b.disabled = !period; });
+        const files = mockMessages
+            .filter(m => m.chatId === this.state.currentChat && (m.filePath || m.type === 'image' || m.type === 'file'))
+            .filter(m => !period || ConworkPeriods.contains(period, this._msgDate(m)))
+            .sort((a, b) => this._msgDate(b).localeCompare(this._msgDate(a)));
+        if (!files.length) {
+            list.innerHTML = `<div class="text-center text-sm text-gray-400 py-10"><i class="fa-regular fa-folder-open text-3xl mb-2 block"></i>ไม่มีไฟล์ในช่วงเวลานี้</div>`;
+            return;
+        }
+        const images = files.filter(m => m.type === 'image');
+        const docs = files.filter(m => m.type !== 'image');
+        const imgHtml = images.map(m => {
+            const src = m.filePath ? '' : this._safeUrl(m.text);
+            const attr = m.filePath ? `data-file-path="${this._esc(m.filePath)}"` : `src="${src}"`;
+            return `<img ${attr} alt="" class="w-full aspect-square object-cover rounded-lg bg-gray-100 cursor-pointer hover:opacity-90" onclick="this.src && window.open(this.src, '_blank')">`;
+        }).join('');
+        const docHtml = docs.map(m => {
+            const href = m.filePath ? '#' : this._safeUrl(m.text);
+            const attr = m.filePath ? `data-file-path="${this._esc(m.filePath)}"` : '';
+            return `<a ${attr} href="${href}" target="_blank" rel="noopener" download="${this._esc(m.fileName || 'file')}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50">
+                <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-file-lines"></i></span>
+                <span class="min-w-0 flex-1"><span class="block text-sm font-medium text-gray-800 truncate" data-no-i18n>${this._esc(m.fileName || 'file')}</span>
+                <span class="block text-xs text-gray-500">${this._esc(this._msgDate(m))}${m.fileSize ? ' · ' + this._fmtBytes(m.fileSize) : ''}</span></span>
+                <i class="fa-solid fa-download text-gray-400"></i></a>`;
+        }).join('');
+        list.innerHTML = (images.length ? `<p class="text-xs font-bold text-gray-500 uppercase tracking-wider px-2 mb-2">รูปภาพ (${images.length})</p><div class="grid grid-cols-3 gap-2 px-2 mb-4">${imgHtml}</div>` : '')
+            + (docs.length ? `<p class="text-xs font-bold text-gray-500 uppercase tracking-wider px-2 mb-1">ไฟล์ (${docs.length})</p>${docHtml}` : '');
+        this._hydrateStoredFiles(list);
+    },
+
+    /* phones show the chat list or one conversation; this goes back to the list */
+    closeChatOnPhone() {
+        document.getElementById('view-messages')?.classList.remove('chat-open');
+    },
+
     async switchChat(chatId) {
         if (!chatId) return;
         const chat = this.getOrCreateChat(chatId);
         this.state.currentChat = chat.id;
+        document.getElementById('view-messages')?.classList.add('chat-open');
+        const sendErr = document.getElementById('chat-send-error');
+        if (sendErr) sendErr.classList.add('hidden');
         this.state.chatSearchQuery = '';
 
         // Clear search input text field if active
@@ -7922,7 +8968,12 @@ const App = {
 
             const targetChanId = chat.supabaseChannelId || chat.id;
 
-            const messages = await window.conworkSupabase.fetchMessages(targetChanId);
+            let messages = null;
+            try {
+                messages = await window.conworkSupabase.fetchMessages(targetChanId);
+            } catch (e) {
+                console.warn('Could not load messages for this chat:', e && e.message);
+            }
             if (messages && Array.isArray(messages)) {
                 // Clear existing messages for this chat
                 let i = mockMessages.length;
@@ -7943,16 +8994,8 @@ const App = {
                     const isContentImage = msg.content && (msg.content.startsWith('data:image/') || msg.content.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i));
                     const isContentFile = msg.content && (msg.content.startsWith('data:application/') || msg.content.match(/\.(pdf|docx|xlsx|zip)(\?.*)?$/i));
                     const msgType = isContentImage ? 'image' : (isContentFile ? 'file' : 'text');
-                    
-                    mockMessages.push({
-                        id: msg.id || 'm-' + Math.random(),
-                        chatId: chat.id,
-                        senderId: msg.sender_id,
-                        text: msg.content,
-                        type: msgType,
-                        timestamp: timeStr,
-                        replyTo: null
-                    });
+
+                    mockMessages.push(this._msgFromRow(msg, chat.id, msgType, timeStr));
                 });
                 this.renderMessages();
             }
@@ -7972,16 +9015,7 @@ const App = {
                     const isContentFile = newMsg.content && (newMsg.content.startsWith('data:application/') || newMsg.content.match(/\.(pdf|docx|xlsx|zip)(\?.*)?$/i));
                     const msgType = isContentImage ? 'image' : (isContentFile ? 'file' : 'text');
 
-                    if (!mockMessages.some(m => m.id === newMsg.id || (m.text === newMsg.content && String(m.senderId) === String(newMsg.sender_id)))) {
-                        mockMessages.push({
-                            id: newMsg.id || 'm-' + Math.random(),
-                            chatId: chat.id,
-                            senderId: newMsg.sender_id,
-                            text: newMsg.content,
-                            type: msgType,
-                            timestamp: timeStr,
-                            replyTo: null
-                        });
+                    if (this._acceptIncomingMessage(newMsg, chat.id, msgType, timeStr)) {
                         if (this.state.currentChat === chat.id) {
                             this.renderMessages();
                             this.renderChatList();
@@ -8132,13 +9166,13 @@ const App = {
         const filter = this.state.chatFilter || 'all';
         const query = (this.state.chatSearchQuery || '').trim().toLowerCase();
 
-        const myId = this.state.currentUser?.id || 1;
+        const myId = this.state.currentUser?.id;
 
         // Combine existing chats + company employees from mockUsers
         const candidates = [...mockChats];
 
         mockUsers.forEach(u => {
-            if (u.id === myId) return;
+            if (String(u.id) === String(myId)) return;
             const chatId = 'user-' + u.id;
             const exists = candidates.some(c => c.id === chatId || c.userId === u.id);
             if (!exists) {
@@ -8205,19 +9239,23 @@ const App = {
                 }
             }
 
+            if (lastMsg && lastMsg.type === 'file') subtitleText = '[ไฟล์แนบ]';
+
             const unreadBadgeHtml = (c.unreadCount && c.unreadCount > 0)
                 ? `<span class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] h-[16px] flex items-center justify-center ml-auto">${c.unreadCount > 99 ? '99+' : c.unreadCount}</span>`
                 : '';
 
-            const safeUserId = String(c.userId || c.id).replace(/'/g, "\\'");
+            /* ids go into onclick as encoded strings so a quote in an id cannot break out */
+            const enc = v => this._esc(encodeURIComponent(String(v)).replace(/'/g, '%27'));
             const clickHandler = c.isUserContact
-                ? `App.startDirectChat('${safeUserId}')`
-                : `App.switchChat('${c.id}')`;
+                ? `App.startDirectChat(decodeURIComponent('${enc(c.userId || c.id)}'))`
+                : `App.switchChat(decodeURIComponent('${enc(c.id)}'))`;
 
-            const avatarHtml = (displayAvatar && c.id !== 'note')
-                ? `<img src="${displayAvatar}" class="w-12 h-12 rounded-full object-cover shrink-0 border border-gray-200">`
-                : `<div class="w-12 h-12 rounded-full flex items-center justify-center text-white shrink-0 ${c.color}">
-                       <i class="fa-solid ${c.icon}"></i>
+            const safeAvatar = this._safeUrl(displayAvatar);
+            const avatarHtml = (safeAvatar && c.id !== 'note')
+                ? `<img src="${safeAvatar}" class="w-12 h-12 rounded-full object-cover shrink-0 border border-gray-200">`
+                : `<div class="w-12 h-12 rounded-full flex items-center justify-center text-white shrink-0 ${this._esc(c.color || 'bg-blue-500')}">
+                       <i class="fa-solid ${this._esc(c.icon || 'fa-user')}"></i>
                    </div>`;
 
             return `
@@ -8226,10 +9264,10 @@ const App = {
                     ${avatarHtml}
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-sm font-bold text-gray-900 truncate flex items-center">${displayName} ${badgeHtml}</h4>
+                            <h4 class="text-sm font-bold text-gray-900 truncate flex items-center"><span data-no-i18n>${this._esc(displayName)}</span> ${badgeHtml}</h4>
                             ${unreadBadgeHtml}
                         </div>
-                        <p class="text-xs text-gray-500 truncate mt-0.5">${subtitleText}</p>
+                        <p class="text-xs text-gray-500 truncate mt-0.5"${lastMsg && lastMsg.type !== 'image' && lastMsg.type !== 'file' ? ' data-no-i18n' : ''}>${this._esc(subtitleText)}</p>
                     </div>
                 </div>
             `;
@@ -8261,12 +9299,13 @@ const App = {
 
         const iconContainer = document.getElementById('chat-header-icon-container');
         if (iconContainer) {
-            if (chatAvatar && currentChat.id !== 'note') {
-                iconContainer.innerHTML = `<img src="${chatAvatar}" class="w-full h-full rounded-full object-cover border border-gray-200">`;
+            const safeChatAvatar = this._safeUrl(chatAvatar);
+            if (safeChatAvatar && currentChat.id !== 'note') {
+                iconContainer.innerHTML = `<img src="${safeChatAvatar}" class="w-full h-full rounded-full object-cover border border-gray-200">`;
                 iconContainer.className = 'w-10 h-10 rounded-full flex items-center justify-center shrink-0';
             } else {
-                iconContainer.innerHTML = `<i id="chat-header-icon" class="fa-solid ${currentChat.icon}"></i>`;
-                iconContainer.className = `w-10 h-10 rounded-full flex items-center justify-center text-white ${currentChat.color}`;
+                iconContainer.innerHTML = `<i id="chat-header-icon" class="fa-solid ${this._esc(currentChat.icon || 'fa-user')}"></i>`;
+                iconContainer.className = `w-10 h-10 rounded-full flex items-center justify-center text-white ${this._esc(currentChat.color || 'bg-blue-500')}`;
             }
         }
 
@@ -8281,8 +9320,8 @@ const App = {
             }
         }
 
-        const myId = this.state.currentUser?.id || 1;
-        const msgs = mockMessages.filter(m => m.chatId === this.state.currentChat && (this.state.currentChat !== 'note' || m.senderId == myId));
+        const myId = this.state.currentUser?.id;
+        const msgs = mockMessages.filter(m => m.chatId === this.state.currentChat && (this.state.currentChat !== 'note' || String(m.senderId) === String(myId)));
 
         if (msgs.length === 0) {
             container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-gray-400">
@@ -8297,7 +9336,7 @@ const App = {
             const sender = mockUsers.find(u => String(u.id) === String(m.senderId)) ||
                            (this.state.currentUser && String(this.state.currentUser.id) === String(m.senderId) ? this.state.currentUser : null);
             const senderName = sender ? sender.name : (m.senderName || 'ผู้ใช้');
-            const senderAvatar = sender?.avatar || m.senderAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(senderName)}&background=random`;
+            const senderAvatar = this._safeUrl(sender?.avatar || m.senderAvatar) || this._esc(this._initialsAvatar(senderName));
 
             const isEn = this.settings?.language === 'en' || document.body.classList.contains('lang-en');
 
@@ -8392,16 +9431,37 @@ const App = {
                     </div>
                 `;
             }
+            /* period separator: a month heading whenever the month changes */
+            const monthKey = msg => { const s = String(msg && msg.timestamp || ''); const p = s.split(' ')[0].split('/'); return p.length === 3 ? `${p[2]}-${p[1]}` : ''; };
+            const mk = monthKey(m);
+            if (mk && mk !== monthKey(prevM) && window.ConworkPeriods) {
+                const per = ConworkPeriods.range('month', new Date(+mk.slice(0, 4) > 2400 ? +mk.slice(0, 4) - 543 : +mk.slice(0, 4), +mk.slice(5) - 1, 1));
+                timeDividerHtml = `
+                    <div class="flex items-center gap-3 mt-8 mb-2 w-full" aria-label="${this._esc(per.label)}">
+                        <span class="h-px flex-1 bg-gray-200"></span>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1" data-no-i18n>${this._esc(per.label)}</span>
+                        <span class="h-px flex-1 bg-gray-200"></span>
+                    </div>` + timeDividerHtml;
+            }
 
             let contentHtml = '';
             const isImg = m.type === 'image' || (m.text && (m.text.startsWith('data:image/') || m.text.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i)));
             const isFile = m.type === 'file' || (m.text && (m.text.startsWith('data:application/') || m.text.match(/\.(pdf|docx|xlsx|zip)(\?.*)?$/i)));
-            if (isImg) {
-                contentHtml = `<img src="${m.text}" class="max-w-xs max-h-80 rounded-lg mt-1 cursor-pointer hover:opacity-90 object-cover shadow-sm" onclick="window.open('${m.text}', '_blank')">`;
-            } else if (isFile) {
-                contentHtml = `<a href="${m.text}" download="${m.fileName || 'file'}" class="flex items-center gap-2 text-sm text-blue-600 hover:underline mt-1 bg-blue-50 px-3 py-2 rounded-lg border border-blue-100"><i class="fa-solid fa-file-arrow-down text-lg"></i> ดาวน์โหลดไฟล์แนบ (${m.fileName || 'เอกสาร'})</a>`;
+            const safeSrc = (isImg || isFile) ? this._safeUrl(m.text) : '';
+            const sizeTxt = m.fileSize ? ` · ${this._fmtBytes(m.fileSize)}` : '';
+            if (m.filePath && !safeSrc) {
+                /* a file kept in Storage: the link is fetched after drawing (data-file-path) */
+                const fp = this._esc(m.filePath);
+                contentHtml = m.type === 'image'
+                    ? `<img data-file-path="${fp}" alt="" class="max-w-xs max-h-80 min-w-[120px] min-h-[80px] bg-gray-100 rounded-lg mt-1 cursor-pointer hover:opacity-90 object-cover shadow-sm" onclick="this.src && window.open(this.src, '_blank')">`
+                    : `<a data-file-path="${fp}" href="#" target="_blank" rel="noopener" download="${this._esc(m.fileName || 'file')}" class="flex items-center gap-2 text-sm text-blue-600 hover:underline mt-1 bg-blue-50 px-3 py-2 rounded-lg border border-blue-100"><i class="fa-solid fa-file-arrow-down text-lg"></i> <span data-no-i18n>${this._esc(m.fileName || 'file')}</span><span class="text-xs text-gray-500">${sizeTxt}</span></a>`;
+            } else if (isImg && safeSrc) {
+                contentHtml = `<img src="${safeSrc}" class="max-w-xs max-h-80 rounded-lg mt-1 cursor-pointer hover:opacity-90 object-cover shadow-sm" onclick="window.open(this.src, '_blank')">`;
+            } else if (isFile && safeSrc) {
+                contentHtml = `<a href="${safeSrc}" download="${this._esc(m.fileName || 'file')}" class="flex items-center gap-2 text-sm text-blue-600 hover:underline mt-1 bg-blue-50 px-3 py-2 rounded-lg border border-blue-100"><i class="fa-solid fa-file-arrow-down text-lg"></i> ดาวน์โหลดไฟล์แนบ (<span data-no-i18n>${this._esc(m.fileName || 'เอกสาร')}</span>)</a>`;
             } else {
-                contentHtml = `<p class="text-sm whitespace-pre-wrap">${m.text}</p>`;
+                /* data-no-i18n: a message is shown exactly as it was written, never translated */
+                contentHtml = `<p class="text-sm whitespace-pre-wrap break-words" data-no-i18n>${this._richText(m.text)}</p>`;
             }
 
             let forwardedHtml = '';
@@ -8424,16 +9484,17 @@ const App = {
             if (m.replyTo) {
                 const originalMsg = mockMessages.find(orig => orig.id === m.replyTo);
                 if (originalMsg) {
-                    const originalSender = mockUsers.find(u => u.id == originalMsg.senderId)?.name || 'ผู้ใช้';
-                    const originalText = originalMsg.type === 'image' ? '[รูปภาพ]' : originalMsg.text;
+                    const originalSender = this._esc(mockUsers.find(u => String(u.id) === String(originalMsg.senderId))?.name
+                        || (this.state.currentUser && String(this.state.currentUser.id) === String(originalMsg.senderId) ? this.state.currentUser.name : '') || 'ผู้ใช้');
+                    const originalText = this._esc(originalMsg.type === 'image' ? '[รูปภาพ]' : (originalMsg.type === 'file' ? '[ไฟล์แนบ]' : originalMsg.text));
                     replyHtml = `
-                        <div class="bg-blue-700/30 text-blue-100 text-[10px] px-2 py-1 rounded-t-lg mb-1 border-l-2 border-blue-300 truncate max-w-full">
+                        <div class="bg-blue-700/30 text-blue-100 text-[10px] px-2 py-1 rounded-t-lg mb-1 border-l-2 border-blue-300 truncate max-w-full" data-no-i18n>
                             <span class="font-semibold block">${originalSender}</span>
                             <span class="opacity-90 truncate block">${originalText}</span>
                         </div>
                     `;
                     replyHtmlOther = `
-                        <div class="bg-gray-100 text-gray-500 text-[10px] px-2 py-1 rounded-t-lg mb-1 border-l-2 border-gray-300 truncate max-w-full">
+                        <div class="bg-gray-100 text-gray-500 text-[10px] px-2 py-1 rounded-t-lg mb-1 border-l-2 border-gray-300 truncate max-w-full" data-no-i18n>
                             <span class="font-semibold block">${originalSender}</span>
                             <span class="opacity-90 truncate block">${originalText}</span>
                         </div>
@@ -8441,7 +9502,8 @@ const App = {
                 }
             }
 
-            const editedHtmlMe = m.isEdited ? `<span class="text-[10px] text-gray-400 mt-1">(แก้ไขแล้ว)</span>` : '';
+            const editedHtmlMe = (m.isEdited ? `<span class="text-[10px] text-gray-400 mt-1">(แก้ไขแล้ว)</span>` : '')
+                + (m.failed ? `<span class="text-[10px] text-red-500 mt-1"><i class="fa-solid fa-circle-exclamation"></i> ส่งไม่สำเร็จ</span>` : '');
             if (isMe) {
                 return `
                     ${timeDividerHtml}
@@ -8480,7 +9542,7 @@ const App = {
                     <div class="flex items-end space-x-2 mb-4 group">
                         <img src="${senderAvatar}" class="w-8 h-8 rounded-full shrink-0 object-cover border border-gray-200">
                         <div class="flex flex-col items-start min-w-0 w-full">
-                            <span class="text-[10px] text-gray-500 mb-1 ml-1">${senderName}</span>
+                            <span class="text-[10px] text-gray-500 mb-1 ml-1" data-no-i18n>${this._esc(senderName)}</span>
                             <div class="flex items-end gap-2 w-full">
                                 <div class="bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-2.5 max-w-[75%] shadow-sm flex flex-col">
                                     ${forwardedHtmlOther}
@@ -8510,6 +9572,24 @@ const App = {
         }).join('');
 
         container.scrollTop = container.scrollHeight;
+        this._hydrateStoredFiles(container);
+    },
+
+    /* fill in short-lived links for files kept in Storage (images show, file cards open/download) */
+    async _hydrateStoredFiles(root) {
+        const sb = window.conworkSupabase;
+        if (!root || !sb || !sb.isAvailable()) return;
+        for (const el of root.querySelectorAll('[data-file-path]')) {
+            const url = await sb.signedFileUrl(el.getAttribute('data-file-path'));
+            if (!url) continue;
+            if (el.tagName === 'IMG') {
+                el.onload = () => { const c = document.getElementById('chat-messages-container'); if (c && c.contains(el)) c.scrollTop = c.scrollHeight; };
+                el.src = url;
+            } else {
+                el.href = url;
+            }
+            el.removeAttribute('data-file-path');
+        }
     },
 
     toggleMessageMenu(msgId, event) {
@@ -8654,8 +9734,8 @@ const App = {
 
         const query = searchInput ? searchInput.value.toLowerCase() : '';
         const filtered = mockChats.filter(chat =>
-            chat.name.toLowerCase().includes(query) ||
-            chat.subtitle.toLowerCase().includes(query)
+            String(chat.name || '').toLowerCase().includes(query) ||
+            String(chat.subtitle || '').toLowerCase().includes(query)
         );
 
         if (filtered.length === 0) {
@@ -8664,13 +9744,13 @@ const App = {
         }
 
         container.innerHTML = filtered.map(chat => `
-            <button class="w-full text-left flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-200" onclick="App.confirmForward('${chat.id}')">
-                <div class="w-10 h-10 ${chat.color || 'bg-gray-400'} rounded-full flex items-center justify-center text-white shrink-0">
-                    <i class="fa-solid ${chat.icon || 'fa-comments'}"></i>
+            <button class="w-full text-left flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-200" onclick="App.confirmForward(decodeURIComponent('${this._esc(encodeURIComponent(String(chat.id)).replace(/'/g, '%27'))}'))">
+                <div class="w-10 h-10 ${this._esc(chat.color || 'bg-gray-400')} rounded-full flex items-center justify-center text-white shrink-0">
+                    <i class="fa-solid ${this._esc(chat.icon || 'fa-comments')}"></i>
                 </div>
                 <div class="flex flex-col min-w-0">
-                    <span class="text-sm font-semibold text-gray-800 truncate">${chat.name}</span>
-                    <span class="text-xs text-gray-500 truncate">${chat.subtitle}</span>
+                    <span class="text-sm font-semibold text-gray-800 truncate">${this._esc(chat.name)}</span>
+                    <span class="text-xs text-gray-500 truncate">${this._esc(chat.subtitle)}</span>
                 </div>
             </button>
         `).join('');
@@ -8718,7 +9798,7 @@ const App = {
         mockMessages.push({
             id: 'm' + Date.now() + '_1',
             chatId: targetChatId,
-            senderId: this.state.currentUser?.id || 1,
+            senderId: this.state.currentUser?.id,
             text: msg.text,
             type: msg.type || 'text',
             timestamp: timeStr,
@@ -8729,7 +9809,7 @@ const App = {
             mockMessages.push({
                 id: 'm' + Date.now() + '_2',
                 chatId: targetChatId,
-                senderId: this.state.currentUser?.id || 1,
+                senderId: this.state.currentUser?.id,
                 text: noteText,
                 type: 'text',
                 timestamp: timeStr,
@@ -8799,13 +9879,14 @@ const App = {
         const timeStr = `${day}/${month}/${year} ${hours}:${minutes}`;
 
         const msgText = input.value.trim();
-        const myId = this.state.currentUser?.id || 1;
+        const myId = this.state.currentUser?.id;
 
         // If not using real-time, generate a local ID
         const tempMsgId = 'm' + Date.now();
 
         mockMessages.push({
             id: tempMsgId,
+            pending: true, // shown right away; gets its database id once saved
             chatId: this.state.currentChat,
             senderId: myId,
             text: msgText,
@@ -8819,24 +9900,97 @@ const App = {
         this.renderChatList();
         this._saveData();
 
-        if (window.conworkSupabase && window.conworkSupabase.isAvailable()) {
-            const chat = mockChats.find(c => c.id === this.state.currentChat);
-            let targetChanId = chat ? chat.supabaseChannelId : null;
-            if (!targetChanId) {
-                if (this.state.currentChat === 'note') {
-                    targetChanId = await window.conworkSupabase.getOrCreatePersonalNoteChannel();
-                } else if (chat && (chat.userId || chat.id.startsWith('user-'))) {
-                    const targetId = chat.userId || chat.id.replace('user-', '');
-                    targetChanId = await window.conworkSupabase.getOrCreateDirectChannel(targetId);
-                } else {
-                    targetChanId = this.state.currentChat;
-                }
-                if (chat) chat.supabaseChannelId = targetChanId;
-            }
-            if (targetChanId) {
-                await window.conworkSupabase.sendMessage(targetChanId, msgText);
-            }
+        const chat = mockChats.find(c => c.id === this.state.currentChat);
+        await this._deliverChatMessage(chat, msgText, tempMsgId);
+    },
+
+    /* save a message that is already on screen (id = tempId) to its chat room, then give it the database id */
+    /* the database room for a chat on screen (created for a 1:1 chat or the Note when needed) */
+    async _ensureChatRoom(chat) {
+        if (!chat || !window.conworkSupabase || !window.conworkSupabase.isAvailable()) return null;
+        let target = chat.supabaseChannelId || null;
+        if (!target) {
+            if (chat.id === 'note') target = await window.conworkSupabase.getOrCreatePersonalNoteChannel();
+            else if (chat.userId || String(chat.id).startsWith('user-')) target = await window.conworkSupabase.getOrCreateDirectChannel(chat.userId || String(chat.id).replace('user-', ''));
+            if (target) chat.supabaseChannelId = target;
         }
+        return target;
+    },
+
+    async _deliverChatMessage(chat, content, tempId, file) {
+        if (!chat || !window.conworkSupabase || !window.conworkSupabase.isAvailable()) return;
+        const target = await this._ensureChatRoom(chat);
+        const showSendError = (text) => {
+            const el = document.getElementById('chat-send-error');
+            if (el && this.state.currentChat === chat.id) { el.textContent = text; el.classList.remove('hidden'); }
+        };
+        if (!target) {
+            const local = mockMessages.find(m => m.id === tempId);
+            if (local) { delete local.pending; local.failed = true; }
+            showSendError('ส่งไม่ได้: ยังเปิดห้องแชทกับคนนี้ไม่ได้ ลองใหม่อีกครั้ง หรือแจ้งผู้ดูแลระบบ');
+            this.renderMessages();
+            return;
+        }
+        const saved = await window.conworkSupabase.sendMessage(target, content, { clientId: tempId, file });
+        const local = mockMessages.find(m => m.id === tempId);
+        if (!local) return; // the realtime echo already matched it and gave it the database id
+        delete local.pending;
+        if (saved && saved.id) {
+            if (mockMessages.some(m => m !== local && m.id === saved.id)) mockMessages.splice(mockMessages.indexOf(local), 1);
+            else local.id = saved.id;
+        } else {
+            local.failed = true;
+            showSendError('ส่งข้อความไม่สำเร็จ ลองใหม่อีกครั้ง');
+            this.renderMessages();
+        }
+    },
+
+    /* one incoming message (from the database feed or a room broadcast): add it once, matched by id.
+       Our own message coming back is matched to the copy already on screen instead of being added twice. */
+    _acceptIncomingMessage(newMsg, chatId, msgType, timeStr) {
+        const byId = mockMessages.find(m => (newMsg.id && m.id === newMsg.id) || (newMsg.client_id && m.id === newMsg.client_id));
+        if (byId) {
+            if (newMsg.id && byId.id !== newMsg.id) { byId.id = newMsg.id; delete byId.pending; }
+            return false;
+        }
+        const myId = this.state.currentUser?.id;
+        if (myId && String(newMsg.sender_id) === String(myId)) {
+            const mine = mockMessages.find(m => m.pending && m.chatId === chatId &&
+                (newMsg.file_url ? m.filePath === newMsg.file_url : m.text === newMsg.content));
+            if (mine) { if (newMsg.id) mine.id = newMsg.id; delete mine.pending; return false; }
+        }
+        mockMessages.push(this._msgFromRow(newMsg, chatId, msgType, timeStr));
+        return true;
+    },
+
+    /* one database / realtime message row -> a message on screen. A file kept in Storage has file_url (its path). */
+    _msgFromRow(row, chatId, msgType, timeStr) {
+        const m = {
+            id: row.id || row.client_id || 'm-' + Date.now() + Math.random(),
+            chatId: chatId,
+            senderId: row.sender_id,
+            text: row.content,
+            type: msgType,
+            timestamp: timeStr,
+            createdAt: row.created_at || null,
+            replyTo: null
+        };
+        if (row.file_url) {
+            m.filePath = row.file_url;
+            m.fileName = row.file_name || row.content || 'file';
+            m.fileSize = row.file_size || null;
+            m.fileType = row.file_type || '';
+            m.type = row.message_type === 'image' || /^image\//.test(m.fileType) ? 'image' : 'file';
+            m.text = '';
+        }
+        return m;
+    },
+
+    _fmtBytes(n) {
+        const b = Number(n) || 0;
+        if (b >= 1048576) return (b / 1048576).toFixed(1) + ' MB';
+        if (b >= 1024) return Math.round(b / 1024) + ' KB';
+        return b ? b + ' B' : '';
     },
 
     handleAttachment(event) {
@@ -8852,7 +10006,7 @@ const App = {
 
         const isImage = file.type.startsWith('image/');
 
-        const processAndSend = (dataUrl, msgType) => {
+        const processAndSend = async (dataUrl, msgType, blob) => {
             const now = new Date();
             const day = String(now.getDate()).padStart(2, '0');
             const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -8862,15 +10016,20 @@ const App = {
             const timeStr = `${day}/${month}/${year} ${hours}:${minutes}`;
 
             const tempMsgId = 'm' + Date.now();
+            const chat = mockChats.find(c => c.id === this.state.currentChat);
 
             mockMessages.push({
                 id: tempMsgId,
+                pending: true,
                 chatId: this.state.currentChat,
-                senderId: this.state.currentUser?.id || 1,
-                text: dataUrl,
+                senderId: this.state.currentUser?.id,
+                text: dataUrl, // shown right away; replaced by the stored file's link once uploaded
                 type: msgType,
                 fileName: file.name,
+                fileSize: blob ? blob.size : file.size,
+                fileType: blob ? blob.type : file.type,
                 timestamp: timeStr,
+                createdAt: now.toISOString(),
                 replyTo: this.state.replyingToMsgId || null
             });
             this.cancelReply();
@@ -8878,30 +10037,20 @@ const App = {
             this.renderChatList();
             this._saveData();
 
-            if (window.conworkSupabase && window.conworkSupabase.isAvailable()) {
-                const chat = mockChats.find(c => c.id === this.state.currentChat);
-                let targetChanId = chat ? chat.supabaseChannelId : null;
-                if (!targetChanId) {
-                    if (this.state.currentChat === 'note') {
-                        window.conworkSupabase.getOrCreatePersonalNoteChannel().then(cid => {
-                            if (cid) {
-                                if (chat) chat.supabaseChannelId = cid;
-                                window.conworkSupabase.sendMessage(cid, dataUrl, msgType);
-                            }
-                        });
-                    } else if (chat && (chat.userId || chat.id.startsWith('user-'))) {
-                        const targetId = chat.userId || chat.id.replace('user-', '');
-                        window.conworkSupabase.getOrCreateDirectChannel(targetId).then(cid => {
-                            if (cid) {
-                                if (chat) chat.supabaseChannelId = cid;
-                                window.conworkSupabase.sendMessage(cid, dataUrl, msgType);
-                            }
-                        });
-                    }
-                } else {
-                    window.conworkSupabase.sendMessage(targetChanId, dataUrl, msgType);
+            /* kept for good in Storage when the chat database is ready; otherwise the file travels inside the message as before */
+            const sb = window.conworkSupabase;
+            if (sb && sb.isAvailable() && blob && await sb.chatFilesReady()) {
+                const roomId = await this._ensureChatRoom(chat);
+                const companyId = (chat && chat.companyId) || (/^[0-9a-f-]{36}$/i.test(String(this.state.currentUser?.workspaceId || '')) ? this.state.currentUser.workspaceId : null);
+                const path = roomId ? await sb.uploadChatFile(companyId, roomId, blob, file.name) : null;
+                if (path) {
+                    const local = mockMessages.find(m => m.id === tempMsgId);
+                    if (local) Object.assign(local, { filePath: path });
+                    await this._deliverChatMessage(chat, file.name, tempMsgId, { path, name: file.name, size: blob.size, type: blob.type || file.type, messageType: msgType });
+                    return;
                 }
             }
+            this._deliverChatMessage(chat, dataUrl, tempMsgId);
         };
 
         if (isImage) {
@@ -8929,7 +10078,7 @@ const App = {
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
-                    processAndSend(compressedDataUrl, 'image');
+                    canvas.toBlob(b => processAndSend(compressedDataUrl, 'image', b), 'image/jpeg', 0.85);
                 };
                 img.src = e.target.result;
             };
@@ -8937,7 +10086,7 @@ const App = {
         } else {
             const reader = new FileReader();
             reader.onload = (e) => {
-                processAndSend(e.target.result, 'file');
+                processAndSend(e.target.result, 'file', file);
             };
             reader.readAsDataURL(file);
         }
@@ -9363,17 +10512,17 @@ const App = {
             const icon = file.type === 'image' ? '<i class="fa-regular fa-image text-blue-500 text-lg"></i>' : '<i class="fa-solid fa-file-lines text-lg text-gray-500"></i>';
             return `
             <div class="flex items-center justify-between bg-white border border-gray-100 rounded-xl p-2.5 text-sm shadow-sm hover:shadow-md transition-shadow group">
-                <a href="${fileUrl}" download="${file.name}" target="_blank" class="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer hover:opacity-80 transition-opacity" title="คลิกเพื่อดาวน์โหลด/เปิดไฟล์">
+                <a href="${App._safeUrl(fileUrl) || '#'}" download="${App._esc(file.name)}" data-no-i18n target="_blank" class="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer hover:opacity-80 transition-opacity" title="คลิกเพื่อดาวน์โหลด/เปิดไฟล์">
                     <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 border border-gray-200">
                         ${icon}
                     </div>
                     <div class="flex flex-col truncate min-w-0">
-                        <span class="truncate text-blue-600 font-semibold text-xs hover:underline">${file.name}</span>
+                        <span class="truncate text-blue-600 font-semibold text-xs hover:underline" data-no-i18n>${App._esc(file.name)}</span>
                         <span class="text-[10px] text-gray-400 mt-0.5">${file.size}</span>
                     </div>
                 </a>
                 <div class="flex items-center gap-1 shrink-0 ml-2">
-                    <a href="${fileUrl}" download="${file.name}" target="_blank" class="text-gray-400 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-colors" title="ดาวน์โหลด">
+                    <a href="${App._safeUrl(fileUrl) || '#'}" download="${App._esc(file.name)}" data-no-i18n target="_blank" class="text-gray-400 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-colors" title="ดาวน์โหลด">
                         <i class="fa-solid fa-download"></i>
                     </a>
                     ${!isReadOnly ? `
@@ -9466,7 +10615,7 @@ const App = {
                 <label class="flex items-center gap-3 ${isSubtaskDisabled ? 'cursor-default' : 'cursor-pointer'} flex-1 min-w-0">
                     <input type="checkbox" ${st.done ? 'checked' : ''} onchange="App.toggleSubtask(${idx})"
                         class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 shrink-0 mt-0.5 ${isSubtaskDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}" ${isSubtaskDisabled ? 'disabled' : ''}>
-                    <span class="text-sm truncate ${st.done ? 'text-gray-400 line-through' : 'text-gray-700'}">${st.text}</span>
+                    <span class="text-sm truncate ${st.done ? 'text-gray-400 line-through' : 'text-gray-700'}" data-no-i18n>${App._esc(st.text)}</span>
                 </label>
                 ${!this.state.currentTaskModalIsReadOnly ? `
                 <button type="button" class="text-gray-400 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity" onclick="App.askDeleteSubtask(${idx})">
@@ -9686,7 +10835,7 @@ const App = {
                         <div class="w-6 h-6 rounded ${section.bg} flex items-center justify-center shrink-0">
                             <i class="fa-solid ${section.icon} text-[10px]"></i>
                         </div>
-                        ${section.name}
+                        ${App._esc(section.name)}
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-8">
             `;
@@ -10165,7 +11314,7 @@ const App = {
                 status: 'online',
                 jobTitle: 'Member',
                 department: '',
-                avatar: curUser.avatar || 'https://i.pravatar.cc/150'
+                avatar: curUser.avatar || App._initialsAvatar(curUser.name || curUser.email)
             };
         }
 
@@ -10183,7 +11332,7 @@ const App = {
         let jobTitle = user.jobTitle;
         let jobTitleHtml = '';
         if (jobTitle) {
-            jobTitleHtml = `<span>${jobTitle}</span>`;
+            jobTitleHtml = `<span>${App._esc(jobTitle)}</span>`;
         } else {
             if (user.role === 'reviewer2') {
                 jobTitleHtml = '<span>ประธานเจ้าหน้าที่บริหาร</span>';
@@ -10201,7 +11350,7 @@ const App = {
         }
 
         // 1. Header
-        document.getElementById('up-avatar').src = user.avatar || 'https://i.pravatar.cc/150';
+        document.getElementById('up-avatar').src = user.avatar || this._initialsAvatar(user.name || user.email);
         document.getElementById('up-status-dot').className = `absolute bottom-2 right-2 w-6 h-6 border-4 border-white rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-300'}`;
         document.getElementById('up-name').textContent = user.name;
         document.getElementById('up-job-title').innerHTML = jobTitleHtml;
@@ -10311,9 +11460,10 @@ const App = {
         const permsContainer = document.getElementById('up-work-custom-perms');
         if (permsContainer) {
             permsContainer.innerHTML = ''; // clear
-            const mockPerms = ['จัดการพนักงาน', 'จัดการโปรเจกต์']; // just some mock
-            if (mockPerms.length > 0) {
-                mockPerms.forEach(p => {
+            /* this person's own extra permissions, if any were given */
+            const extraPerms = Array.isArray(user.customPermissions) ? user.customPermissions : (Array.isArray(user.permissions) ? user.permissions : []);
+            if (extraPerms.length > 0) {
+                extraPerms.forEach(p => {
                     const span = document.createElement('span');
                     span.className = 'inline-block bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-md font-medium mr-2 mb-2 border border-blue-100';
                     span.innerHTML = `<i class="fa-solid fa-check text-blue-500 mr-1"></i> ${p}`;
@@ -10408,7 +11558,7 @@ const App = {
                 name: displayName || 'User',
                 email: curUser.email || '',
                 role: curUser.role || 'worker',
-                avatar: curUser.avatar || 'https://i.pravatar.cc/150'
+                avatar: curUser.avatar || App._initialsAvatar(curUser.name || curUser.email)
             };
         }
 
@@ -10439,13 +11589,12 @@ const App = {
 
         document.getElementById('am-firstname').value = firstName;
         document.getElementById('am-lastname').value = lastName;
-        document.getElementById('am-email').value = user.email || `${firstName.toLowerCase()}@company.com`;
+        document.getElementById('am-email').value = user.email || '';
         if (document.getElementById('am-password')) {
             document.getElementById('am-password').value = user.password || '';
         }
 
-        // Mock some values for missing fields since we use generic mock
-        document.getElementById('am-phone').value = user.phone || '099-123-4567';
+        document.getElementById('am-phone').value = user.phone || '';
 
         // Compute jobTitle based on user's saved job title, or fallback to role logic
         let jobTitle = user.jobTitle;
@@ -10754,28 +11903,6 @@ const App = {
         this.switchChat(chat.id);
     },
 
-    generateDailyNotifications() {
-        const todayStr = new Date().toISOString().split('T')[0];
-
-        // Meetings today
-        const todayMeetings = mockEvents.filter(e => e.date === todayStr && e.type === 'meeting');
-        todayMeetings.forEach(m => {
-            const exists = mockNotifications.find(n => n.type === 'meeting' && n.linkData && n.linkData.eventId === m.id);
-            if (!exists) {
-                this.addNotification('meeting', 'การประชุมวันนี้', `กิจกรรม : ${m.title} ${m.time ? 'เวลา ' + m.time : ''}`, { view: 'calendar', date: todayStr, eventId: m.id });
-            }
-        });
-
-        // Tasks due today
-        const todayTasks = mockTasks.filter(t => t.dueDate === todayStr && t.status !== 'completed' && t.status !== 'done');
-        todayTasks.forEach(t => {
-            const exists = mockNotifications.find(n => n.type === 'task-due' && n.linkData && n.linkData.taskId === t.id);
-            if (!exists) {
-                this.addNotification('task-due', 'งานที่ต้องทำวันนี้', `งาน : ${t.title}`, { view: 'tasks', projectId: t.projectId, taskId: t.id });
-            }
-        });
-    },
-
     toggleNotificationDropdown() {
         this.state.showNotificationDropdown = !this.state.showNotificationDropdown;
         const dropdown = document.getElementById('notification-dropdown');
@@ -10803,8 +11930,9 @@ const App = {
             try {
                 await window.conworkSupabase.client
                     .from('notifications')
-                    .update({ is_read: true })
-                    .or(`target_user_id.eq.${curUserId},target_user_id.is.null`);
+                    .update({ read_at: new Date().toISOString() })
+                    .eq('user_id', curUserId)
+                    .is('read_at', null);
             } catch (e) {
                 console.warn('Error marking notifications read in Supabase:', e);
             }
@@ -10827,7 +11955,7 @@ const App = {
                 await window.conworkSupabase.client
                     .from('notifications')
                     .delete()
-                    .or(`target_user_id.eq.${curUserId},target_user_id.is.null`);
+                    .eq('user_id', curUserId);
             } catch (e) {
                 console.warn('Error deleting notifications in Supabase:', e);
             }
@@ -10868,18 +11996,20 @@ const App = {
 
         if (window.conworkSupabase && window.conworkSupabase.isAvailable()) {
             try {
-                const targetUserId = linkData?.targetUserId || null;
-                const companyId = (this.state.workspaces && this.state.workspaces[0]?.id) || null;
+                /* notifications table: one row per person (user_id), text in body, extra data in link */
+                const targetUserId = linkData?.targetUserId || this.state.currentUser?.id || null;
+                const ws = this.state.workspaces && this.state.workspaces[0];
+                const companyId = (ws && (ws.workspace_id || ws.id)) || null;
+                if (!targetUserId) return;
                 const { data, error } = await window.conworkSupabase.client
                     .from('notifications')
                     .insert([{
                         type,
                         title,
-                        message,
-                        link_data: linkData || {},
-                        target_user_id: targetUserId,
-                        company_id: companyId,
-                        is_read: false
+                        body: message,
+                        link: linkData || {},
+                        user_id: targetUserId,
+                        company_id: /^[0-9a-f-]{36}$/i.test(String(companyId || '')) ? companyId : null
                     }])
                     .select()
                     .single();
@@ -10902,7 +12032,7 @@ const App = {
             const { data, error } = await window.conworkSupabase.client
                 .from('notifications')
                 .select('*')
-                .or(`target_user_id.eq.${curUserId},target_user_id.is.null`)
+                .eq('user_id', curUserId)
                 .order('created_at', { ascending: false })
                 .limit(50);
 
@@ -10911,9 +12041,9 @@ const App = {
                     id: n.id,
                     type: n.type,
                     title: n.title,
-                    message: n.message,
-                    linkData: n.link_data || {},
-                    read: !!n.is_read,
+                    message: n.body != null ? n.body : (n.message || ''),
+                    linkData: n.link || n.link_data || {},
+                    read: !!(n.read_at || n.is_read),
                     timestamp: n.created_at
                 }));
 
@@ -10939,33 +12069,8 @@ const App = {
         const curUserId = String(this.state.currentUser.id);
         let changed = false;
 
-        // 1. Task Assignments
+        // (assignments are notified by the database: task_assignees trigger -> 'task_assigned')
         mockTasks.forEach(t => {
-            if (!t.assignees || !Array.isArray(t.assignees)) return;
-            const isAssigned = t.assignees.some(uid => String(uid) === curUserId);
-            const isCreator = t.creatorId && String(t.creatorId) === curUserId;
-
-            if (isAssigned && !isCreator) {
-                const notifIdKey = `notif-assigned-${t.id}-${curUserId}`;
-                const exists = mockNotifications.some(n => 
-                    (n.id === notifIdKey) || 
-                    (n.type === 'task' && n.linkData && String(n.linkData.taskId) === String(t.id) && String(n.linkData.targetUserId) === curUserId && n.title && n.title.includes('มอบหมาย'))
-                );
-
-                if (!exists) {
-                    mockNotifications.unshift({
-                        id: notifIdKey,
-                        type: 'task',
-                        title: 'คุณได้รับมอบหมายงานใหม่',
-                        message: `งาน: ${t.title || 'ไม่มีชื่อ'}`,
-                        linkData: { view: 'tasks', projectId: t.projectId, taskId: t.id, targetUserId: curUserId },
-                        read: false,
-                        timestamp: t.createdAt || new Date().toISOString()
-                    });
-                    changed = true;
-                }
-            }
-
             // 2. Pending Reviews
             if (t.status === 'pending-review' || t.status === 'in_review') {
                 let isReviewer = false;
@@ -11065,32 +12170,22 @@ const App = {
         }
 
         list.innerHTML = userNotifs.map(n => {
-            let iconHtml = '';
-            if (n.type === 'meeting') {
-                iconHtml = '<div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center shrink-0"><i class="fa-regular fa-calendar"></i></div>';
-            } else if (n.type === 'task' || n.type === 'task-due') {
-                iconHtml = '<div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-list-check"></i></div>';
-            } else if (n.type === 'project') {
-                iconHtml = '<div class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-briefcase"></i></div>';
-            } else {
-                iconHtml = '<div class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-bell"></i></div>';
-            }
-
+            const look = this._notifLook(n);
             const d = new Date(n.timestamp);
-            const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
+            const timeStr = isNaN(d) ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            /* the title is ours (translated); the message can be someone's words, so it is never translated or run as HTML */
             return `
-                <div class="p-3 hover:bg-gray-50 cursor-pointer flex gap-3 transition-colors group relative ${n.read ? 'bg-transparent' : 'bg-blue-50/30'}" onclick="App.handleNotificationClick('${n.id}')">
-                    ${iconHtml}
+                <div class="p-3 hover:bg-gray-50 cursor-pointer flex gap-3 transition-colors group relative ${n.read ? 'bg-transparent' : 'bg-blue-50/30'}" onclick="App.handleNotificationClick('${this._esc(n.id)}')">
+                    <div class="w-8 h-8 rounded-full ${look.tone} flex items-center justify-center shrink-0"><i class="${look.icon}"></i></div>
                     <div class="flex-1 min-w-0 pr-6">
                         <div class="flex justify-between items-start mb-0.5">
-                            <h4 class="text-sm font-bold ${n.read ? 'text-gray-600' : 'text-gray-800'} truncate">${n.title}</h4>
+                            <h4 class="text-sm font-bold ${n.read ? 'text-gray-600' : 'text-gray-800'} truncate">${this._esc(look.title)}</h4>
                             <span class="text-[10px] text-gray-400 shrink-0 ml-2">${timeStr}</span>
                         </div>
-                        <p class="text-xs text-gray-500 line-clamp-2">${n.message}</p>
+                        <p class="text-xs text-gray-500 line-clamp-2" data-no-i18n>${this._esc(n.message || '')}</p>
                     </div>
                     ${!n.read ? '<div class="absolute right-3 top-3 w-2 h-2 rounded-full bg-blue-500"></div>' : ''}
-                    <button class="absolute right-2 bottom-2 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1" onclick="event.stopPropagation(); App.deleteNotification('${n.id}')" title="ลบการแจ้งเตือน">
+                    <button class="absolute right-2 bottom-2 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1" onclick="event.stopPropagation(); App.deleteNotification('${this._esc(n.id)}')" title="ลบการแจ้งเตือน">
                         <i class="fa-solid fa-trash-can text-xs"></i>
                     </button>
                 </div>
@@ -11098,14 +12193,46 @@ const App = {
         }).join('');
     },
 
+    /* icon, colour and title for each kind of notification (the server ones get a title in the person's language) */
+    _notifLook(n) {
+        const en = typeof i18nIsEnglish === 'function' && i18nIsEnglish();
+        const L = (th, eng) => en ? eng : th;
+        const level = Number(n.linkData && n.linkData.level);
+        const kinds = {
+            chat: ['bg-violet-100 text-violet-600', 'fa-regular fa-comment-dots', L('ข้อความใหม่', 'New message')],
+            task_assigned: ['bg-blue-100 text-blue-600', 'fa-solid fa-user-check', L('คุณได้รับมอบหมายงานใหม่', 'You were assigned a task')],
+            event_invite: ['bg-pink-100 text-pink-600', 'fa-regular fa-calendar-plus', L('คุณได้รับเชิญเข้าร่วมกิจกรรม', 'You were invited to an event')],
+            deadline: ['bg-red-100 text-red-600', 'fa-regular fa-clock', L('งานใกล้ถึงกำหนดส่ง', 'Task due soon')],
+            event_reminder: ['bg-orange-100 text-orange-600', 'fa-regular fa-bell', L('กิจกรรมใกล้ถึงเวลา', 'Event coming up')],
+            budget: [level >= 100 ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600', 'fa-solid fa-coins', level >= 100 ? L('งบประมาณเกินแล้ว', 'Over budget') : L('ใช้งบประมาณถึง 80%', '80% of the budget used')],
+            finance: ['bg-emerald-100 text-emerald-600', 'fa-solid fa-file-invoice-dollar', n.title || L('รายการการเงิน', 'Finance')],
+            meeting: ['bg-orange-100 text-orange-600', 'fa-regular fa-calendar', n.title],
+            task: ['bg-blue-100 text-blue-600', 'fa-solid fa-list-check', n.title],
+            'task-due': ['bg-blue-100 text-blue-600', 'fa-solid fa-list-check', n.title],
+            project: ['bg-purple-100 text-purple-600', 'fa-solid fa-briefcase', n.title]
+        };
+        const k = kinds[n.type] || ['bg-gray-100 text-gray-600', 'fa-solid fa-bell', n.title || L('การแจ้งเตือน', 'Notification')];
+        return { tone: k[0], icon: k[1], title: k[2] || '' };
+    },
+
     handleNotificationClick(notifId) {
-        const notif = mockNotifications.find(n => n.id === notifId);
+        const notif = mockNotifications.find(n => String(n.id) === String(notifId));
         if (!notif) return;
 
         notif.read = true;
         this._saveData();
         this.renderNotifications();
-        this.toggleNotificationDropdown(); // Close dropdown
+        const dd = document.getElementById('notification-dropdown');
+        if (dd && !dd.classList.contains('hidden')) this.toggleNotificationDropdown(); // Close dropdown
+        /* read in the database too */
+        if (window.conworkSupabase && window.conworkSupabase.isAvailable() && /^[0-9a-f-]{36}$/i.test(String(notif.id))) {
+            window.conworkSupabase.client.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', notif.id)
+                .then(() => { }, () => { });
+        }
+
+        const link = notif.linkData || {};
+        /* notifications made by the database: open what they are about */
+        if (this._openNotificationTarget(notif.type, link)) return;
 
         if (notif.linkData) {
             if (notif.linkData.view === 'tasks' && notif.linkData.projectId) {
@@ -11123,6 +12250,137 @@ const App = {
                 }
             }
         }
+    },
+
+    /* where a notification from the database leads: chat room, task, calendar event, project, accounting entry.
+       Returns true when it was handled here. */
+    _openNotificationTarget(type, link) {
+        if (!link) return false;
+        if (type === 'chat' && link.channelId) {
+            this._openRoom(link.channelId);
+            return true;
+        }
+        if (link.taskId && (type === 'task_assigned' || type === 'deadline' || !link.view)) {
+            const task = mockTasks.find(t => String(t.id) === String(link.taskId));
+            const projectId = link.projectId || (task && task.projectId);
+            if (projectId) {
+                this.switchView('projects');
+                setTimeout(() => {
+                    this.openProject(projectId);
+                    if (task) setTimeout(() => this.openTaskDetailView(task.id), 150);
+                }, 50);
+            } else this._showToast('ไม่พบงานนี้แล้ว', 'error');
+            return true;
+        }
+        if (link.eventId && (type === 'event_invite' || type === 'event_reminder' || !link.view)) {
+            const ev = mockEvents.find(e => String(e.id) === String(link.eventId));
+            this.switchView('calendar');
+            if (ev && ev.date) {
+                const [y, m, d] = ev.date.split('-');
+                this.state.calendarYear = parseInt(y);
+                this.state.calendarMonth = parseInt(m) - 1;
+                this.state.calendarDate = parseInt(d);
+                this.state.selectedDate = ev.date;
+                if (this.renderCalendar) this.renderCalendar();
+            }
+            return true;
+        }
+        if (type === 'finance' || link.entryId) {
+            this.switchView('accounting');
+            if (link.entryId && typeof Accounting !== 'undefined') {
+                const show = () => {
+                    if (Accounting.state.status === 'ready') { Accounting.setTab('entries'); Accounting.openEntry(link.entryId); }
+                    else if (Accounting.state.status === 'loading' || Accounting.state.status === 'idle') setTimeout(show, 300);
+                };
+                setTimeout(show, 300);
+            }
+            return true;
+        }
+        if (type === 'budget' && link.projectId) {
+            this.switchView('projects');
+            setTimeout(() => this.openProject(link.projectId), 50);
+            return true;
+        }
+        return false;
+    },
+
+    /* reminders are made by the database (generate_my_reminders): tasks due and events within 24 hours.
+       Run once when the app opens and every 15 minutes, then refresh the bell. New notifications also arrive live. */
+    async _startServerReminders() {
+        const sb = window.conworkSupabase && window.conworkSupabase.isAvailable() ? window.conworkSupabase.client : null;
+        if (!sb || !this.state.currentUser) return;
+        const run = async () => {
+            if (this._remindersMissing !== true) {
+                const { error } = await sb.rpc('generate_my_reminders');
+                if (error && /PGRST202|42883|Could not find the function/i.test(`${error.code || ''} ${error.message || ''}`)) this._remindersMissing = true;
+            }
+            await this.fetchNotificationsFromSupabase();
+        };
+        await run();
+        if (this._reminderTimer) clearInterval(this._reminderTimer);
+        this._reminderTimer = setInterval(run, 15 * 60 * 1000);
+        /* live: anything added to my notifications (chat, assignments, budget…) */
+        try {
+            const me = String(this.state.currentUser.id);
+            if (this._notifChannel) sb.removeChannel(this._notifChannel);
+            this._notifChannel = sb.channel(`notif_${me}`)
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${me}` },
+                    () => this.fetchNotificationsFromSupabase())
+                .subscribe();
+        } catch (e) { }
+    },
+
+    /* ---------- the team's package (subscription_plans): members and open projects against the limits ---------- */
+    async loadPlanUsage() {
+        const sb = window.conworkSupabase && window.conworkSupabase.isAvailable() ? window.conworkSupabase.client : null;
+        const ws = this.state.workspaces && this.state.workspaces[0];
+        const company = ws && (ws.workspace_id || ws.id);
+        if (!sb || !company || !/^[0-9a-f-]{36}$/i.test(String(company))) { this.state.planUsage = null; return null; }
+        const { data, error } = await sb.rpc('company_plan_usage', { p_company: company });
+        if (error) { this.state.planUsage = null; return null; }
+        const row = Array.isArray(data) ? data[0] : data;
+        this.state.planUsage = row || null;
+        this.renderPlanUsage();
+        if (this.state.currentView === 'work-report' && typeof WorkReport !== 'undefined') WorkReport.render();
+        return this.state.planUsage;
+    },
+    /* plan features: a missing plan or a missing flag means allowed */
+    planAllows(feature) {
+        const u = this.state.planUsage;
+        if (!u || !u.features || typeof u.features !== 'object') return true;
+        return u.features[feature] !== false;
+    },
+    renderPlanUsage() {
+        const box = document.getElementById('plan-usage-card');
+        if (!box) return;
+        const u = this.state.planUsage;
+        if (!u) { box.innerHTML = ''; return; }
+        const en = typeof i18nIsEnglish === 'function' && i18nIsEnglish();
+        const L = (th, eng) => en ? eng : th;
+        const meter = (label, used, max) => {
+            const limited = max != null;
+            const pct = limited && max > 0 ? Math.min(100, Math.round(used / max * 100)) : 0;
+            const tone = !limited ? 'bg-gray-300' : used >= max ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-blue-600';
+            return `<div class="flex-1 min-w-[180px]">
+                <div class="flex justify-between text-xs mb-1"><span class="font-semibold text-gray-600">${label}</span>
+                    <span class="tabular-nums ${limited && used >= max ? 'text-red-600 font-semibold' : 'text-gray-700'}">${used ?? 0} / ${limited ? max : L('ไม่จำกัด', 'Unlimited')}</span></div>
+                <div class="h-2 rounded-full bg-gray-100 overflow-hidden"><div class="h-full ${tone}" style="width:${limited ? pct : 100}%"></div></div></div>`;
+        };
+        box.innerHTML = `<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col md:flex-row md:items-center gap-4">
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-box-open"></i></div>
+                <div><div class="text-xs text-gray-500">${L('แพ็กเกจของทีม', 'Team package')}</div>
+                    <div class="font-bold text-gray-800">${this._esc(u.plan_name || L('ไม่มีแพ็กเกจ (ไม่จำกัด)', 'No package (unlimited)'))}</div></div>
+            </div>
+            <div class="flex flex-wrap gap-4 flex-1">
+                ${meter(L('สมาชิก', 'Members'), u.members, u.max_members)}
+                ${meter(L('โปรเจกต์ที่เปิดอยู่', 'Open projects'), u.open_projects, u.max_projects)}
+            </div></div>`;
+    },
+    /* a database message about the package limit ("แพ็กเกจของทีมนี้…"), or null */
+    planLimitMessage(error) {
+        const m = String((error && (error.message || error)) || '');
+        return /แพ็กเกจ/.test(m) ? m : null;
     },
 
     // --- Profile Menu Actions ---
@@ -11210,8 +12468,9 @@ const App = {
         this.changeLanguage(newLang);
     },
 
-    toggleTheme() {
-        this.toggleDarkMode(!this.settings.darkMode);
+    /* e: the click, so the bubble grows from the switch that was pressed */
+    toggleTheme(e) {
+        this.toggleDarkMode(!this.settings.darkMode, e && (e.currentTarget || e));
     },
 
     setFontSize(size) {
@@ -11221,6 +12480,7 @@ const App = {
 
     changeLanguage(lang) {
         this.settings.language = lang;
+        this.settings.languageChosen = true; // a language picked in Settings wins over the device language
         this._saveSettings();
         this._applySettings();
 
@@ -11257,9 +12517,10 @@ const App = {
         }
     },
 
-    toggleDarkMode(enabled) {
-        this.settings.darkMode = enabled;
-        this._saveSettings();
+    toggleDarkMode(enabled, from) {
+        const apply = () => { this.settings.darkMode = enabled; this._saveSettings(); };
+        /* the new theme grows out of the switch like a bubble (js/theme.js); instant without it */
+        if (window.ConworkTheme) window.ConworkTheme.swap(apply, from); else apply();
         if (enabled) {
             this._showToast('เปลี่ยนเป็นโหมดมืดแล้ว', 'success');
         } else {

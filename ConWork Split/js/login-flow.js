@@ -13,39 +13,14 @@ function initDB() {
     let membersStr = localStorage.getItem('workspace_members');
     let members = membersStr ? JSON.parse(membersStr) : [];
 
-    // Seed initial admin and company if empty (for backward compatibility / demo)
-    if (workspaces.length === 0) {
-        const defaultWorkspace = {
-            workspace_id: 'W-1',
-            type: 'corporate',
-            name: 'Acme Corp',
-            code: 'COMP-1234',
-            domain: 'acme.com',
-            created_at: new Date().toISOString()
-        };
-        workspaces.push(defaultWorkspace);
-        localStorage.setItem('workspaces', JSON.stringify(workspaces));
-    }
-
-    if (users.length === 0) {
-        const defaultAdmin = {
-            user_id: 'U-1',
-            email: 'admin@acme.com',
-            password: 'Password@123',
-            first_name: 'Admin',
-            last_name: 'Acme',
-            created_at: new Date().toISOString()
-        };
-        users.push(defaultAdmin);
-        localStorage.setItem('users', JSON.stringify(users));
-
-        members.push({
-            user_id: 'U-1',
-            workspace_id: 'W-1',
-            role: 'admin'
-        });
-        localStorage.setItem('workspace_members', JSON.stringify(members));
-    }
+    // No demo data: drop the sample company (Acme Corp, W-1) and its sample admin (admin@acme.com, U-1)
+    // that older versions saved into this browser. Real accounts and teams are left as they are.
+    const isDemoWs = w => w && w.workspace_id === 'W-1' && w.name === 'Acme Corp' && w.code === 'COMP-1234';
+    const isDemoUser = u => u && u.user_id === 'U-1' && u.email === 'admin@acme.com';
+    const isDemoMember = m => m && m.user_id === 'U-1' && m.workspace_id === 'W-1';
+    if (workspaces.some(isDemoWs)) localStorage.setItem('workspaces', JSON.stringify(workspaces.filter(w => !isDemoWs(w))));
+    if (users.some(isDemoUser)) localStorage.setItem('users', JSON.stringify(users.filter(u => !isDemoUser(u))));
+    if (members.some(isDemoMember)) localStorage.setItem('workspace_members', JSON.stringify(members.filter(m => !isDemoMember(m))));
 }
 
 initDB();
@@ -163,7 +138,8 @@ async function addMember(userId, workspaceId, role) {
                     console.log("User is already a member of company_members:", workspaceId);
                 } else {
                     console.error("Error adding member to Supabase:", error);
-                    alert("Database Notice (company_members): " + error.message);
+                    /* the team's package is full: the database says so in Thai, show it as it is */
+                    alert(/แพ็กเกจ/.test(error.message || '') ? error.message : "Database Notice (company_members): " + error.message);
                 }
             }
         } catch (err) {
@@ -941,29 +917,91 @@ async function forgotPassword() {
     }
 }
 
-// Actual Google Login via Supabase
+function showAuthError(message) {
+    const el = document.getElementById('auth-error');
+    if (el) { el.innerText = message; el.style.display = 'block'; }
+    else alert(message);
+}
+
+/* Is "Sign in with Google" switched on for this Supabase project? (Authentication > Providers > Google) */
+async function googleSignInEnabled() {
+    try {
+        const cfg = window.CONWORK_CONFIG || {};
+        const res = await fetch(cfg.SUPABASE_URL + '/auth/v1/settings', { headers: { apikey: cfg.SUPABASE_ANON_KEY } });
+        if (!res.ok) return true; // could not check: let Supabase answer
+        const s = await res.json();
+        return !!(s && s.external && s.external.google);
+    } catch (e) { return true; }
+}
+
+// Google sign-in via Supabase: Google sends the person back to this same page (keeping an invite link's ?code=...),
+// where onAuthStateChange below picks up the session and continues like an email sign-in.
 async function loginWithGoogle() {
-    if (window.conworkSupabase && window.conworkSupabase.isAvailable()) {
-        try {
-            const { data, error } = await window.conworkSupabase.client.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.origin + window.location.pathname
-                }
-            });
-            if (error) throw error;
-        } catch (error) {
-            console.error("Google login error:", error.message);
-            alert("Error logging in with Google: " + error.message);
-        }
-    } else {
-        // Fallback to mock if Supabase is not configured
-        const email = prompt("Supabase not configured. Simulating Google Login...\n\nEnter your Google Email:");
-        if (email) {
-            document.getElementById('auth-email').value = email;
-            document.getElementById('form-auth').dispatchEvent(new Event('submit'));
-        }
+    const errEl = document.getElementById('auth-error');
+    if (errEl) errEl.style.display = 'none';
+    if (!(window.conworkSupabase && window.conworkSupabase.isAvailable())) {
+        showAuthError('Google sign-in is not available right now (the database is not connected).');
+        return;
     }
+    if (!(await googleSignInEnabled())) {
+        showAuthError('Google sign-in is not switched on yet for this app. Please sign in with your email and password, or ask the admin to enable Google in Supabase.');
+        return;
+    }
+    try {
+        /* come back to this page with its invite code (if any), but without old sign-in leftovers */
+        const params = new URLSearchParams(location.search);
+        ['error', 'error_code', 'error_description'].forEach(k => params.delete(k));
+        const query = params.toString();
+        const { error } = await window.conworkSupabase.client.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin + window.location.pathname + (query ? '?' + query : ''),
+                queryParams: { prompt: 'select_account' }
+            }
+        });
+        if (error) throw error;
+    } catch (error) {
+        console.error('Google login error:', error.message);
+        showAuthError(/provider is not enabled|Unsupported provider/i.test(error.message || '')
+            ? 'Google sign-in is not switched on yet for this app. Please sign in with your email and password.'
+            : 'Could not sign in with Google: ' + error.message);
+    }
+}
+
+/* Coming back from Google with an error (e.g. the person cancelled): show it on the sign-in screen */
+(function () {
+    try {
+        const hash = new URLSearchParams(location.hash.replace(/^#/, ''));
+        const query = new URLSearchParams(location.search);
+        const desc = hash.get('error_description') || query.get('error_description');
+        if (!desc) return;
+        const msg = /provider is not enabled|Unsupported provider/i.test(desc)
+            ? 'Google sign-in is not switched on yet for this app. Please sign in with your email and password.'
+            : 'Google sign-in did not finish: ' + desc.replace(/\+/g, ' ');
+        const show = () => showAuthError(msg);
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show); else show();
+    } catch (e) { }
+})();
+
+/* After Google sign-in: make sure the person's profile row exists, and fill in the name and picture from Google
+   only where they are still empty (a name the person set in ConWork is kept). */
+async function syncGoogleProfile(supabaseUser) {
+    if (!supabaseUser || !(window.conworkSupabase && window.conworkSupabase.isAvailable())) return;
+    const meta = supabaseUser.user_metadata || {};
+    const fullName = meta.full_name || meta.name || '';
+    const avatar = meta.avatar_url || meta.picture || null;
+    try {
+        const sb = window.conworkSupabase.client;
+        const { data: prof } = await sb.from('profiles').select('id, full_name, avatar_url').eq('id', supabaseUser.id).maybeSingle();
+        if (!prof) {
+            await sb.from('profiles').upsert({ id: supabaseUser.id, email: supabaseUser.email, full_name: fullName || (supabaseUser.email || '').split('@')[0], avatar_url: avatar, account_type: 'personal' });
+        } else {
+            const patch = {};
+            if (!prof.full_name && fullName) patch.full_name = fullName;
+            if (!prof.avatar_url && avatar) patch.avatar_url = avatar;
+            if (Object.keys(patch).length) await sb.from('profiles').update(patch).eq('id', supabaseUser.id);
+        }
+    } catch (e) { console.warn('Google profile sync:', e); }
 }
 
 /* Opened from the reset-password email: js/config.js spots "type=recovery" in the link before Supabase reads it.
@@ -990,23 +1028,30 @@ if (window.conworkSupabase && window.conworkSupabase.isAvailable()) {
             
             // Map Supabase user to our local DB user format
             const supabaseUser = session.user;
+            const isGoogle = (supabaseUser.app_metadata?.provider === 'google') || (supabaseUser.app_metadata?.providers || []).includes('google');
             let users = getUsers();
             let existingUser = users.find(u => u.email === supabaseUser.email);
-            
+
             if (!existingUser) {
                 // First time logging in with Google on this device, auto-create a user record
                 existingUser = {
                     user_id: supabaseUser.id,
                     email: supabaseUser.email || '',
-                    first_name: supabaseUser.user_metadata?.full_name || (supabaseUser.email ? supabaseUser.email.split('@')[0] : 'User'),
+                    first_name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || (supabaseUser.email ? supabaseUser.email.split('@')[0] : 'User'),
                     last_name: '',
-                    avatar: supabaseUser.user_metadata?.avatar_url || null,
+                    avatar: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture || null,
                     created_at: new Date().toISOString()
                 };
-                saveUser(existingUser);
+                if (isGoogle) {
+                    /* keep a local copy only; the profile row is handled by syncGoogleProfile so a name set in ConWork is not overwritten */
+                    const all = getUsers(); all.push(existingUser); localStorage.setItem('users', JSON.stringify(all));
+                } else {
+                    saveUser(existingUser);
+                }
             }
             currentUser = syncUserId(existingUser, supabaseUser);
-            checkAndRouteUser();
+            const route = () => checkAndRouteUser();
+            if (isGoogle) syncGoogleProfile(supabaseUser).then(route, route); else route();
         } else if (event === 'SIGNED_OUT') {
             logout();
         }

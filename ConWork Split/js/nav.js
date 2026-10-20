@@ -23,6 +23,28 @@
         return s && s.isAvailable && s.isAvailable() ? s : null;
     }
 
+    /* A saved user only counts as signed in when it is a real sign-in:
+       drop the local "Test User" once the test shortcut is off, and with Supabase on, drop a saved user that has no Supabase session. */
+    (function dropStaleSignIn() {
+        const cfg = window.CONWORK_CONFIG || {};
+        let saved = null;
+        try { saved = JSON.parse(sessionStorage.getItem('conwork_user') || localStorage.getItem('conwork_user') || 'null'); } catch (e) { }
+        if (!saved) return;
+        const isTest = saved.id === 'test-user' || saved.user_id === 'test-user';
+        const testOff = !String(cfg.TEST_LOGIN_KEYWORD || '').trim();
+        let hasSession = true;
+        if (cfg.USE_SUPABASE && supa()) {
+            try { hasSession = Object.keys(localStorage).some(k => /^sb-.+-auth-token$/.test(k) && localStorage.getItem(k)); } catch (e) { }
+        }
+        if ((isTest && testOff) || (!isTest && !hasSession)) {
+            try {
+                sessionStorage.removeItem('conwork_user');
+                localStorage.removeItem('conwork_user');
+                localStorage.removeItem('currentUser');
+            } catch (e) { }
+        }
+    })();
+
     // ---------- หน้า Landing / Login ไม่ได้โหลด app.js: เตรียม App ตัวย่อให้ i18n และ login-flow ใช้ ----------
     if (page !== 'app' && typeof App === 'undefined') {
         let settings = { language: 'th', darkMode: false, fontSize: 'medium' };

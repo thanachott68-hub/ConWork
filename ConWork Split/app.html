@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ConWork - Enterprise Management</title>
     <!-- Favicon -->
-    <link rel="icon" type="image/jpeg" href="img/logo.jpg">
+    <link rel="icon" type="image/png" href="img/logo.png">
+    <link rel="apple-touch-icon" href="img/logo.png">
     <!-- Fonts -->
     <link
         href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Kanit:wght@500;600;700&family=Nunito:wght@600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap"
@@ -142,7 +143,8 @@
         }
     </style>
     <!-- Skylearn theme (loaded last so it wins over the older styles) -->
-    <link rel="stylesheet" href="css/skylearn.css?v=1">
+    <link rel="stylesheet" href="css/skylearn.css?v=5">
+    <link rel="stylesheet" href="css/bubble.css?v=3">
 </head>
 
 <body data-page="app" class="text-gray-800 antialiased h-screen overflow-hidden flex flex-col font-sans bg-cream">
@@ -157,7 +159,7 @@
                 class="px-6 flex items-center space-x-3 border-b border-white/10 overflow-hidden h-16 shrink-0 select-none">
                 <div class="peer flex-shrink-0 flex items-center bg-white rounded-lg p-1 shadow-sm cursor-pointer transition-opacity hover:opacity-60"
                     onclick="goToLandingPage()" title="คลิกเพื่อกลับหน้าแรก (Landing Page)">
-                    <img src="img/logo.jpg" alt="Logo" class="h-10 w-auto">
+                    <span class="cw-logo" style="height:34px"><img src="img/logo.png" alt="ConWork"></span>
                 </div>
                 <h2
                     class="text-xl font-bold tracking-wide sidebar-text whitespace-nowrap transition-opacity duration-300">
@@ -187,7 +189,7 @@
                     data-view="work-report">
                     <i class="fa-solid fa-file-lines w-5 flex-shrink-0"></i>
                     <span
-                        class="font-medium sidebar-text whitespace-nowrap transition-opacity duration-300">สร้างรายงาน</span>
+                        class="font-medium sidebar-text whitespace-nowrap transition-opacity duration-300">รายงาน</span>
                 </a>
                 <a href="#"
                     class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 transition-colors"
@@ -298,15 +300,16 @@
                             </div>
                         </button>
 
-                        <button
+                        <button type="button" id="profile-theme-btn" role="switch" aria-checked="false"
                             class="w-full flex items-center justify-between px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors text-sm"
-                            onclick="App.toggleTheme()">
+                            onclick="App.toggleTheme(event)">
                             <div class="flex items-center gap-3">
                                 <i class="fa-solid fa-circle-half-stroke w-5 text-center text-gray-500"></i>
                                 ธีม
                             </div>
                             <div class="flex items-center gap-2 text-gray-500">
                                 <span id="profile-theme-text" class="text-xs font-semibold">สว่าง</span>
+                                <span class="cw-theme-switch" aria-hidden="true"><span class="cw-ts-knob"><svg class="cw-ts-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg><svg class="cw-ts-moon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></span></span>
                             </div>
                         </button>
 
@@ -420,339 +423,8 @@
             <div class="flex-1 overflow-hidden flex flex-col relative">
                 <!-- ACCOUNTING VIEW -->
                 <div id="view-accounting"
-                    class="view-section hidden h-full flex flex-col overflow-y-auto custom-scrollbar p-6 pb-24 px-2">
-
-                    <!-- Top Header -->
-                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 mt-2">
-                        <div>
-                            <h2 class="text-3xl font-bold text-gray-800 tracking-tight">การจัดการเงิน</h2>
-                            <p class="text-gray-500 mt-1.5 text-sm">วางแผนงบประมาณ ติดตามเงินสด
-                                และตรวจสอบการใช้จ่ายของโครงการ</p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <button
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-sm transition-colors text-sm font-medium flex items-center gap-2">
-                                <i class="fa-solid fa-plus"></i> เพิ่มรายการ
-                            </button>
-                            <button
-                                class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-xl shadow-sm transition-colors text-sm font-medium flex items-center gap-2">
-                                <i class="fa-regular fa-paper-plane"></i> ขอใช้งบประมาณ
-                            </button>
-                            <button
-                                class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-xl shadow-sm transition-colors text-sm font-medium flex items-center gap-2">
-                                <i class="fa-solid fa-download"></i> Export Report
-                            </button>
-                            <div class="h-6 w-px bg-gray-200 mx-1 hidden lg:block"></div>
-                            <button
-                                class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-4 py-2.5 rounded-xl transition-colors text-sm font-medium flex items-center gap-2 whitespace-nowrap">
-                                <i class="fa-solid fa-money-bill-transfer"></i> โอน/เพิ่มเงินสด
-                            </button>
-                            <button
-                                class="bg-gray-50 text-gray-600 hover:bg-gray-100 px-4 py-2.5 rounded-xl transition-colors text-sm font-medium flex items-center gap-2 whitespace-nowrap">
-                                <i class="fa-solid fa-sliders"></i> ปรับยอด
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Summary Cards -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-5">
-                        <!-- Card 1: Credit -->
-                        <div
-                            class="bg-white rounded-2xl p-5 border border-blue-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
-                            <div class="flex items-start gap-4">
-                                <div
-                                    class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-xl">
-                                    <i class="fa-solid fa-wallet"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="text-gray-500 text-xs font-semibold mb-1">งบประมาณที่วางแผน</h3>
-                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿0</div>
-                                    <div
-                                        class="text-blue-600 text-[10px] font-bold bg-blue-50 inline-block px-2 py-0.5 rounded mb-2">
-                                        Credit</div>
-                                    <p class="text-[10px] text-gray-400 leading-tight">วงเงินที่จัดสรร/วางแผนไว้</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 2: Cash Used -->
-                        <div
-                            class="bg-white rounded-2xl p-5 border border-green-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
-                            <div class="flex items-start gap-4">
-                                <div
-                                    class="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center shrink-0 text-xl">
-                                    <i class="fa-solid fa-hand-holding-dollar"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="text-gray-500 text-xs font-semibold mb-1">ใช้จริง</h3>
-                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿0</div>
-                                    <div
-                                        class="text-green-600 text-[10px] font-bold bg-green-50 inline-block px-2 py-0.5 rounded mb-2">
-                                        Cash</div>
-                                    <p class="text-[10px] text-gray-400 leading-tight">ยอดเงินที่จ่ายจริง</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 3: Cash Remaining -->
-                        <div
-                            class="bg-white rounded-2xl p-5 border border-green-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
-                            <div class="flex items-start gap-4">
-                                <div
-                                    class="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center shrink-0 text-xl">
-                                    <i class="fa-solid fa-money-bill-wave"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="text-gray-500 text-xs font-semibold mb-1">เงินสดคงเหลือ</h3>
-                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿0</div>
-                                    <div
-                                        class="text-green-600 text-[10px] font-bold bg-green-50 inline-block px-2 py-0.5 rounded mb-2">
-                                        Cash</div>
-                                    <p class="text-[10px] text-gray-400 leading-tight">ยอดเงินที่สามารถใช้ได้จริง</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 4: Pending -->
-                        <div
-                            class="bg-white rounded-2xl p-5 border border-orange-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
-                            <div class="flex items-start gap-4">
-                                <div
-                                    class="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 text-xl">
-                                    <i class="fa-solid fa-hourglass-half"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="text-gray-500 text-xs font-semibold mb-1">รออนุมัติ</h3>
-                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿0</div>
-                                    <div
-                                        class="text-orange-500 text-[10px] font-bold bg-orange-50 inline-block px-2 py-0.5 rounded mb-2">
-                                        Pending Requests</div>
-                                    <p class="text-[10px] text-gray-400 leading-tight">รายการที่รอผู้ดูแลอนุมัติ</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 5: Approved -->
-                        <div
-                            class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
-                            <div class="flex items-start gap-4">
-                                <div
-                                    class="w-12 h-12 rounded-xl bg-gray-50 text-gray-600 flex items-center justify-center shrink-0 text-xl">
-                                    <i class="fa-solid fa-clipboard-check"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="text-gray-500 text-xs font-semibold mb-1">อนุมัติแล้ว</h3>
-                                    <div class="text-2xl font-bold text-gray-800 leading-none mb-1.5">฿0</div>
-                                    <div
-                                        class="text-gray-600 text-[10px] font-bold bg-gray-100 inline-block px-2 py-0.5 rounded mb-2">
-                                        Approved</div>
-                                    <p class="text-[10px] text-gray-400 leading-tight">อนุมัติแล้วเตรียมเบิกจ่าย</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Comparison Progress Bar -->
-                    <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm mb-8">
-                        <div class="flex justify-between items-center mb-3">
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-sm font-bold text-gray-700">เปรียบเทียบ แผนงบประมาณ (Credit) vs
-                                    เงินที่ใช้จริง (Cash)</h3>
-                                <i class="fa-regular fa-circle-question text-gray-400 text-xs cursor-help"
-                                    title="Credit = แผนงบประมาณที่ตั้งไว้ หรือได้รับอนุมัติแล้ว&#10;Cash = เงินที่จ่ายออกไปจริงๆ"></i>
-                            </div>
-                            <div class="text-xs text-gray-500">งบประมาณคงเหลือ <span
-                                    class="font-bold text-gray-800 ml-1">฿0</span></div>
-                        </div>
-
-                        <div class="flex w-full h-8 rounded-lg overflow-hidden bg-gray-100">
-                            <div class="hidden bg-indigo-500 h-full flex items-center px-4 text-xs text-white font-medium shadow-inner"
-                                style="width: 0%;"></div>
-                            <div class="bg-gray-200 h-full flex items-center justify-end px-4 text-xs text-gray-500 font-medium"
-                                style="width: 100%;">ยังไม่มีข้อมูลงบประมาณ</div>
-                        </div>
-                    </div>
-
-                    <!-- Dashboard Columns -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-
-                        <!-- Col 1: Credit Donut -->
-                        <div
-                            class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
-                            <div class="flex justify-between items-center mb-6">
-                                <h3
-                                    class="text-sm font-bold text-blue-700 flex items-center gap-2 uppercase tracking-wide">
-                                    <i class="fa-solid fa-chart-pie"></i> ภาพรวมงบประมาณ (CREDIT)
-                                </h3>
-                            </div>
-
-                            <div class="flex-1 flex flex-col items-center justify-center">
-                                <div class="relative w-52 h-52 mb-8">
-                                    <div class="absolute inset-0 rounded-full" style="background: #E2E8F0;">
-                                    </div>
-                                    <div
-                                        class="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
-                                        <span class="text-2xl font-bold text-gray-800">฿0</span>
-                                        <span
-                                            class="text-[10px] text-gray-500 text-center px-2 leading-tight mt-1">งบที่วางแผน<br>ทั้งหมด</span>
-                                    </div>
-                                </div>
-
-                                <div class="w-full space-y-3.5">
-                                    <p class="text-xs text-gray-400 text-center">ยังไม่มีหมวดงบ</p>
-                                </div>
-
-                                <button
-                                    class="text-xs text-blue-600 hover:text-blue-800 mt-6 w-full text-center font-medium">ดูรายละเอียดทั้งหมด
-                                    <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i></button>
-                            </div>
-                        </div>
-
-                        <!-- Col 2: Cash Donut -->
-                        <div
-                            class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
-                            <div class="flex justify-between items-center mb-6">
-                                <h3
-                                    class="text-sm font-bold text-green-600 flex items-center gap-2 tracking-wide uppercase">
-                                    <i class="fa-solid fa-chart-pie"></i> ภาพรวมเงินสด (CASH)
-                                </h3>
-                            </div>
-
-                            <div class="flex-1 flex flex-col items-center justify-center">
-                                <div class="relative w-52 h-52 mb-8">
-                                    <div class="absolute inset-0 rounded-full" style="background: #E2E8F0;"></div>
-                                    <div
-                                        class="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
-                                        <span class="text-2xl font-bold text-gray-800">฿0</span>
-                                        <span
-                                            class="text-[10px] text-gray-500 text-center px-2 leading-tight mt-1">เงินสด<br>คงเหลือ</span>
-                                    </div>
-                                </div>
-
-                                <div class="w-full space-y-4">
-                                    <div class="flex items-center justify-between text-xs">
-                                        <div class="flex items-center gap-2.5">
-                                            <div class="w-3 h-3 rounded-full bg-[#22c55e]"></div><span
-                                                class="text-gray-700">เงินสดตั้งต้น (Opening)</span>
-                                        </div>
-                                        <span class="font-medium text-gray-800">฿0</span>
-                                    </div>
-                                    <div class="flex items-center justify-between text-xs">
-                                        <div class="flex items-center gap-2.5">
-                                            <div class="w-3 h-3 rounded-full bg-[#22C55E]"></div><span
-                                                class="text-gray-700">รับเข้า (Inflow)</span>
-                                        </div>
-                                        <span class="font-medium text-gray-800">฿0</span>
-                                    </div>
-                                    <div class="flex items-center justify-between text-xs">
-                                        <div class="flex items-center gap-2.5">
-                                            <div class="w-3 h-3 rounded-full bg-[#f43f5e]"></div><span
-                                                class="text-gray-700">จ่ายออก (Actual Expenses)</span>
-                                        </div>
-                                        <span class="font-medium text-red-600">฿0</span>
-                                    </div>
-                                    <div
-                                        class="pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold">
-                                        <span class="text-gray-800">เงินสดคงเหลือปัจจุบัน</span>
-                                        <span class="text-green-600">฿0</span>
-                                    </div>
-                                </div>
-
-                                <button
-                                    class="text-xs text-green-600 hover:text-green-800 mt-6 w-full text-center font-medium">ดูรายละเอียดทั้งหมด
-                                    <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i></button>
-                            </div>
-                        </div>
-
-                        <!-- Col 3: Breakdown -->
-                        <div
-                            class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
-                            <div class="flex justify-between items-center mb-6">
-                                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2"><i
-                                        class="fa-solid fa-list-ul text-gray-400"></i> สรุปงบประมาณตามหมวดหมู่</h3>
-                                <div class="flex items-center gap-3">
-                                    <button onclick="openFinanceModal('finance-add-category-modal')"
-                                        class="text-[10px] text-gray-500 font-medium hover:text-blue-600 transition-colors flex items-center gap-1 border border-gray-200 px-2 py-1 rounded"><i
-                                            class="fa-solid fa-plus"></i> เพิ่มหมวดงบ</button>
-                                    <button class="text-[10px] text-blue-600 font-medium hover:underline">ดูทั้งหมด <i
-                                            class="fa-solid fa-chevron-right ml-1"></i></button>
-                                </div>
-                            </div>
-
-                            <div
-                                class="text-[10px] text-gray-400 flex justify-between mb-3 px-1 border-b border-gray-100 pb-2">
-                                <div class="w-2/5">หมวดหมู่</div>
-                                <div class="w-1/5 text-right">แผนงบ (Credit)</div>
-                                <div class="w-1/5 text-right">ใช้จริง (Cash)</div>
-                                <div class="w-1/5 text-right">คงเหลือ</div>
-                            </div>
-
-                            <div class="space-y-5 overflow-y-auto flex-1 pr-1 custom-scrollbar">
-                                <p class="text-xs text-gray-400 text-center py-6">ยังไม่มีหมวดงบ · กด “เพิ่มหมวดงบ”
-                                    เพื่อเริ่ม</p>
-                            </div>
-
-                            <div
-                                class="mt-4 pt-4 border-t border-gray-100 flex justify-between text-[11px] font-bold text-gray-800 px-1">
-                                <div class="w-2/5">งบประมาณรวม</div>
-                                <div class="w-1/5 text-right text-blue-600">฿0</div>
-                                <div class="w-1/5 text-right text-green-600">฿0</div>
-                                <div class="w-1/5 text-right">฿0</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Transaction Ledger -->
-                    <div
-                        class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col flex-1 min-h-[400px]">
-                        <!-- Tabs -->
-                        <div
-                            class="flex border-b border-gray-100 px-4 pt-2 bg-gray-50/50 overflow-x-auto custom-scrollbar">
-                            <button
-                                class="px-6 py-3.5 text-sm font-semibold text-blue-600 border-b-2 border-blue-600 bg-white rounded-t-lg transition-colors whitespace-nowrap">ทั้งหมด</button>
-                            <button
-                                class="px-6 py-3.5 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-t-lg transition-colors whitespace-nowrap">Credit
-                                / แผนงบ</button>
-                            <button
-                                class="px-6 py-3.5 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-t-lg transition-colors whitespace-nowrap">Cash
-                                / เงินสด</button>
-                            <button
-                                class="px-6 py-3.5 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-t-lg transition-colors flex items-center gap-2 whitespace-nowrap">รออนุมัติ
-                                <span
-                                    class="hidden bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded text-[10px] font-bold">0</span></button>
-                            <div class="ml-auto flex items-center px-2">
-                                <button
-                                    class="text-xs text-gray-500 hover:text-gray-800 font-medium flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm"><i
-                                        class="fa-solid fa-filter"></i> Filter</button>
-                            </div>
-                        </div>
-
-                        <!-- Table -->
-                        <div class="overflow-x-auto flex-1">
-                            <table class="w-full text-left text-sm whitespace-nowrap">
-                                <thead class="text-xs text-gray-500 bg-gray-50/80 border-b border-gray-100">
-                                    <tr>
-                                        <th class="px-6 py-4 font-medium">วันที่</th>
-                                        <th class="px-6 py-4 font-medium">รายการ</th>
-                                        <th class="px-6 py-4 font-medium">หมวดหมู่</th>
-                                        <th class="px-6 py-4 font-medium text-center">ประเภท</th>
-                                        <th class="px-6 py-4 font-medium text-right">จำนวนเงิน</th>
-                                        <th class="px-6 py-4 font-medium text-center">สถานะ</th>
-                                        <th class="px-6 py-4 font-medium">ผู้บันทึก</th>
-                                        <th class="px-6 py-4 font-medium text-center">รายละเอียด</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-50 text-gray-700"></tbody>
-                            </table>
-                            <p class="finance-empty text-sm text-gray-400 text-center py-12">ยังไม่มีรายการ</p>
-                        </div>
-
-                        <div
-                            class="p-4 border-t border-gray-100 flex justify-center bg-gray-50/50 hover:bg-gray-100 transition-colors cursor-pointer">
-                            <button class="text-xs text-blue-600 font-medium flex items-center gap-2">ดูรายการทั้งหมด <i
-                                    class="fa-solid fa-chevron-down text-[10px]"></i></button>
-                        </div>
-                    </div>
+                    class="view-section hidden h-full flex flex-col overflow-y-auto custom-scrollbar p-6 pb-24">
+                    <div id="accounting-root"><!-- Rendered by Accounting.init() --></div>
                 </div>
 
                 <!-- 0. DASHBOARD VIEW (Personal) -->
@@ -1131,10 +803,14 @@
 
                 <!-- 2. MESSAGES VIEW (ข้อความ) -->
                 <div id="view-messages" class="view-section hidden h-full w-full">
-                    <div class="flex h-full bg-white overflow-hidden">
+                    <div class="flex h-full min-h-0 bg-white overflow-hidden">
                         <!-- Chat Sidebar -->
-                        <div class="w-80 border-r border-gray-200 flex flex-col bg-gray-50/50">
+                        <div class="chat-list-pane w-80 shrink-0 min-h-0 border-r border-gray-200 flex flex-col bg-gray-50/50">
                             <div class="p-4 border-b border-gray-200">
+                                <button type="button" onclick="App.openCreateGroupChat()"
+                                    class="w-full mb-3 flex items-center justify-center gap-2 rounded-lg border border-dashed border-blue-300 text-blue-700 hover:bg-blue-50 py-2 text-sm font-semibold">
+                                    <i class="fa-solid fa-user-group"></i> สร้างกลุ่มแชท
+                                </button>
                                 <div class="relative mb-4">
                                     <i
                                         class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
@@ -1160,15 +836,18 @@
                             </div>
                         </div>
                         <!-- Chat Main -->
-                        <div class="flex-1 flex flex-col bg-white">
-                            <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-white">
-                                <div class="flex items-center space-x-3">
+                        <div class="chat-main-pane flex-1 min-w-0 min-h-0 flex flex-col bg-white">
+                            <div class="shrink-0 p-4 border-b border-gray-200 flex justify-between items-center bg-white">
+                                <div class="flex items-center space-x-3 min-w-0">
+                                    <button type="button" class="chat-back-btn text-gray-500 hover:text-gray-700 p-1 -ml-1" onclick="App.closeChatOnPhone()" aria-label="กลับไปรายการแชท">
+                                        <i class="fa-solid fa-arrow-left"></i>
+                                    </button>
                                     <div id="chat-header-icon-container"
                                         class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white">
                                         <i id="chat-header-icon" class="fa-solid fa-bookmark"></i>
                                     </div>
                                     <div>
-                                        <h3 id="chat-header-title" class="font-bold text-gray-800">พื้นที่ส่วนตัว ( Note
+                                        <h3 id="chat-header-title" data-no-i18n class="font-bold text-gray-800">พื้นที่ส่วนตัว ( Note
                                             )
                                         </h3>
                                         <div id="chat-header-status" class="text-xs text-green-500 flex items-center">
@@ -1177,20 +856,24 @@
                                     </div>
                                 </div>
                                 <div class="flex space-x-2 text-gray-400">
-                                    <!-- Call icons removed per request -->
+                                    <button type="button" onclick="App.openChatFiles()" title="ไฟล์และสื่อ" aria-label="ไฟล์และสื่อ"
+                                        class="w-9 h-9 rounded-full hover:bg-gray-100 hover:text-blue-600 flex items-center justify-center">
+                                        <i class="fa-solid fa-photo-film"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <div class="flex-1 overflow-y-auto p-6 bg-[#f8fafc]" id="chat-messages-container">
+                            <div class="flex-1 min-h-0 overflow-y-auto p-6 bg-[#f8fafc]" id="chat-messages-container">
                                 <!-- Rendered by JS -->
                             </div>
-                            <div class="p-4 bg-white border-t border-gray-200 flex flex-col">
+                            <div class="shrink-0 p-4 bg-white border-t border-gray-200 flex flex-col">
+                                <div id="chat-send-error" class="hidden text-xs text-red-600 mb-2"></div>
                                 <!-- Reply Preview Banner -->
                                 <div id="chat-reply-preview"
                                     class="hidden flex items-center justify-between bg-gray-50 border-l-4 border-blue-500 p-2 mb-2 rounded-r-lg">
                                     <div class="flex flex-col min-w-0 pr-2">
                                         <span class="text-xs font-semibold text-blue-600"
-                                            id="chat-reply-sender">กำลังตอบกลับ...</span>
-                                        <span class="text-xs text-gray-500 truncate" id="chat-reply-text"></span>
+                                            id="chat-reply-sender" data-no-i18n>กำลังตอบกลับ...</span>
+                                        <span class="text-xs text-gray-500 truncate" id="chat-reply-text" data-no-i18n></span>
                                     </div>
                                     <button class="text-gray-400 hover:text-gray-600 p-1 shrink-0"
                                         onclick="App.cancelReply()">
@@ -1202,7 +885,7 @@
                                     class="hidden flex items-center justify-between bg-yellow-50 border-l-4 border-yellow-500 p-2 mb-2 rounded-r-lg">
                                     <div class="flex flex-col min-w-0 pr-2">
                                         <span class="text-xs font-semibold text-yellow-600">กำลังแก้ไขข้อความ...</span>
-                                        <span class="text-xs text-gray-500 truncate" id="chat-edit-text"></span>
+                                        <span class="text-xs text-gray-500 truncate" id="chat-edit-text" data-no-i18n></span>
                                     </div>
                                     <button class="text-gray-400 hover:text-gray-600 p-1 shrink-0"
                                         onclick="App.cancelEdit()">
@@ -1217,7 +900,7 @@
                                         onclick="document.getElementById('chat-attachment').click()"><i
                                             class="fa-solid fa-paperclip"></i></button>
                                     <input type="text" id="chat-input"
-                                        class="flex-1 bg-transparent border-none focus:outline-none px-4 text-sm"
+                                        class="flex-1 min-w-0 bg-transparent border-none focus:outline-none px-4 text-sm"
                                         placeholder="พิมพ์ข้อความที่นี่..."
                                         onkeypress="if(event.key === 'Enter') App.sendMessage()">
                                     <button
@@ -1970,6 +1653,9 @@
                         </div>
                     </div>
 
+                    <!-- Team package: members and open projects against the plan limits (App.renderPlanUsage) -->
+                    <div id="plan-usage-card" class="mb-6 shrink-0" data-no-i18n></div>
+
                     <!-- Main Content Grid -->
                     <div class="flex flex-col xl:flex-row gap-6 flex-1">
 
@@ -2085,124 +1771,10 @@
                                 </div>
                                 <div class="space-y-2 mb-4 flex-1 overflow-y-auto max-h-60 scrollbar-hide pr-1"
                                     id="dept-list-container">
-                                    <div draggable="true"
-                                        class="dept-item flex items-center justify-between p-2.5 bg-white border border-gray-200 shadow-sm rounded-lg group cursor-grab active:cursor-grabbing hover:border-gray-300 transition-colors">
-                                        <div class="flex items-center gap-2">
-                                            <div
-                                                class="w-6 h-6 rounded bg-purple-100 text-purple-600 flex items-center justify-center text-[10px] shrink-0">
-                                                <i class="fa-brands fa-figma"></i>
-                                            </div>
-                                            <span
-                                                class="text-sm font-medium text-gray-700 pointer-events-none truncate">ทีมออกแบบ</span>
-                                        </div>
-                                        <div
-                                            class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button type="button"
-                                                class="text-red-400 hover:text-red-600 transition-colors"
-                                                onclick="App.deleteRoleDepartment(this)"><i
-                                                    class="fa-regular fa-trash-can"></i></button>
-                                            <i class="fa-solid fa-grip-vertical text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                    <div draggable="true"
-                                        class="dept-item flex items-center justify-between p-2.5 bg-white border border-gray-200 shadow-sm rounded-lg group cursor-grab active:cursor-grabbing hover:border-gray-300 transition-colors">
-                                        <div class="flex items-center gap-2">
-                                            <div
-                                                class="w-6 h-6 rounded bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] shrink-0">
-                                                <i class="fa-solid fa-code"></i>
-                                            </div>
-                                            <span
-                                                class="text-sm font-medium text-gray-700 pointer-events-none truncate">พัฒนาระบบ</span>
-                                        </div>
-                                        <div
-                                            class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button type="button"
-                                                class="text-red-400 hover:text-red-600 transition-colors"
-                                                onclick="App.deleteRoleDepartment(this)"><i
-                                                    class="fa-regular fa-trash-can"></i></button>
-                                            <i class="fa-solid fa-grip-vertical text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                    <div draggable="true"
-                                        class="dept-item flex items-center justify-between p-2.5 bg-white border border-gray-200 shadow-sm rounded-lg group cursor-grab active:cursor-grabbing hover:border-gray-300 transition-colors">
-                                        <div class="flex items-center gap-2">
-                                            <div
-                                                class="w-6 h-6 rounded bg-green-100 text-green-600 flex items-center justify-center text-[10px] shrink-0">
-                                                <i class="fa-solid fa-bullhorn"></i>
-                                            </div>
-                                            <span
-                                                class="text-sm font-medium text-gray-700 pointer-events-none truncate">การตลาด</span>
-                                        </div>
-                                        <div
-                                            class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button type="button"
-                                                class="text-red-400 hover:text-red-600 transition-colors"
-                                                onclick="App.deleteRoleDepartment(this)"><i
-                                                    class="fa-regular fa-trash-can"></i></button>
-                                            <i class="fa-solid fa-grip-vertical text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                    <div draggable="true"
-                                        class="dept-item flex items-center justify-between p-2.5 bg-white border border-gray-200 shadow-sm rounded-lg group cursor-grab active:cursor-grabbing hover:border-gray-300 transition-colors">
-                                        <div class="flex items-center gap-2">
-                                            <div
-                                                class="w-6 h-6 rounded bg-orange-100 text-orange-600 flex items-center justify-center text-[10px] shrink-0">
-                                                <i class="fa-solid fa-chart-line"></i>
-                                            </div>
-                                            <span
-                                                class="text-sm font-medium text-gray-700 pointer-events-none truncate">ฝ่ายขาย</span>
-                                        </div>
-                                        <div
-                                            class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button type="button"
-                                                class="text-red-400 hover:text-red-600 transition-colors"
-                                                onclick="App.deleteRoleDepartment(this)"><i
-                                                    class="fa-regular fa-trash-can"></i></button>
-                                            <i class="fa-solid fa-grip-vertical text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                    <div draggable="true"
-                                        class="dept-item flex items-center justify-between p-2.5 bg-white border border-gray-200 shadow-sm rounded-lg group cursor-grab active:cursor-grabbing hover:border-gray-300 transition-colors">
-                                        <div class="flex items-center gap-2">
-                                            <div
-                                                class="w-6 h-6 rounded bg-pink-100 text-pink-600 flex items-center justify-center text-[10px] shrink-0">
-                                                <i class="fa-solid fa-users"></i>
-                                            </div>
-                                            <span
-                                                class="text-sm font-medium text-gray-700 pointer-events-none truncate">ฝ่ายบุคคล</span>
-                                        </div>
-                                        <div
-                                            class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button type="button"
-                                                class="text-red-400 hover:text-red-600 transition-colors"
-                                                onclick="App.deleteRoleDepartment(this)"><i
-                                                    class="fa-regular fa-trash-can"></i></button>
-                                            <i class="fa-solid fa-grip-vertical text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                    <div draggable="true"
-                                        class="dept-item flex items-center justify-between p-2.5 bg-white border border-gray-200 shadow-sm rounded-lg group cursor-grab active:cursor-grabbing hover:border-gray-300 transition-colors">
-                                        <div class="flex items-center gap-2">
-                                            <div
-                                                class="w-6 h-6 rounded bg-yellow-100 text-yellow-600 flex items-center justify-center text-[10px] shrink-0">
-                                                <i class="fa-solid fa-calculator"></i>
-                                            </div>
-                                            <span
-                                                class="text-sm font-medium text-gray-700 pointer-events-none truncate">บัญชี</span>
-                                        </div>
-                                        <div
-                                            class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button type="button"
-                                                class="text-red-400 hover:text-red-600 transition-colors"
-                                                onclick="App.deleteRoleDepartment(this)"><i
-                                                    class="fa-regular fa-trash-can"></i></button>
-                                            <i class="fa-solid fa-grip-vertical text-gray-300"></i>
-                                        </div>
-                                    </div>
                                 </div>
                                 <div
                                     class="border-t border-gray-100 pt-3 flex justify-between items-center text-xs text-gray-500">
-                                    <span id="dept-total-count">รวม 6 แผนก</span>
+                                    <span id="dept-total-count">รวม 0 แผนก</span>
                                 </div>
                             </div>
                         </div>
@@ -2510,7 +2082,7 @@
                         <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-4">
                             <h3 class="text-xs font-bold text-slate-800 mb-2">คำสั่งจากงานหลัก (Task Details)</h3>
                             <div class="bg-white border border-gray-200 rounded-lg p-3 text-sm text-gray-500 mb-3"
-                                id="tdv-project-name">
+                                id="tdv-project-name" data-no-i18n>
                                 ไม่มีรายละเอียด
                             </div>
                             <h3 class="text-xs font-bold text-slate-800 mb-1">ไฟล์แนบจากงานหลัก (อ้างอิง):</h3>
@@ -2520,7 +2092,7 @@
                         <!-- Title -->
                         <div>
                             <label class="block text-sm font-bold text-gray-800 mb-2">หัวข้อคำสั่งย่อย</label>
-                            <input type="text" id="tdv-title"
+                            <input type="text" id="tdv-title" data-no-i18n
                                 class="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm shadow-sm font-medium text-gray-800 transition-colors">
                         </div>
 
@@ -2528,7 +2100,7 @@
                         <div>
                             <label class="block text-sm font-bold text-gray-800 mb-2">รายละเอียด</label>
                             <div class="border border-gray-200 rounded-xl shadow-sm bg-white overflow-hidden p-4 min-h-[120px] text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
-                                id="tdv-desc" contenteditable="true" data-placeholder="เพิ่มรายละเอียด...">
+                                id="tdv-desc" data-no-i18n contenteditable="true" data-placeholder="เพิ่มรายละเอียด...">
                                 <!-- Desc goes here -->
                             </div>
                         </div>
@@ -2550,7 +2122,7 @@
                                     </div>
                                 </label>
                             </div>
-                            <div id="tdv-file-list" class="flex flex-col gap-2">
+                            <div id="tdv-file-list" data-no-i18n class="flex flex-col gap-2">
                                 <!-- Files go here -->
                             </div>
                         </div>
@@ -2602,6 +2174,41 @@
                             <div id="tdv-subtasks" class="flex flex-col gap-2">
                                 <!-- Subtasks go here -->
                             </div>
+                        </div>
+
+                        <!-- Time actually spent on this task (timer or manual entry) -->
+                        <div class="border border-gray-200 rounded-xl p-4 bg-white shadow-sm" id="tdv-time-box">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">เวลาที่ใช้จริง</label>
+                                <span id="tdv-time-total" class="text-xs font-semibold text-gray-700"></span>
+                            </div>
+                            <div id="tdv-time-bar" class="h-2 rounded-full bg-gray-100 overflow-hidden mb-3 hidden"><div class="h-full bg-blue-600" style="width:0%"></div></div>
+                            <button type="button" id="tdv-timer-btn" onclick="App.toggleTaskTimer(App.state.viewingTaskId)"
+                                class="w-full rounded-lg py-2.5 text-sm font-semibold flex items-center justify-center gap-2 border border-blue-600 text-blue-700 hover:bg-blue-50 transition-colors">
+                                <i class="fa-solid fa-play"></i> <span>เริ่มจับเวลา</span>
+                            </button>
+                            <div class="flex items-center gap-2 mt-2">
+                                <input type="number" id="tdv-time-manual" min="0" step="0.25" inputmode="decimal" placeholder="ชั่วโมง"
+                                    class="w-24 border border-gray-200 rounded-lg py-2 px-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <input type="text" id="tdv-time-note" placeholder="ทำอะไรไป (ไม่บังคับ)"
+                                    class="flex-1 min-w-0 border border-gray-200 rounded-lg py-2 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <button type="button" onclick="App.addManualTime(App.state.viewingTaskId)"
+                                    class="shrink-0 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm font-semibold text-gray-700">บันทึก</button>
+                            </div>
+                            <div id="tdv-time-list" class="mt-3 flex flex-col gap-1.5 max-h-48 overflow-y-auto"></div>
+                        </div>
+
+                        <!-- Meetings for this task (events.task_id): 1 task : N meetings -->
+                        <div class="border border-gray-200 rounded-xl p-4 bg-white shadow-sm" id="tdv-meetings-box">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">นัดประชุมของงานนี้</label>
+                                <span id="tdv-meetings-count" class="text-xs font-semibold text-gray-500"></span>
+                            </div>
+                            <div id="tdv-meetings-list" class="flex flex-col gap-1.5 mb-3"></div>
+                            <button type="button" onclick="App.scheduleMeetingForTask(App.state.viewingTaskId)"
+                                class="w-full rounded-lg py-2.5 text-sm font-semibold flex items-center justify-center gap-2 border border-pink-500 text-pink-600 hover:bg-pink-50 transition-colors">
+                                <i class="fa-regular fa-calendar-plus"></i> <span>นัดประชุมสำหรับงานนี้</span>
+                            </button>
                         </div>
 
                         <!-- My Actions -->
@@ -2669,6 +2276,21 @@
             <div class="p-6 overflow-y-auto flex-1 flex flex-col md:flex-row gap-8">
                 <!-- Left Column -->
                 <div class="flex-1 space-y-5">
+                    <!-- Project type: a team project, a personal (single) one only I can see, or one for a whole division -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">รูปแบบ</label>
+                        <div class="cp-seg cp-seg-3" role="group">
+                            <button type="button" id="cp-type-project" class="cp-seg-btn is-active" aria-pressed="true"
+                                onclick="App.setProjectType('project')"><i class="fa-solid fa-diagram-project"></i> โปรเจกต์</button>
+                            <button type="button" id="cp-type-single" class="cp-seg-btn" aria-pressed="false"
+                                onclick="App.setProjectType('single')"><i class="fa-solid fa-user"></i> ส่วนตัว</button>
+                            <button type="button" id="cp-type-division" class="cp-seg-btn" aria-pressed="false"
+                                onclick="App.setProjectType('division')"><i class="fa-solid fa-sitemap"></i> แผนก</button>
+                        </div>
+                        <input type="hidden" id="cp-project-type" value="project">
+                        <p id="cp-type-hint" class="text-xs text-gray-500 mt-1.5">ทำงานร่วมกับทีม กำหนดผู้ดูแลและผู้เข้าร่วมได้</p>
+                    </div>
+
                     <!-- Project Name -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อโปรเจกต์ <span
@@ -2690,65 +2312,199 @@
                     <!-- Project Color -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">สีโปรเจกต์</label>
-                        <div class="grid grid-cols-6 gap-4 w-max">
-                            <button type="button" data-color="bg-red-500" onclick="App.selectProjectColor(this)"
-                                class="cp-color-btn w-6 h-6 rounded-full bg-red-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-orange-500" onclick="App.selectProjectColor(this)"
-                                class="cp-color-btn w-6 h-6 rounded-full bg-orange-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-amber-400" onclick="App.selectProjectColor(this)"
-                                class="cp-color-btn w-6 h-6 rounded-full bg-amber-400 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-green-500" onclick="App.selectProjectColor(this)"
-                                class="cp-color-btn w-6 h-6 rounded-full bg-green-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-emerald-400" onclick="App.selectProjectColor(this)"
-                                class="cp-color-btn w-6 h-6 rounded-full bg-emerald-400 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-cyan-500" onclick="App.selectProjectColor(this)"
-                                class="cp-color-btn w-6 h-6 rounded-full bg-cyan-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-blue-500" onclick="App.selectProjectColor(this)"
-                                class="cp-color-btn w-6 h-6 rounded-full bg-blue-500 ring-2 ring-offset-2 ring-gray-400 scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-indigo-900" onclick="App.selectProjectColor(this)"
-                                class="cp-color-btn w-6 h-6 rounded-full bg-indigo-900 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-purple-500" onclick="App.selectProjectColor(this)"
-                                class="cp-color-btn w-6 h-6 rounded-full bg-purple-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-pink-500" onclick="App.selectProjectColor(this)"
-                                class="cp-color-btn w-6 h-6 rounded-full bg-pink-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-rose-500" onclick="App.selectProjectColor(this)"
-                                class="cp-color-btn w-6 h-6 rounded-full bg-rose-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-slate-500" onclick="App.selectProjectColor(this)"
-                                class="cp-color-btn w-6 h-6 rounded-full bg-slate-500 hover:scale-110 transition-all focus:outline-none"></button>
+                        <div class="cp-color-grid">
+                            <button type="button" data-color="bg-red-600" onclick="App.selectProjectColor(this)" title="แดง" aria-label="แดง"
+                                class="cp-color-btn bg-red-600"></button>
+                            <button type="button" data-color="bg-orange-500" onclick="App.selectProjectColor(this)" title="ส้ม" aria-label="ส้ม"
+                                class="cp-color-btn bg-orange-500"></button>
+                            <button type="button" data-color="bg-amber-500" onclick="App.selectProjectColor(this)" title="เหลือง" aria-label="เหลือง"
+                                class="cp-color-btn bg-amber-500"></button>
+                            <button type="button" data-color="bg-lime-600" onclick="App.selectProjectColor(this)" title="เขียวมะนาว" aria-label="เขียวมะนาว"
+                                class="cp-color-btn bg-lime-600"></button>
+                            <button type="button" data-color="bg-green-600" onclick="App.selectProjectColor(this)" title="เขียว" aria-label="เขียว"
+                                class="cp-color-btn bg-green-600"></button>
+                            <button type="button" data-color="bg-teal-500" onclick="App.selectProjectColor(this)" title="เขียวน้ำทะเล" aria-label="เขียวน้ำทะเล"
+                                class="cp-color-btn bg-teal-500"></button>
+                            <button type="button" data-color="bg-sky-500" onclick="App.selectProjectColor(this)" title="ฟ้า" aria-label="ฟ้า"
+                                class="cp-color-btn bg-sky-500"></button>
+                            <button type="button" data-color="bg-blue-600" onclick="App.selectProjectColor(this)" title="น้ำเงิน" aria-label="น้ำเงิน"
+                                class="cp-color-btn bg-blue-600 ring-2 ring-offset-2 ring-gray-400 scale-110"></button>
+                            <button type="button" data-color="bg-indigo-900" onclick="App.selectProjectColor(this)" title="กรมท่า" aria-label="กรมท่า"
+                                class="cp-color-btn bg-indigo-900"></button>
+                            <button type="button" data-color="bg-violet-600" onclick="App.selectProjectColor(this)" title="ม่วง" aria-label="ม่วง"
+                                class="cp-color-btn bg-violet-600"></button>
+                            <button type="button" data-color="bg-pink-600" onclick="App.selectProjectColor(this)" title="ชมพู" aria-label="ชมพู"
+                                class="cp-color-btn bg-pink-600"></button>
+                            <button type="button" data-color="bg-slate-600" onclick="App.selectProjectColor(this)" title="เทา" aria-label="เทา"
+                                class="cp-color-btn bg-slate-600"></button>
                         </div>
-                        <input type="hidden" id="cp-color" value="bg-blue-500">
+                        <input type="hidden" id="cp-color" value="bg-blue-600">
                     </div>
 
 
-                    <!-- Duration -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">ระยะเวลาโครงการ <span
+                    <!-- Schedule: a fixed start/end range, or a repeating project -->
+                    <div id="cp-schedule">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">กำหนดการโปรเจกต์ <span
                                 class="text-red-500">*</span></label>
-                        <div class="flex items-center space-x-3">
+                        <div class="cp-seg" role="group">
+                            <button type="button" id="cp-mode-range" class="cp-seg-btn is-active" aria-pressed="true"
+                                onclick="App.setProjectScheduleMode('range')"><i class="fa-regular fa-calendar"></i> กำหนดวันเริ่มและวันจบ</button>
+                            <button type="button" id="cp-mode-repeat" class="cp-seg-btn" aria-pressed="false"
+                                onclick="App.setProjectScheduleMode('repeat')"><i class="fa-solid fa-rotate"></i> ทำซ้ำ (Repeat)</button>
+                        </div>
+                        <input type="hidden" id="cp-schedule-mode" value="range">
+
+                        <div class="flex items-start space-x-3 mt-3">
                             <div class="flex-1">
-                                <label class="block text-xs text-gray-500 mb-1">เริ่มต้น</label>
+                                <label class="block text-xs text-gray-500 mb-1" id="cp-start-label">เริ่มต้น</label>
                                 <div class="relative">
                                     <input type="date" id="cp-start-date"
-                                        class="w-full border border-gray-300 rounded-lg py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:left-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full">
+                                        class="w-full border border-gray-300 rounded-lg py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:left-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full"
+                                        onchange="App._cpRepeatUpdate()">
                                     <i
                                         class="fa-regular fa-calendar absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                                 </div>
                             </div>
-                            <span class="mt-5 text-gray-400">-</span>
-                            <div class="flex-1">
+                            <span class="mt-8 text-gray-400" id="cp-range-dash">-</span>
+                            <div class="flex-1" id="cp-end-wrap">
                                 <label class="block text-xs text-gray-500 mb-1">สิ้นสุด</label>
                                 <div class="relative">
                                     <input type="date" id="cp-end-date"
-                                        class="w-full border border-gray-300 rounded-lg py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:left-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full">
+                                        class="w-full border border-gray-300 rounded-lg py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:left-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full"
+                                        onchange="App._cpRepeatUpdate()">
                                     <i
                                         class="fa-regular fa-calendar absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                                 </div>
                             </div>
+                        </div>
+
+                        <div id="cp-repeat-panel" class="hidden cp-repeat">
+                            <div class="flex items-center flex-wrap gap-2">
+                                <span class="text-sm text-gray-700">ทำซ้ำทุก</span>
+                                <input type="number" id="cp-rep-every" min="1" max="99" value="1" oninput="App._cpRepeatUpdate()"
+                                    class="w-16 border border-gray-300 rounded-lg py-1.5 px-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <select id="cp-rep-unit" onchange="App._cpRepeatUpdate()"
+                                    class="border border-gray-300 rounded-lg py-1.5 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="day">วัน</option>
+                                    <option value="week" selected>สัปดาห์</option>
+                                    <option value="month">เดือน</option>
+                                </select>
+                            </div>
+
+                            <div id="cp-rep-week-row">
+                                <label class="block text-xs text-gray-500 mb-1.5">ทำในวัน</label>
+                                <div class="cp-chip-row">
+                                    <button type="button" class="cp-chip cp-wd" data-d="1" onclick="App._cpChip(this)">จ.</button>
+                                    <button type="button" class="cp-chip cp-wd" data-d="2" onclick="App._cpChip(this)">อ.</button>
+                                    <button type="button" class="cp-chip cp-wd" data-d="3" onclick="App._cpChip(this)">พ.</button>
+                                    <button type="button" class="cp-chip cp-wd" data-d="4" onclick="App._cpChip(this)">พฤ.</button>
+                                    <button type="button" class="cp-chip cp-wd" data-d="5" onclick="App._cpChip(this)">ศ.</button>
+                                    <button type="button" class="cp-chip cp-wd" data-d="6" onclick="App._cpChip(this)">ส.</button>
+                                    <button type="button" class="cp-chip cp-wd" data-d="0" onclick="App._cpChip(this)">อา.</button>
+                                </div>
+                            </div>
+
+                            <div id="cp-rep-month-row" class="hidden">
+                                <div class="cp-seg mb-3" role="group">
+                                    <button type="button" id="cp-mmode-date" class="cp-seg-btn is-active" aria-pressed="true"
+                                        onclick="App._cpMonthMode('date')">ตามวันที่ (1–31)</button>
+                                    <button type="button" id="cp-mmode-weekday" class="cp-seg-btn" aria-pressed="false"
+                                        onclick="App._cpMonthMode('weekday')">ตามวันในสัปดาห์</button>
+                                </div>
+                                <input type="hidden" id="cp-rep-month-mode" value="date">
+
+                                <!-- e.g. the Wednesday of the last week of every month -->
+                                <div id="cp-rep-mweekday" class="hidden">
+                                    <label class="block text-xs text-gray-500 mb-1.5">ทำในวันของสัปดาห์ที่</label>
+                                    <div class="flex items-center flex-wrap gap-2">
+                                        <select id="cp-rep-nth" onchange="App._cpRepeatUpdate()"
+                                            class="border border-gray-300 rounded-lg py-1.5 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="1">สัปดาห์แรก</option>
+                                            <option value="2">สัปดาห์ที่ 2</option>
+                                            <option value="3">สัปดาห์ที่ 3</option>
+                                            <option value="4">สัปดาห์ที่ 4</option>
+                                            <option value="-1" selected>สัปดาห์สุดท้าย</option>
+                                        </select>
+                                        <select id="cp-rep-nthday" onchange="App._cpRepeatUpdate()"
+                                            class="border border-gray-300 rounded-lg py-1.5 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="1">วันจันทร์</option>
+                                            <option value="2">วันอังคาร</option>
+                                            <option value="3" selected>วันพุธ</option>
+                                            <option value="4">วันพฤหัสบดี</option>
+                                            <option value="5">วันศุกร์</option>
+                                            <option value="6">วันเสาร์</option>
+                                            <option value="0">วันอาทิตย์</option>
+                                        </select>
+                                        <span class="text-sm text-gray-700">ของเดือน</span>
+                                    </div>
+                                </div>
+
+                                <div id="cp-rep-mdate">
+                                <label class="block text-xs text-gray-500 mb-1.5">ทำในวันที่ของทุกเดือน (เลือกได้หลายวัน)</label>
+                                <div class="cp-chip-grid">
+                                    <button type="button" class="cp-chip cp-md" data-d="1" onclick="App._cpChip(this)">1</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="2" onclick="App._cpChip(this)">2</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="3" onclick="App._cpChip(this)">3</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="4" onclick="App._cpChip(this)">4</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="5" onclick="App._cpChip(this)">5</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="6" onclick="App._cpChip(this)">6</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="7" onclick="App._cpChip(this)">7</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="8" onclick="App._cpChip(this)">8</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="9" onclick="App._cpChip(this)">9</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="10" onclick="App._cpChip(this)">10</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="11" onclick="App._cpChip(this)">11</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="12" onclick="App._cpChip(this)">12</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="13" onclick="App._cpChip(this)">13</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="14" onclick="App._cpChip(this)">14</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="15" onclick="App._cpChip(this)">15</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="16" onclick="App._cpChip(this)">16</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="17" onclick="App._cpChip(this)">17</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="18" onclick="App._cpChip(this)">18</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="19" onclick="App._cpChip(this)">19</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="20" onclick="App._cpChip(this)">20</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="21" onclick="App._cpChip(this)">21</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="22" onclick="App._cpChip(this)">22</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="23" onclick="App._cpChip(this)">23</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="24" onclick="App._cpChip(this)">24</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="25" onclick="App._cpChip(this)">25</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="26" onclick="App._cpChip(this)">26</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="27" onclick="App._cpChip(this)">27</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="28" onclick="App._cpChip(this)">28</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="29" onclick="App._cpChip(this)">29</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="30" onclick="App._cpChip(this)">30</button>
+                                    <button type="button" class="cp-chip cp-md" data-d="31" onclick="App._cpChip(this)">31</button>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-1">เดือนที่ไม่มีวันที่เลือก (เช่น 31) จะใช้วันสุดท้ายของเดือนแทน</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1.5">สิ้นสุดการทำซ้ำ</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="cp-rep-end" value="count" id="cp-rep-end-count" checked onchange="App._cpRepeatUpdate()"
+                                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">ครบ</span>
+                                        <input type="number" id="cp-rep-count" min="1" max="500" value="12" oninput="App._cpRepeatUpdate()"
+                                            class="w-20 border border-gray-300 rounded-lg py-1.5 px-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">รอบ</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="cp-rep-end" value="date" id="cp-rep-end-date" onchange="App._cpRepeatUpdate()"
+                                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">ถึงวันที่</span>
+                                        <input type="date" id="cp-rep-until" onchange="App._cpRepeatUpdate()"
+                                            class="border border-gray-300 rounded-lg py-1.5 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="cp-rep-summary" class="cp-rep-summary" aria-live="polite"></div>
                         </div>
                     </div>
 
                     <!-- Project Manager -->
-                    <div class="relative">
+                    <div class="relative" id="cp-managers-field">
                         <label class="block text-sm font-medium text-gray-700 mb-1">ผู้ดูแลโครงการ <span
                                 class="text-red-500">*</span></label>
                         <div class="relative">
@@ -2767,7 +2523,7 @@
                     </div>
 
                     <!-- Co-Project Manager -->
-                    <div class="relative">
+                    <div class="relative" id="cp-comanagers-field">
                         <label class="block text-sm font-medium text-gray-700 mb-1">ผู้ดูแลโครงการร่วม</label>
                         <div class="relative">
                             <div onclick="App.toggleDropdown('co-manager-dropdown')"
@@ -2785,7 +2541,7 @@
                     </div>
 
                     <!-- Members -->
-                    <div>
+                    <div id="cp-members-field">
                         <label class="block text-sm font-medium text-gray-700 mb-1">ผู้เข้าร่วม</label>
                         <div class="relative">
                             <div onclick="App.toggleDropdown('cp-members-dropdown')"
@@ -2806,7 +2562,7 @@
                     </div>
 
                     <!-- Departments & Divisions -->
-                    <div class="relative">
+                    <div class="relative" id="cp-teams-field">
                         <label class="block text-sm font-medium text-gray-700 mb-1">ฝ่าย/แผนกที่เกี่ยวข้อง</label>
                         <div class="relative">
                             <div onclick="App.toggleDropdown('team-dropdown')"
@@ -2823,6 +2579,22 @@
                         </div>
                         <p class="text-xs text-gray-500 mt-1.5">กำหนดการโปรเจกต์ (วันเริ่ม – วันสิ้นสุด)
                             พร้อมชื่อโปรเจกต์ จะขึ้นในปฏิทินของทุกคนในฝ่าย/แผนกที่เลือกโดยอัตโนมัติ</p>
+                    </div>
+
+                    <!-- Budget (optional): off = track time only -->
+                    <div class="cp-budget-box">
+                        <label class="flex items-center justify-between gap-3 cursor-pointer">
+                            <span>
+                                <span class="block text-sm font-medium text-gray-700">ใช้งบประมาณกับโปรเจกต์นี้</span>
+                                <span class="block text-xs text-gray-500">ปิดไว้ = ติดตามเวลาอย่างเดียว</span>
+                            </span>
+                            <input type="checkbox" id="cp-budget-enabled" class="w-5 h-5 accent-blue-600" onchange="App._cpBudgetToggle()">
+                        </label>
+                        <div id="cp-budget-amount-row" class="hidden mt-3">
+                            <label class="block text-xs text-gray-500 mb-1">งบประมาณรวม (บาท)</label>
+                            <input type="number" id="cp-budget-amount" min="0" step="0.01" inputmode="decimal" placeholder="0.00"
+                                class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
                     </div>
 
                 </div>
@@ -3002,6 +2774,14 @@
             class="w-full flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors gap-3">
             <i class="fa-solid fa-play text-blue-500 w-4"></i> ดำเนินการต่อ
         </button>
+        <button onclick="App.openProjectChatFromMenu()"
+            class="w-full flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors gap-3">
+            <i class="fa-solid fa-comments text-violet-600 w-4"></i> แชทโปรเจกต์
+        </button>
+        <button id="pcm-close-btn" onclick="App.toggleCloseProjectFromMenu()"
+            class="w-full flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors gap-3">
+            <i class="fa-solid fa-lock text-green-600 w-4"></i> <span>ปิดโปรเจกต์</span>
+        </button>
         <div class="border-t border-gray-100 my-1"></div>
         <button id="pcm-delete-btn" onclick="App.deleteProjectFromMenu()"
             class="w-full flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors gap-3">
@@ -3122,7 +2902,7 @@
                 </div>
                 <h3 class="text-lg font-bold text-gray-800 mb-2">ลบโครงการ?</h3>
                 <p class="text-sm text-gray-500 mb-1">คุณต้องการลบโปรเจกต์</p>
-                <p id="delete-project-name" class="text-sm font-semibold text-gray-800 mb-4 project-name-display">&nbsp;
+                <p id="delete-project-name" data-no-i18n class="text-sm font-semibold text-gray-800 mb-4 project-name-display">&nbsp;
                 </p>
                 <p class="text-xs text-gray-400">การกระทำนี้ไม่สามารถย้อนกลับได้</p>
             </div>
@@ -3175,7 +2955,7 @@
                 </div>
                 <h3 class="text-lg font-bold text-gray-800 mb-2">ลบ Task นี้?</h3>
                 <p class="text-sm text-gray-500 mb-1">คุณแน่ใจหรือไม่ว่าต้องการลบ Task</p>
-                <p id="delete-task-name" class="text-sm font-semibold text-gray-800 mb-4">&nbsp;</p>
+                <p id="delete-task-name" data-no-i18n class="text-sm font-semibold text-gray-800 mb-4">&nbsp;</p>
                 <p class="text-xs text-gray-400">การกระทำนี้ไม่สามารถย้อนกลับได้</p>
             </div>
             <div class="flex border-t border-gray-100">
@@ -3201,7 +2981,7 @@
                 </div>
                 <h3 class="text-lg font-bold text-gray-800 mb-2">ลบคำสั่งย่อยนี้?</h3>
                 <p class="text-sm text-gray-500 mb-1">คุณแน่ใจหรือไม่ว่าต้องการลบคำสั่งย่อย</p>
-                <p id="delete-subtask-name" class="text-sm font-semibold text-gray-800 mb-4">&nbsp;</p>
+                <p id="delete-subtask-name" data-no-i18n class="text-sm font-semibold text-gray-800 mb-4">&nbsp;</p>
                 <p class="text-xs text-gray-400">การกระทำนี้ไม่สามารถย้อนกลับได้</p>
             </div>
             <div class="flex border-t border-gray-100">
@@ -3227,7 +3007,7 @@
                 </div>
                 <h3 class="text-lg font-bold text-gray-800 mb-2">ลบกิจกรรมนี้?</h3>
                 <p class="text-sm text-gray-500 mb-1">คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรม</p>
-                <p id="delete-event-name" class="text-sm font-semibold text-gray-800 mb-4">&nbsp;</p>
+                <p id="delete-event-name" data-no-i18n class="text-sm font-semibold text-gray-800 mb-4">&nbsp;</p>
                 <p class="text-xs text-gray-400">การกระทำนี้ไม่สามารถย้อนกลับได้</p>
             </div>
             <div class="flex border-t border-gray-100">
@@ -3253,7 +3033,7 @@
                 </div>
                 <h3 class="text-lg font-bold text-gray-800 mb-2">ยืนยันการส่งงาน?</h3>
                 <p class="text-sm text-gray-500 mb-1">คุณต้องการส่งงานใช่หรือไม่?</p>
-                <p id="submit-task-name" class="text-sm font-semibold text-gray-800 mb-4">&nbsp;</p>
+                <p id="submit-task-name" data-no-i18n class="text-sm font-semibold text-gray-800 mb-4">&nbsp;</p>
             </div>
             <div class="flex border-t border-gray-100">
                 <button onclick="App.cancelSubmit()"
@@ -3278,7 +3058,7 @@
                 </div>
                 <h3 class="text-lg font-bold text-gray-800 mb-2">ยกเลิกการส่งงาน?</h3>
                 <p class="text-sm text-gray-500 mb-1">คุณต้องการยกเลิกการส่งงานนี้ใช่หรือไม่?</p>
-                <p id="cancel-submission-task-name" class="text-sm font-semibold text-gray-800 mb-4">&nbsp;</p>
+                <p id="cancel-submission-task-name" data-no-i18n class="text-sm font-semibold text-gray-800 mb-4">&nbsp;</p>
             </div>
             <div class="flex border-t border-gray-100">
                 <button onclick="App.closeCancelTaskSubmissionModal()"
@@ -3541,6 +3321,20 @@
                             </div>
                         </div>
 
+                        <!-- Planned time and budget of this task (both optional) -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-800 mb-2">เวลาที่ประมาณไว้ <span class="text-xs font-normal text-gray-400">(ชั่วโมง)</span></label>
+                                <input type="number" id="ct-estimate-hours" min="0" step="0.25" inputmode="decimal" placeholder="เช่น 4"
+                                    class="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm shadow-sm bg-white">
+                            </div>
+                            <div id="ct-budget-field">
+                                <label class="block text-sm font-semibold text-gray-800 mb-2">งบของงาน <span class="text-xs font-normal text-gray-400">(บาท)</span></label>
+                                <input type="number" id="ct-budget-amount" min="0" step="0.01" inputmode="decimal" placeholder="0.00"
+                                    class="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm shadow-sm bg-white">
+                            </div>
+                        </div>
+
                         <!-- Repeat Toggle -->
                         <div class="flex items-center justify-between border-b border-gray-100 pb-6 pt-2">
                             <span class="text-sm text-gray-700">กำหนดระยะเวลาซ้ำ ( Repeat )</span>
@@ -3671,33 +3465,33 @@
                     <!-- Color -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1.5">สี</label>
-                        <div class="flex flex-wrap gap-2">
-                            <button type="button" data-color="bg-red-500" onclick="App.selectEventColor(this)"
-                                class="cev-color-btn w-6 h-6 rounded-full bg-red-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-orange-500" onclick="App.selectEventColor(this)"
-                                class="cev-color-btn w-6 h-6 rounded-full bg-orange-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-amber-400" onclick="App.selectEventColor(this)"
-                                class="cev-color-btn w-6 h-6 rounded-full bg-amber-400 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-green-500" onclick="App.selectEventColor(this)"
-                                class="cev-color-btn w-6 h-6 rounded-full bg-green-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-emerald-400" onclick="App.selectEventColor(this)"
-                                class="cev-color-btn w-6 h-6 rounded-full bg-emerald-400 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-cyan-500" onclick="App.selectEventColor(this)"
-                                class="cev-color-btn w-6 h-6 rounded-full bg-cyan-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-blue-500" onclick="App.selectEventColor(this)"
-                                class="cev-color-btn w-6 h-6 rounded-full bg-blue-500 ring-2 ring-offset-2 ring-gray-400 scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-indigo-900" onclick="App.selectEventColor(this)"
-                                class="cev-color-btn w-6 h-6 rounded-full bg-indigo-900 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-purple-500" onclick="App.selectEventColor(this)"
-                                class="cev-color-btn w-6 h-6 rounded-full bg-purple-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-pink-500" onclick="App.selectEventColor(this)"
-                                class="cev-color-btn w-6 h-6 rounded-full bg-pink-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-rose-500" onclick="App.selectEventColor(this)"
-                                class="cev-color-btn w-6 h-6 rounded-full bg-rose-500 hover:scale-110 transition-all focus:outline-none"></button>
-                            <button type="button" data-color="bg-slate-500" onclick="App.selectEventColor(this)"
-                                class="cev-color-btn w-6 h-6 rounded-full bg-slate-500 hover:scale-110 transition-all focus:outline-none"></button>
+                        <div class="cp-color-grid">
+                            <button type="button" data-color="bg-red-600" onclick="App.selectEventColor(this)" title="แดง" aria-label="แดง"
+                                class="cp-color-btn cev-color-btn bg-red-600"></button>
+                            <button type="button" data-color="bg-orange-500" onclick="App.selectEventColor(this)" title="ส้ม" aria-label="ส้ม"
+                                class="cp-color-btn cev-color-btn bg-orange-500"></button>
+                            <button type="button" data-color="bg-amber-500" onclick="App.selectEventColor(this)" title="เหลือง" aria-label="เหลือง"
+                                class="cp-color-btn cev-color-btn bg-amber-500"></button>
+                            <button type="button" data-color="bg-lime-600" onclick="App.selectEventColor(this)" title="เขียวมะนาว" aria-label="เขียวมะนาว"
+                                class="cp-color-btn cev-color-btn bg-lime-600"></button>
+                            <button type="button" data-color="bg-green-600" onclick="App.selectEventColor(this)" title="เขียว" aria-label="เขียว"
+                                class="cp-color-btn cev-color-btn bg-green-600"></button>
+                            <button type="button" data-color="bg-teal-500" onclick="App.selectEventColor(this)" title="เขียวน้ำทะเล" aria-label="เขียวน้ำทะเล"
+                                class="cp-color-btn cev-color-btn bg-teal-500"></button>
+                            <button type="button" data-color="bg-sky-500" onclick="App.selectEventColor(this)" title="ฟ้า" aria-label="ฟ้า"
+                                class="cp-color-btn cev-color-btn bg-sky-500"></button>
+                            <button type="button" data-color="bg-blue-600" onclick="App.selectEventColor(this)" title="น้ำเงิน" aria-label="น้ำเงิน"
+                                class="cp-color-btn cev-color-btn bg-blue-600 ring-2 ring-offset-2 ring-gray-400 scale-110"></button>
+                            <button type="button" data-color="bg-indigo-900" onclick="App.selectEventColor(this)" title="กรมท่า" aria-label="กรมท่า"
+                                class="cp-color-btn cev-color-btn bg-indigo-900"></button>
+                            <button type="button" data-color="bg-violet-600" onclick="App.selectEventColor(this)" title="ม่วง" aria-label="ม่วง"
+                                class="cp-color-btn cev-color-btn bg-violet-600"></button>
+                            <button type="button" data-color="bg-pink-600" onclick="App.selectEventColor(this)" title="ชมพู" aria-label="ชมพู"
+                                class="cp-color-btn cev-color-btn bg-pink-600"></button>
+                            <button type="button" data-color="bg-slate-600" onclick="App.selectEventColor(this)" title="เทา" aria-label="เทา"
+                                class="cp-color-btn cev-color-btn bg-slate-600"></button>
                         </div>
-                        <input type="hidden" id="cev-color" value="bg-blue-500">
+                        <input type="hidden" id="cev-color" value="bg-blue-600">
                     </div>
                     <!-- Calendar Type -->
                     <div>
@@ -3757,6 +3551,23 @@
                                     class="fa-regular fa-clock absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
                             </div>
                         </div>
+                    </div>
+                    <!-- End date (optional): the event then shows on every day from the date to this one -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">วันสิ้นสุด <span
+                                class="text-xs font-normal text-gray-400">(ไม่บังคับ)</span></label>
+                        <div class="relative">
+                            <input type="date" id="cev-end-date"
+                                class="w-full border border-gray-200 rounded-xl py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:left-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer">
+                            <i
+                                class="fa-regular fa-calendar absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">เว้นว่างไว้ถ้าเป็นกิจกรรมวันเดียว</p>
+                    </div>
+                    <!-- Linked task (set when the meeting is made from a task) -->
+                    <div id="cev-task-link" class="hidden items-center justify-between gap-2 rounded-xl border border-pink-200 bg-pink-50 px-3 py-2 text-sm text-pink-700">
+                        <span class="flex items-center gap-2 min-w-0"><i class="fa-solid fa-link"></i><span>เชื่อมกับงาน:</span> <b id="cev-task-name" class="truncate" data-no-i18n></b></span>
+                        <button type="button" onclick="App.unlinkEventTask()" class="shrink-0 text-xs font-semibold text-pink-600 hover:underline">ยกเลิกการเชื่อม</button>
                     </div>
                     <!-- Link to Project -->
                     <div>
@@ -4087,7 +3898,7 @@
                                 <label
                                     class="block text-sm font-medium text-gray-700 mb-1">อีเมลสำหรับเข้าสู่ระบบ</label>
                                 <div class="w-full border border-gray-100 rounded-lg py-2 px-3 bg-gray-50 text-sm text-blue-600 min-h-[38px]"
-                                    id="up-email">-</div>
+                                    id="up-email" data-no-i18n>-</div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
@@ -4108,7 +3919,7 @@
                             <div id="up-company-info" class="hidden">
                                 <div
                                     class="w-full border border-gray-100 rounded-lg py-2 px-3 bg-gray-50 text-sm text-gray-800 min-h-[38px] flex justify-between items-center">
-                                    <span id="up-company-name" class="font-medium">-</span>
+                                    <span id="up-company-name" data-no-i18n class="font-medium">-</span>
                                     <span id="up-company-code"
                                         class="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded-md tracking-wider"></span>
                                 </div>
@@ -4133,7 +3944,7 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">แผนก</label>
                                 <div class="w-full border border-gray-100 rounded-lg py-2 px-3 bg-gray-50 text-sm text-gray-800 min-h-[38px]"
-                                    id="up-work-dept">-</div>
+                                    id="up-work-dept" data-no-i18n>-</div>
                             </div>
                         </div>
                         <!-- Custom Permissions Section -->
@@ -4823,527 +4634,28 @@
         </div>
     </div>
 
-    <!-- ================= FINANCE MODALS ================= -->
-
-    <!-- Add Category Modal -->
-    <div id="finance-add-category-modal"
-        class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/40 py-4 px-2"
-        onclick="closeFinanceModal('finance-add-category-modal')">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm flex flex-col overflow-hidden"
-            onclick="event.stopPropagation()">
-            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h2 class="text-xl font-bold text-gray-800 tracking-tight flex items-center gap-2"><i
-                        class="fa-solid fa-list-ul text-blue-500"></i> เพิ่มหมวดหมู่งบประมาณ</h2>
-                <button onclick="closeFinanceModal('finance-add-category-modal')"
-                    class="text-gray-400 hover:text-gray-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1.5">ชื่อหมวดหมู่ <span
-                            class="text-red-500">*</span></label>
-                    <input type="text" id="add-category-name"
-                        class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 outline-none"
-                        placeholder="เช่น ค่ารับรองลูกค้า, อุปกรณ์ IT">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1.5">ไอคอน (FontAwesome Class)</label>
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500"
-                            id="add-category-icon-preview">
-                            <i class="fa-solid fa-box"></i>
-                        </div>
-                        <input type="text" id="add-category-icon"
-                            class="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 outline-none"
-                            value="fa-box" placeholder="เช่น fa-box, fa-laptop"
-                            oninput="document.getElementById('add-category-icon-preview').innerHTML = `<i class='fa-solid ${this.value}'></i>`">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-2">สีของหมวดหมู่</label>
-                    <div class="flex flex-wrap gap-2" id="add-category-colors">
-                        <label class="cursor-pointer"><input type="radio" name="category_color" value="red"
-                                class="peer hidden">
-                            <div
-                                class="w-6 h-6 rounded-full bg-red-400 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-red-500">
-                            </div>
-                        </label>
-                        <label class="cursor-pointer"><input type="radio" name="category_color" value="orange"
-                                class="peer hidden">
-                            <div
-                                class="w-6 h-6 rounded-full bg-orange-400 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-orange-500">
-                            </div>
-                        </label>
-                        <label class="cursor-pointer"><input type="radio" name="category_color" value="yellow"
-                                class="peer hidden">
-                            <div
-                                class="w-6 h-6 rounded-full bg-yellow-400 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-yellow-500">
-                            </div>
-                        </label>
-                        <label class="cursor-pointer"><input type="radio" name="category_color" value="green"
-                                class="peer hidden">
-                            <div
-                                class="w-6 h-6 rounded-full bg-green-400 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-green-500">
-                            </div>
-                        </label>
-                        <label class="cursor-pointer"><input type="radio" name="category_color" value="blue"
-                                class="peer hidden" checked>
-                            <div
-                                class="w-6 h-6 rounded-full bg-blue-400 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-blue-500">
-                            </div>
-                        </label>
-                        <label class="cursor-pointer"><input type="radio" name="category_color" value="indigo"
-                                class="peer hidden">
-                            <div
-                                class="w-6 h-6 rounded-full bg-indigo-400 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-indigo-500">
-                            </div>
-                        </label>
-                        <label class="cursor-pointer"><input type="radio" name="category_color" value="purple"
-                                class="peer hidden">
-                            <div
-                                class="w-6 h-6 rounded-full bg-purple-400 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-purple-500">
-                            </div>
-                        </label>
-                        <label class="cursor-pointer"><input type="radio" name="category_color" value="pink"
-                                class="peer hidden">
-                            <div
-                                class="w-6 h-6 rounded-full bg-pink-400 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-pink-500">
-                            </div>
-                        </label>
-                        <label class="cursor-pointer"><input type="radio" name="category_color" value="gray"
-                                class="peer hidden">
-                            <div
-                                class="w-6 h-6 rounded-full bg-gray-400 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-500">
-                            </div>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
-                <button onclick="closeFinanceModal('finance-add-category-modal')"
-                    class="px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">ยกเลิก</button>
-                <button id="btn-submit-category"
-                    class="px-6 py-2.5 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm transition-colors flex items-center gap-2"><i
-                        class="fa-solid fa-plus"></i> เพิ่มหมวดหมู่</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 1. Add Transaction Modal -->
-    <div id="finance-add-modal"
-        class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/40 py-4 px-2"
-        onclick="closeFinanceModal('finance-add-modal')">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl flex flex-col max-h-full overflow-hidden"
-            onclick="event.stopPropagation()">
-            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h2 class="text-xl font-bold text-gray-800 tracking-tight flex items-center gap-2"><i
-                        class="fa-solid fa-plus-circle text-blue-500"></i> เพิ่มรายการการเงิน</h2>
-                <button onclick="closeFinanceModal('finance-add-modal')"
-                    class="text-gray-400 hover:text-gray-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
-                <!-- Type Selection -->
-                <div class="mb-6 flex gap-4">
-                    <label class="flex-1 cursor-pointer group">
-                        <input type="radio" name="finance_add_type" value="credit" class="peer hidden" checked
-                            onchange="toggleFinanceAddType()">
-                        <div
-                            class="border-2 border-gray-200 rounded-xl p-4 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all flex items-start gap-3">
-                            <div
-                                class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-blue-500 shadow-sm">
-                                <i class="fa-solid fa-wallet"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-gray-800">Credit / งบประมาณ</h4>
-                                <p class="text-xs text-gray-500 mt-1">ตั้งงบ แผนใช้จ่าย หรือขออนุมัติ</p>
-                            </div>
-                        </div>
-                    </label>
-                    <label class="flex-1 cursor-pointer group">
-                        <input type="radio" name="finance_add_type" value="cash" class="peer hidden"
-                            onchange="toggleFinanceAddType()">
-                        <div
-                            class="border-2 border-gray-200 rounded-xl p-4 peer-checked:border-green-500 peer-checked:bg-green-50 transition-all flex items-start gap-3">
-                            <div
-                                class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-green-500 shadow-sm">
-                                <i class="fa-solid fa-hand-holding-dollar"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-gray-800">Cash / เงินสดจริง</h4>
-                                <p class="text-xs text-gray-500 mt-1">รับ-จ่ายเงินที่เกิดขึ้นจริง</p>
-                            </div>
-                        </div>
-                    </label>
-                </div>
-
-                <div class="grid grid-cols-2 gap-5">
-                    <div class="col-span-2">
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">ชื่อรายการ <span
-                                class="text-red-500">*</span></label>
-                        <input type="text"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                            placeholder="เช่น ขออนุมัติงบอาหารและเบรก">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">หมวดหมู่ <span
-                                class="text-red-500">*</span></label>
-                        <select
-                            class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white">
-                            <option value="">เลือกหมวดหมู่...</option>
-                            <option value="welfare">สวัสดิการอาหารและเบรก</option>
-                            <option value="supplies">พัสดุ</option>
-                            <option value="activity">กิจกรรม</option>
-                            <option value="travel">เดินทาง</option>
-                            <option value="other">อื่นๆ</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">จำนวนเงิน (บาท) <span
-                                class="text-red-500">*</span></label>
-                        <input type="number"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                            placeholder="0.00">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5" id="label-date-add">วันที่ <span
-                                class="text-red-500">*</span></label>
-                        <input type="date"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
-                    </div>
-
-                    <div id="field-credit-owner">
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">ผู้รับผิดชอบ <span
-                                class="text-red-500">*</span></label>
-                        <select
-                            class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white">
-                            <option value="">เลือกผู้รับผิดชอบ...</option>
-                            <option value="pm">ผู้จัดการโครงการ</option>
-                            <option value="ac">ฝ่ายบัญชี</option>
-                        </select>
-                    </div>
-
-                    <div id="field-cash-payer" class="hidden">
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">ผู้รับ/ผู้จ่ายเงิน <span
-                                class="text-red-500">*</span></label>
-                        <input type="text"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                            placeholder="เช่น บจก. เอบีซี หรือ นายสมชาย">
-                    </div>
-
-                    <div class="col-span-2">
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">รายละเอียด / เหตุผล</label>
-                        <textarea
-                            class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none min-h-[80px]"
-                            placeholder="รายละเอียดเพิ่มเติม"></textarea>
-                    </div>
-
-                    <div class="col-span-2">
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">ไฟล์แนบ / หลักฐาน (PDF, JPG,
-                            PNG)</label>
-                        <label
-                            class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:bg-gray-50 transition-colors cursor-pointer block relative group">
-                            <input type="file" id="finance-attachment-add"
-                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                accept=".pdf,.jpg,.jpeg,.png" onchange="handleFinanceAttachmentChange(this)">
-                            <div id="finance-attachment-add-ui" class="pointer-events-none">
-                                <i
-                                    class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2 group-hover:text-blue-500 transition-colors"></i>
-                                <p class="text-sm text-blue-600 font-medium">คลิกเพื่ออัปโหลดไฟล์</p>
-                                <p class="text-xs text-gray-400 mt-1">หรือลากไฟล์มาวางที่นี่</p>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
-                <button onclick="closeFinanceModal('finance-add-modal')"
-                    class="px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">ยกเลิก</button>
-                <button
-                    class="px-6 py-2.5 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm transition-colors flex items-center gap-2"><i
-                        class="fa-solid fa-check"></i> บันทึกรายการ</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 2. Request Budget Modal -->
-    <div id="finance-request-modal"
-        class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/40 py-4 px-2"
-        onclick="closeFinanceModal('finance-request-modal')">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg flex flex-col max-h-full overflow-hidden"
-            onclick="event.stopPropagation()">
-            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-orange-50">
-                <h2 class="text-xl font-bold text-orange-700 tracking-tight flex items-center gap-2"><i
-                        class="fa-regular fa-paper-plane"></i> ขอใช้งบประมาณ</h2>
-                <button onclick="closeFinanceModal('finance-request-modal')"
-                    class="text-orange-400 hover:text-orange-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-orange-100">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4">
-                <div
-                    class="bg-blue-50 border border-blue-100 text-blue-700 text-xs p-3 rounded-lg flex items-start gap-2 mb-2">
-                    <i class="fa-solid fa-circle-info mt-0.5"></i>
-                    <p>รายการที่ขอใช้งบประมาณ จะถูกส่งไปยังเจ้าของโครงการเพื่อพิจารณาอนุมัติก่อน
-                        จึงจะสามารถเบิกจ่ายเงินจริงได้</p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1.5">รายการที่ต้องการขอ <span
-                            class="text-red-500">*</span></label>
-                    <input type="text"
-                        class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 outline-none"
-                        placeholder="เช่น ซื้อกระดาษ A4 สำหรับกิจกรรม">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">หมวดหมู่งบประมาณ <span
-                                class="text-red-500">*</span></label>
-                        <select
-                            class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 outline-none bg-white">
-                            <option value="">เลือกหมวดหมู่...</option>
-                            <option value="welfare">สวัสดิการอาหารและเบรก</option>
-                            <option value="supplies">พัสดุ</option>
-                            <option value="activity">กิจกรรม</option>
-                            <option value="travel">เดินทาง</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">จำนวนเงิน (บาท) <span
-                                class="text-red-500">*</span></label>
-                        <input type="number"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 outline-none"
-                            placeholder="0.00">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1.5">วันที่ต้องการใช้เงิน <span
-                            class="text-red-500">*</span></label>
-                    <input type="date"
-                        class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1.5">เหตุผลความจำเป็น <span
-                            class="text-red-500">*</span></label>
-                    <textarea
-                        class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 outline-none min-h-[80px]"
-                        placeholder="ระบุเหตุผลที่ต้องการใช้งบประมาณก้อนนี้"></textarea>
-                </div>
-            </div>
-
-            <div class="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
-                <button onclick="closeFinanceModal('finance-request-modal')"
-                    class="px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">ยกเลิก</button>
-                <button
-                    class="px-6 py-2.5 text-sm font-bold bg-orange-500 hover:bg-orange-600 text-white rounded-xl shadow-sm transition-colors flex items-center gap-2"><i
-                        class="fa-regular fa-paper-plane"></i> ส่งคำขออนุมัติ</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. Export Report Modal -->
-    <div id="finance-export-modal"
-        class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/40 py-4 px-2"
-        onclick="closeFinanceModal('finance-export-modal')">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden"
-            onclick="event.stopPropagation()">
-            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h2 class="text-xl font-bold text-gray-800 tracking-tight flex items-center gap-2"><i
-                        class="fa-solid fa-file-export text-gray-500"></i> Export Financial Report</h2>
-                <button onclick="closeFinanceModal('finance-export-modal')"
-                    class="text-gray-400 hover:text-gray-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div class="p-6 space-y-5">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-2">ช่วงเวลา</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <label class="cursor-pointer">
-                            <input type="radio" name="export_time" class="peer hidden" checked>
-                            <div
-                                class="border border-gray-200 rounded-lg p-2 text-center text-sm font-medium peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-checked:border-blue-300 transition-colors">
-                                เดือนนี้</div>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="export_time" class="peer hidden">
-                            <div
-                                class="border border-gray-200 rounded-lg p-2 text-center text-sm font-medium peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-checked:border-blue-300 transition-colors">
-                                ไตรมาสนี้</div>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="export_time" class="peer hidden">
-                            <div
-                                class="border border-gray-200 rounded-lg p-2 text-center text-sm font-medium peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-checked:border-blue-300 transition-colors">
-                                ปีนี้</div>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="export_time" class="peer hidden">
-                            <div
-                                class="border border-gray-200 rounded-lg p-2 text-center text-sm font-medium peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-checked:border-blue-300 transition-colors">
-                                กำหนดเอง</div>
-                        </label>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-2">ประเภทรายงาน</label>
-                    <select
-                        class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 outline-none bg-white">
-                        <option>รายงานทั้งหมด (All)</option>
-                        <option>สรุป Credit (Budget Plan)</option>
-                        <option>สรุป Cash (Actual Expenses)</option>
-                        <option>รายการรออนุมัติ (Pending)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-2">รูปแบบไฟล์</label>
-                    <div class="flex gap-4">
-                        <label class="flex items-center gap-2 cursor-pointer text-sm">
-                            <input type="radio" name="export_format" value="pdf" checked
-                                class="text-blue-600 focus:ring-blue-500">
-                            <i class="fa-solid fa-file-pdf text-red-500"></i> PDF Document
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer text-sm">
-                            <input type="radio" name="export_format" value="excel"
-                                class="text-blue-600 focus:ring-blue-500">
-                            <i class="fa-solid fa-file-excel text-green-600"></i> Excel Spreadsheet
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
-                <button onclick="closeFinanceModal('finance-export-modal')"
-                    class="px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">ยกเลิก</button>
-                <button
-                    class="px-6 py-2.5 text-sm font-bold bg-gray-800 hover:bg-black text-white rounded-xl shadow-sm transition-colors flex items-center gap-2"><i
-                        class="fa-solid fa-download"></i> Generate Report</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. Transaction Detail Side Panel -->
-    <div id="finance-detail-panel" class="hidden fixed inset-0 z-[100] bg-black/20 transition-opacity"
-        onclick="closeFinancePanel()">
-        <div class="absolute top-0 right-0 h-full w-full max-w-md bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.1)] flex flex-col transform transition-transform duration-300 translate-x-full"
-            id="finance-detail-content" onclick="event.stopPropagation()">
-            <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white z-10">
-                <h2 class="text-lg font-bold text-gray-800">รายละเอียดรายการ</h2>
-                <button onclick="closeFinancePanel()"
-                    class="text-gray-400 hover:text-gray-700 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div class="flex-1 overflow-y-auto p-6 bg-gray-50/30">
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm mb-5 text-center">
-                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 text-blue-600 mb-3 text-xl"
-                        id="panel-icon">
-                        <i class="fa-solid fa-wallet"></i>
-                    </div>
-                    <h3 class="text-base font-bold text-gray-800 mb-1" id="panel-title">รายละเอียดรายการ</h3>
-                    <div class="text-3xl font-black text-gray-900 mb-3" id="panel-amount">฿0</div>
-                    <div class="flex justify-center gap-2" id="panel-badges">
-                        <span
-                            class="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold"
-                            id="panel-type">Credit</span>
-                        <span
-                            class="bg-orange-50 text-orange-600 border border-orange-200 px-3 py-1 rounded-lg text-xs font-bold"
-                            id="panel-status">รออนุมัติ</span>
-                    </div>
-                </div>
-
-                <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden mb-5">
-                    <div class="px-5 py-3.5 border-b border-gray-50 flex justify-between items-center">
-                        <span class="text-xs font-medium text-gray-500">หมวดหมู่</span>
-                        <span class="text-sm font-semibold text-gray-800 flex items-center gap-2" id="panel-category"><i
-                                class="fa-solid fa-utensils text-orange-400"></i> สวัสดิการ</span>
-                    </div>
-                    <div class="px-5 py-3.5 border-b border-gray-50 flex justify-between items-center">
-                        <span class="text-xs font-medium text-gray-500">วันที่</span>
-                        <span class="text-sm font-medium text-gray-800" id="panel-date">—</span>
-                    </div>
-                    <div class="px-5 py-3.5 border-b border-gray-50 flex justify-between items-center">
-                        <span class="text-xs font-medium text-gray-500">ผู้ขอ/ผู้บันทึก</span>
-                        <div class="flex items-center gap-2">
-                            <img src="https://ui-avatars.com/api/?name=PM&background=random"
-                                class="w-6 h-6 rounded-full border border-gray-200">
-                            <span class="text-sm font-medium text-gray-800" id="panel-user">—</span>
-                        </div>
-                    </div>
-                    <div class="px-5 py-3.5 border-b border-gray-50 flex flex-col gap-2">
-                        <span class="text-xs font-medium text-gray-500">รายละเอียด</span>
-                        <p class="text-sm text-gray-700 bg-gray-50 p-3 rounded-xl">
-                            ขอใช้งบประมาณสำหรับจัดเลี้ยงอาหารกลางวันและเบรกในการประชุม Kick-off โครงการ จำนวน 20 คน</p>
-                    </div>
-                    <div class="px-5 py-3.5 flex flex-col gap-2">
-                        <span class="text-xs font-medium text-gray-500">เอกสารแนบ</span>
-                        <a href="#"
-                            class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 transition-colors group">
-                            <i class="fa-solid fa-file-pdf text-red-500 text-lg"></i>
-                            <div class="flex-1">
-                                <p class="text-xs font-bold text-gray-800 group-hover:text-blue-700">
-                                    ใบเสนอราคา_ร้านอาหาร.pdf</p>
-                                <p class="text-[10px] text-gray-400">1.2 MB</p>
-                            </div>
-                            <i class="fa-solid fa-download text-gray-400 group-hover:text-blue-600"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Approval Actions (Only show for pending) -->
-                <div class="grid grid-cols-2 gap-3 mb-5" id="panel-approval-actions">
-                    <button
-                        class="px-4 py-2.5 text-sm font-bold bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-xl transition-colors">ไม่อนุมัติ</button>
-                    <button
-                        class="px-4 py-2.5 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-sm transition-colors">อนุมัติงบประมาณ</button>
-                </div>
-
-                <button
-                    class="w-full px-4 py-3 text-sm font-bold bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors flex items-center justify-center gap-2">
-                    <i class="fa-regular fa-comments text-blue-500"></i> คุยเรื่องรายการนี้ในแชท
-                </button>
-            </div>
-        </div>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/mockData.js?v=8"></script>
-    <script src="js/config.js?v=10"></script>
-    <script src="js/supabaseClient.js?v=1"></script>
-    <script src="js/apiService.js?v=7"></script>
-    <script src="js/i18n.js?v=8"></script>
-    <script src="js/workReport.js?v=7"></script>
-    <script src="js/dateFormat.js?v=1"></script>
-    <script src="js/app.js?v=44"></script>
-    <script src="js/login-flow.js?v=12"></script>
-    <script src="js/finance.js?v=1"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.17/purify.min.js" integrity="sha512-2wT0W6vojz3cJuLoa/DxrPVQRinkfRjFWMWIDK4NghTqObEhpem1nEkeK0d9ZE+/hyvfMNuJZlfxM4LsRgeoSA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="js/theme.js?v=3"></script>
+    <script src="js/mockData.js?v=9"></script>
+    <script src="js/config.js?v=12"></script>
+    <script src="js/supabaseClient.js?v=5"></script>
+    <script src="js/apiService.js?v=8"></script>
+    <script src="js/i18n.js?v=18"></script>
+    <script src="js/workReport.js?v=12"></script>
+    <script src="js/dateFormat.js?v=2"></script>
+    <script src="js/app.js?v=61"></script>
+    <script src="js/login-flow.js?v=15"></script>
+    <script src="js/accounting.js?v=3"></script>
     <script src="js/personalInfo.js?v=2"></script>
     <script src="js/memberInfo.js?v=1"></script>
-    <script src="js/teamAdmin.js?v=4"></script>
+    <script src="js/teamAdmin.js?v=5"></script>
     <script src="js/mailbox.js?v=3"></script>
-    <script src="js/invitePage.js?v=5"></script>
+    <script src="js/invitePage.js?v=6"></script>
     <script src="js/memberActions.js?v=2"></script>
-    <script src="js/nav.js?v=6"></script>
+    <script src="js/nav.js?v=7"></script>
 </body>
 
 </html>

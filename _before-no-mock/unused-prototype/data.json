@@ -1,0 +1,178 @@
+{
+  "currentUser": {
+    "id": 1,
+    "name": "ผู้ใช้งานทดสอบ",
+    "department": "ผู้บริหาร",
+    "role": "CEO",
+    "avatar": "https://i.pravatar.cc/150?u=1"
+  },
+  "departments": [
+    {
+      "id": "exec",
+      "name": "ฝ่ายบริหาร",
+      "level": 1
+    },
+    {
+      "id": "acc",
+      "name": "ฝ่ายบัญชี",
+      "level": 2
+    },
+    {
+      "id": "sales",
+      "name": "ฝ่ายเซลล์",
+      "level": 2
+    },
+    {
+      "id": "it",
+      "name": "ฝ่ายไอที",
+      "level": 2
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "name": "สมชาย ใจดี",
+      "department": "ฝ่ายบริหาร",
+      "role": "CEO",
+      "avatar": "https://i.pravatar.cc/150?u=1"
+    },
+    {
+      "id": 2,
+      "name": "สมหญิง รักงาน",
+      "department": "ฝ่ายบริหาร",
+      "role": "COO",
+      "avatar": "https://i.pravatar.cc/150?u=2"
+    },
+    {
+      "id": 3,
+      "name": "มาลี บัญชีเนี้ยบ",
+      "department": "ฝ่ายบัญชี",
+      "role": "Accounting Manager",
+      "avatar": "https://i.pravatar.cc/150?u=3"
+    },
+    {
+      "id": 4,
+      "name": "วิชัย ขายเก่ง",
+      "department": "ฝ่ายเซลล์",
+      "role": "Sales Rep",
+      "avatar": "https://i.pravatar.cc/150?u=4"
+    },
+    {
+      "id": 5,
+      "name": "นที โค้ดไว",
+      "department": "ฝ่ายไอที",
+      "role": "Developer",
+      "avatar": "https://i.pravatar.cc/150?u=5"
+    }
+  ],
+  "projects": [
+    {
+      "id": 101,
+      "name": "โปรเจกต์ระบบภายใน ERP",
+      "description": "พัฒนาระบบ ERP ใช้งานภายในบริษัท",
+      "progress": 65,
+      "dueDate": "2026-08-01",
+      "members": [
+        1,
+        5
+      ]
+    },
+    {
+      "id": 102,
+      "name": "แคมเปญการตลาด Q3",
+      "description": "วางแผนและจัดทำสื่อโฆษณาไตรมาสที่ 3",
+      "progress": 30,
+      "dueDate": "2026-06-30",
+      "members": [
+        1,
+        4
+      ]
+    },
+    {
+      "id": 103,
+      "name": "ตรวจสอบงบประมาณประจำปี",
+      "description": "เคลียร์เอกสารบัญชีทั้งหมด",
+      "progress": 90,
+      "dueDate": "2026-05-31",
+      "members": [
+        1,
+        3
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": 1001,
+      "projectId": 101,
+      "title": "ออกแบบฐานข้อมูล",
+      "assigneeId": 5,
+      "status": "done",
+      "dueDate": "2026-05-15",
+      "comments": [
+        {
+          "user": 1,
+          "text": "เยี่ยมมากครับ"
+        }
+      ]
+    },
+    {
+      "id": 1002,
+      "projectId": 101,
+      "title": "พัฒนา API",
+      "assigneeId": 5,
+      "status": "in-progress",
+      "dueDate": "2026-06-01",
+      "comments": []
+    },
+    {
+      "id": 1003,
+      "projectId": 102,
+      "title": "ติดต่อ Influencer",
+      "assigneeId": 4,
+      "status": "todo",
+      "dueDate": "2026-06-10",
+      "comments": []
+    }
+  ],
+  "messages": [
+    {
+      "id": 1,
+      "chatId": "personal",
+      "from": 1,
+      "text": "อย่าลืมประชุมบ่ายนี้เรื่องงบประมาณ",
+      "timestamp": "2026-05-27T09:00:00Z"
+    },
+    {
+      "id": 2,
+      "chatId": "group-sales",
+      "from": 4,
+      "text": "ยอดขายเดือนนี้ทะลุเป้าแล้วครับ!",
+      "timestamp": "2026-05-27T10:15:00Z"
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "type": "personal",
+      "title": "พบแพทย์",
+      "date": "2026-05-28",
+      "time": "13:00"
+    },
+    {
+      "id": 2,
+      "type": "project",
+      "projectId": 101,
+      "title": "ประชุมสปรินต์รีวิว",
+      "date": "2026-05-29",
+      "time": "10:00"
+    },
+    {
+      "id": 3,
+      "type": "project",
+      "projectId": 102,
+      "title": "Kick-off แคมเปญ",
+      "date": "2026-05-28",
+      "time": "14:00"
+    }
+  ]
+}
