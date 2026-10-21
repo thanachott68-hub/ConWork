@@ -1,0 +1,32 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Mascot preview</title>
+<style>body{margin:0;background:#F8FAFC;font:14px system-ui}#row{display:flex;gap:8px;padding:8px}canvas{background:#fff;border-radius:12px}p{margin:4px 8px}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<p id="info">loading…</p>
+<div id="row"></div>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const file = new URLSearchParams(location.search).get('f') || 'mascot-new.glb';
+const loader = new GLTFLoader();
+const t0 = performance.now();
+loader.load(file, gltf => {
+  const obj = gltf.scene;
+  const box = new THREE.Box3().setFromObject(obj), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+  obj.position.sub(c);
+  let tris = 0; obj.traverse(o => { if (o.isMesh) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; });
+  document.getElementById('info').textContent = file + ' · loaded in ' + Math.round(performance.now() - t0) + ' ms · triangles ' + Math.round(tris) + ' · size ' + size.toArray().map(v => v.toFixed(2)).join(' × ');
+  for (const ang of [0, 45, 90, 180]) {
+    const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); r.setSize(260, 340); r.outputColorSpace = THREE.SRGBColorSpace;
+    document.getElementById('row').appendChild(r.domElement);
+    const s = new THREE.Scene(); s.background = new THREE.Color('#ffffff');
+    s.add(new THREE.HemisphereLight(0xffffff, 0x8899aa, 2.2)); const d = new THREE.DirectionalLight(0xffffff, 2.2); d.position.set(2, 3, 4); s.add(d);
+    const o = obj.clone(); o.rotation.y = ang * Math.PI / 180; s.add(o);
+    const cam = new THREE.PerspectiveCamera(30, 260 / 340, 0.01, 100); const dist = Math.max(size.x, size.y) * 2.2; cam.position.set(0, 0, dist); cam.lookAt(0, 0, 0);
+    r.render(s, cam);
+  }
+  window.__done = true;
+}, undefined, e => { document.getElementById('info').textContent = 'error ' + e.message; window.__done = true; });
+</script>
+</body></html>

@@ -124,6 +124,7 @@
     function leaveWaiting() {
         var sb = client();
         return myId().then(function (uid) {
+            if (!team.id) return false; // team not known yet
             if (sb) return sb.from('team_requests').select('id').eq('company_id', team.id).eq('user_id', uid).eq('type', 'leave').eq('status', 'waiting').then(function (r) { return !!(r.data && r.data.length); }).catch(function () { return false; });
             return readLS('conwork_team_requests', []).some(function (x) { return String(x.workspace_id) === String(team.id) && String(x.user_id) === uid && x.type === 'leave' && x.status === 'waiting'; });
         });

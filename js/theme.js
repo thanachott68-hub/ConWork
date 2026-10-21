@@ -63,26 +63,38 @@
         try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
     }
 
-    var busy = false;
+    /* switches run one after another: a second click during the animation waits for the first one,
+       so the theme always ends where the clicks say (apply functions should read the current theme when they run) */
+    var queue = Promise.resolve();
     function swap(apply, from) {
         if (typeof apply !== 'function') return Promise.resolve();
-        if (busy || reducedMotion() || document.visibilityState === 'hidden') { apply(); return Promise.resolve(); }
-        var p = pointFrom(from), W = window.innerWidth, H = window.innerHeight;
+        var point = pointFrom(from); // where the click was, taken now
+        var job = function () { return runSwap(apply, point); };
+        queue = queue.then(job, job);
+        return queue;
+    }
+    /* never wait longer than this for a step the browser may stall (e.g. a tab in the background) */
+    function capped(promise, ms) {
+        return Promise.race([promise, new Promise(function (r) { setTimeout(r, ms); })]);
+    }
+    function runSwap(apply, p) {
+        if (reducedMotion() || document.visibilityState === 'hidden') { apply(); return Promise.resolve(); }
+        var W = window.innerWidth, H = window.innerHeight;
         var R = Math.hypot(Math.max(p.x, W - p.x), Math.max(p.y, H - p.y));
-        busy = true;
-        var done = function () { busy = false; };
-        setTimeout(done, 1600); /* never stay "busy" if the browser stalls the animation */
+        var done = function () { };
 
         if (typeof document.startViewTransition === 'function') {
             try {
-                var t = document.startViewTransition(function () { apply(); });
+                var applied = false;
+                /* apply only once: a stalled transition can run this after the time limit below already did */
+                var t = document.startViewTransition(function () { if (!applied) { applied = true; apply(); } });
                 t.ready.then(function () {
                     document.documentElement.animate(
                         { clipPath: ['circle(0px at ' + p.x + 'px ' + p.y + 'px)', 'circle(' + R + 'px at ' + p.x + 'px ' + p.y + 'px)'] },
                         { duration: 700, easing: 'cubic-bezier(.65,0,.35,1)', pseudoElement: '::view-transition-new(root)' });
                 }).catch(function () { });
-                /* if the browser drops the transition (e.g. tab in the background) the theme has still been applied */
-                return t.finished.then(done, done);
+                /* if the browser drops or stalls the transition, the theme is still applied */
+                return capped(t.finished.catch(function () { }), 1600).then(function () { if (!applied) { applied = true; apply(); } });
             } catch (e) { /* fall through to the overlay */ }
         }
 

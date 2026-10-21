@@ -12470,7 +12470,14 @@ const App = {
 
     /* e: the click, so the bubble grows from the switch that was pressed */
     toggleTheme(e) {
-        this.toggleDarkMode(!this.settings.darkMode, e && (e.currentTarget || e));
+        const from = e && (e.currentTarget || e);
+        /* decide light/dark when the switch actually happens: a quick second click waits for the first (js/theme.js) */
+        const apply = () => {
+            this.settings.darkMode = !this.settings.darkMode;
+            this._saveSettings();
+            this._showToast(this.settings.darkMode ? 'เปลี่ยนเป็นโหมดมืดแล้ว' : 'กลับสู่โหมดสว่าง', 'success');
+        };
+        if (window.ConworkTheme) window.ConworkTheme.swap(apply, from); else apply();
     },
 
     setFontSize(size) {
@@ -12677,7 +12684,7 @@ window.addEventListener('storage', (e) => {
             const freshUser = mockUsers.find(u => u.id == App.state.currentUser.id);
             if (freshUser) {
                 App.state.currentUser = freshUser;
-                App.renderSidebar();
+                if (typeof App.renderSidebar === 'function') App.renderSidebar();
             }
 
             // Check if team view is active to re-render the list
