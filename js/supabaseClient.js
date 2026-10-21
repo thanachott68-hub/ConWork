@@ -3,6 +3,156 @@
  * Encapsulates Supabase Auth, Multi-tenant Workspaces, Projects, Tasks, Realtime Chat, and Calendar Events.
  */
 
+/* ===================================================================================================
+ * Where things live:
+ *   Supabase  → sign-in only (auth.*)
+ *   Neon      → all data (.from / .rpc through Neon's Data API, which checks the Supabase sign-in token),
+ *               files (Neon file service) and "live" updates (polling the Data API instead of Supabase Realtime)
+ * The rest of the app keeps calling window.conworkSupabase.client.* exactly as before; this object sends each call
+ * to the right place.
+ * =================================================================================================== */
+
+/* files: the same calls the app used on Supabase Storage (upload / createSignedUrl / remove), sent to the Neon file service */
+function cwFileStorage(baseUrl, getToken) {
+    const call = async (method, path, query, body, contentType) => {
+        const token = await getToken();
+        if (!token) return { data: null, error: { message: 'Not signed in' } };
+        const qs = new URLSearchParams(Object.assign({ path }, query || {})).toString();
+        try {
+            const res = await fetch(`${baseUrl}/${method === 'POST' ? 'upload' : method === 'DELETE' ? 'file' : 'url'}?${qs}`, {
+                method,
+                headers: Object.assign({ Authorization: `Bearer ${token}` }, contentType ? { 'Content-Type': contentType } : {}),
+                body
+            });
+            const text = await res.text();
+            let json = null; try { json = text ? JSON.parse(text) : null; } catch (e) { }
+            if (!res.ok) return { data: null, error: { message: (json && (json.error || json.message)) || text || `HTTP ${res.status}`, status: res.status } };
+            return { data: json, error: null };
+        } catch (e) { return { data: null, error: { message: e.message || String(e) } }; }
+    };
+    return {
+        from() {
+            return {
+                async upload(path, file, opts = {}) {
+                    const type = opts.contentType || (file && file.type) || 'application/octet-stream';
+                    const r = await call('POST', path, null, file, type);
+                    return r.error ? r : { data: { path: (r.data && r.data.path) || path }, error: null };
+                },
+                async createSignedUrl(path, expiresIn = 3600, opts = {}) {
+                    const q = { expires: String(expiresIn || 3600) };
+                    if (opts && opts.download) q.download = typeof opts.download === 'string' ? opts.download : String(path).split('/').pop();
+                    const r = await call('GET', path, q);
+                    return r.error ? r : { data: { signedUrl: r.data && r.data.signedUrl }, error: null };
+                },
+                async remove(paths) {
+                    const list = Array.isArray(paths) ? paths : [paths];
+                    for (const p of list) { const r = await call('DELETE', p); if (r.error) return r; }
+                    return { data: list.map(p => ({ name: p })), error: null };
+                }
+            };
+        }
+    };
+}
+
+/* live updates without Supabase Realtime: each listener asks the Neon Data API for what changed.
+   Open chat room every 3 s, chat list / members 15 s, notifications 20 s, other tables 30 s; nothing while the tab is hidden.
+   The callbacks get the same { new: row } payloads as Supabase's postgres_changes. */
+function cwPollingChannels(getData) {
+    const INTERVAL = { chat_messages: 3000, chat_channel_members: 15000, chat_channels: 15000, notifications: 20000 };
+    const TIME_COL = { chat_messages: 'created_at', notifications: 'created_at', chat_channel_members: 'joined_at', company_members: 'joined_at', mail_messages: 'created_at', team_requests: 'created_at' };
+    /* column that moves when a row changes, for the "any change" check (tables without one: row count only) */
+    const CHANGE_COL = { profiles: 'updated_at', projects: 'updated_at', tasks: 'updated_at', companies: 'updated_at', company_members: 'joined_at', project_members: 'joined_at', notifications: 'created_at', chat_messages: 'created_at', chat_channel_members: 'joined_at', task_sections: null, task_assignees: null };
+    const live = new Set();
+    const parseFilter = f => {
+        const m = /^([\w]+)=eq\.(.+)$/.exec(String(f || ''));
+        return m ? { col: m[1], val: m[2] } : null;
+    };
+    const applyFilter = (q, f) => (f ? q.eq(f.col, f.val) : q);
+
+    function makeWatcher(listener) {
+        const { table, filter, event, cb } = listener;
+        const f = parseFilter(filter);
+        const tsCol = TIME_COL[table];
+        const every = INTERVAL[table] || 30000;
+        let last = null, fingerprint = null, timer = null, busy = false, ready = false;
+
+        /* new rows (INSERT): everything after the newest row seen so far */
+        const pollInserts = async () => {
+            const db = getData();
+            if (!ready) {
+                const { data } = await applyFilter(db.from(table).select(tsCol), f).order(tsCol, { ascending: false }).limit(1);
+                last = data && data[0] ? data[0][tsCol] : '1970-01-01T00:00:00Z';
+                ready = true;
+                return;
+            }
+            const { data, error } = await applyFilter(db.from(table).select('*'), f).gt(tsCol, last).order(tsCol, { ascending: true }).limit(100);
+            if (error || !data || !data.length) return;
+            last = data[data.length - 1][tsCol];
+            data.forEach(row => { try { cb({ eventType: 'INSERT', table, new: row, old: null }); } catch (e) { console.warn('[live]', e); } });
+        };
+        /* any change ('*'): a cheap fingerprint (row count + newest timestamp); when it moves, tell the listener */
+        const pollChanges = async () => {
+            const db = getData();
+            const col = table in CHANGE_COL ? CHANGE_COL[table] : null;
+            const [cnt, newest] = await Promise.all([
+                applyFilter(db.from(table).select('*', { count: 'exact', head: true }), f),
+                col ? applyFilter(db.from(table).select(col), f).order(col, { ascending: false, nullsFirst: false }).limit(1) : Promise.resolve({ data: null })
+            ]);
+            if (cnt.error) return;
+            const fp = `${cnt.count ?? '?'}|${col && newest.data && newest.data[0] ? newest.data[0][col] : ''}`;
+            if (fingerprint !== null && fp !== fingerprint) { try { cb({ eventType: '*', table, new: null, old: null }); } catch (e) { console.warn('[live]', e); } }
+            fingerprint = fp;
+        };
+        const tick = async () => {
+            if (busy || document.hidden) return;
+            busy = true;
+            try { if (event === 'INSERT' && tsCol) await pollInserts(); else await pollChanges(); }
+            catch (e) { /* network hiccup: try again next time */ }
+            finally { busy = false; }
+        };
+        return {
+            start() { tick(); timer = setInterval(tick, every); },
+            stop() { if (timer) clearInterval(timer); timer = null; },
+            tick
+        };
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) live.forEach(ch => ch._watchers.forEach(w => w.tick()));
+    });
+
+    return {
+        channel(name) {
+            const listeners = [];
+            const ch = {
+                _name: name, _watchers: [],
+                on(type, opts, cb) {
+                    /* broadcast and presence need Realtime: not available on Neon (messages still arrive by polling) */
+                    if (type === 'postgres_changes' && opts && opts.table) listeners.push({ table: opts.table, filter: opts.filter, event: opts.event || '*', cb });
+                    return ch;
+                },
+                subscribe(statusCb) {
+                    ch._watchers.forEach(w => w.stop());
+                    ch._watchers = listeners.map(makeWatcher);
+                    ch._watchers.forEach(w => w.start());
+                    live.add(ch);
+                    if (typeof statusCb === 'function') setTimeout(() => statusCb('SUBSCRIBED'), 0);
+                    return ch;
+                },
+                unsubscribe() { ch._watchers.forEach(w => w.stop()); ch._watchers = []; live.delete(ch); return Promise.resolve('ok'); },
+                send() { return Promise.resolve('ok'); },
+                track() { return Promise.resolve('ok'); },
+                untrack() { return Promise.resolve('ok'); },
+                presenceState() { return {}; }
+            };
+            return ch;
+        },
+        removeChannel(ch) { if (ch && ch.unsubscribe) ch.unsubscribe(); return Promise.resolve('ok'); },
+        removeAllChannels() { [...live].forEach(ch => ch.unsubscribe()); return Promise.resolve([]); },
+        getChannels() { return [...live]; }
+    };
+}
+
 class ConWorkSupabaseService {
     constructor() {
         this.client = null;
@@ -14,11 +164,48 @@ class ConWorkSupabaseService {
         if (typeof supabase !== 'undefined' && window.CONWORK_CONFIG && window.CONWORK_CONFIG.USE_SUPABASE) {
             const url = window.CONWORK_CONFIG.SUPABASE_URL;
             const anonKey = window.CONWORK_CONFIG.SUPABASE_ANON_KEY;
-            
+            const neonUrl = window.CONWORK_CONFIG.NEON_DATA_URL;
+            const filesUrl = window.CONWORK_CONFIG.NEON_FILES_URL;
+
             if (url && anonKey && url !== 'YOUR_SUPABASE_URL') {
-                this.client = supabase.createClient(url, anonKey);
+                /* 1) Supabase: sign-in only */
+                const authClient = supabase.createClient(url, anonKey);
+                this.authClient = authClient;
+                const token = async () => {
+                    try { const { data } = await authClient.auth.getSession(); return (data && data.session && data.session.access_token) || null; }
+                    catch (e) { return null; }
+                };
+                /* 2) Neon Data API: same tables, functions and access rules; it checks the Supabase token */
+                /* signed out, supabase-js would send the publishable key as "Bearer …"; Neon only accepts sign-in tokens there,
+                   so drop a value that is not a JWT and let the request go as anonymous */
+                const neonFetch = (input, init = {}) => {
+                    const h = new Headers(init.headers || (input instanceof Request ? input.headers : undefined));
+                    const a = h.get('Authorization') || '';
+                    if (a && String(a).replace(/^Bearer\s+/i, '').split('.').length !== 3) h.delete('Authorization');
+                    return fetch(input, Object.assign({}, init, { headers: h }));
+                };
+                const dataClient = neonUrl ? supabase.createClient(neonUrl, anonKey, {
+                    accessToken: async () => { const t = await token(); if (t) await this._ensureProfile(t); return t; },
+                    global: { fetch: neonFetch }
+                }) : authClient;
+                this.dataClient = dataClient;
+                const live = cwPollingChannels(() => dataClient);
+                /* 3) one object for the whole app */
+                this.client = {
+                    auth: authClient.auth,
+                    from: (...a) => dataClient.from(...a),
+                    rpc: (...a) => dataClient.rpc(...a),
+                    schema: (...a) => dataClient.schema(...a),
+                    storage: filesUrl ? cwFileStorage(filesUrl, token) : authClient.storage,
+                    channel: (...a) => live.channel(...a),
+                    removeChannel: ch => live.removeChannel(ch),
+                    removeAllChannels: () => live.removeAllChannels(),
+                    getChannels: () => live.getChannels()
+                };
+                this._neonUrl = neonUrl;
+                this._anonKey = anonKey;
                 this.initialized = true;
-                console.log('✅ Supabase Client initialized successfully.');
+                console.log('✅ Sign-in: Supabase · Data: Neon');
             } else {
                 console.warn('⚠️ Supabase URL or Anon Key not configured in js/config.js. Falling back to LocalStorage.');
             }
@@ -29,6 +216,30 @@ class ConWorkSupabaseService {
 
     isAvailable() {
         return this.initialized && this.client !== null;
+    }
+
+    /* the Supabase trigger that made a profile on sign-up does not reach Neon: make sure this person's profile row
+       exists there (once per person per page load) before anything reads profiles.
+       Called from the data client's token step, so every data request waits for it. Uses a plain fetch so it
+       does not wait for itself. */
+    _ensureProfile(token) {
+        let uid = '';
+        try { uid = JSON.parse(atob(String(token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub || ''; } catch (e) { }
+        if (!uid || !this._neonUrl) return Promise.resolve();
+        this._profileReady = this._profileReady || {};
+        if (this._profileReady[uid]) return this._profileReady[uid];
+        const p = fetch(`${this._neonUrl}/rest/v1/rpc/ensure_my_profile`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}`, apikey: this._anonKey, 'Content-Type': 'application/json' },
+            body: '{}'
+        }).then(res => {
+            if (!res.ok) throw new Error(`ensure_my_profile ${res.status}`);
+        }).catch(e => {
+            console.warn('[profile]', e.message || e);
+            delete this._profileReady[uid]; // try again on the next request
+        });
+        this._profileReady[uid] = p;
+        return p;
     }
 
     // ==========================================

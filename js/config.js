@@ -18,6 +18,11 @@ const CONFIG = {
     SUPABASE_URL: 'https://knzwvloigbtoupebqzrw.supabase.co',
     SUPABASE_ANON_KEY: 'sb_publishable_w0GX-5qoUsd6-NYCnNCcWg_QkJpQ52H',
 
+    // Supabase is used only for sign-in. The data, files and live updates live on Neon (public addresses, no keys here):
+    // the Data API checks the Supabase sign-in token itself.
+    NEON_DATA_URL: 'https://ep-summer-paper-a12ydbvx.apirest.ap-southeast-1.aws.neon.tech/neondb',
+    NEON_FILES_URL: 'https://br-steep-hat-a1s5a7ht-files.compute.c-1.ap-southeast-1.aws.neon.tech',
+
     // ทางลัดสำหรับทดสอบ (ปิดก่อนขึ้น Production: ตั้ง TEST_LOGIN_KEYWORD เป็น '' และ SKIP_TEAM_PAGE เป็น false)
     // พิมพ์คำนี้ในช่อง Email หน้า Sign in แล้วกด Sign in = เข้าแอปทันทีด้วยบัญชีทดสอบ ไม่ต้องใช้รหัสผ่าน
     TEST_LOGIN_KEYWORD: '',
