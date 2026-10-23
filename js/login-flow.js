@@ -276,6 +276,20 @@ function checkSignupPassword(showErrors) {
     }, true);
 })();
 
+// Enter in any box of a form on this page sends that form (Sign in / Sign up / new password / join or create a team),
+// the same as pressing its button
+document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' || e.isComposing || e.shiftKey) return;
+    if (document.body.getAttribute('data-page') !== 'login') return;   // app.html loads this file too
+    const el = e.target;
+    if (!el || el.tagName !== 'INPUT' || !el.form || el.type === 'file') return;
+    const btn = el.form.querySelector('button[type="submit"], button:not([type])');
+    if (btn && btn.disabled) return;
+    e.preventDefault();
+    if (el.form.requestSubmit) el.form.requestSubmit(btn || undefined);
+    else if (btn) btn.click();
+});
+
 // STEP 1: Authentication Base
 document.getElementById('form-auth')?.addEventListener('submit', async function(e) {
     e.preventDefault();

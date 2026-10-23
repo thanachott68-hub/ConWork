@@ -14,8 +14,9 @@
     var css = [
         /* the switch: a soft pill with a round knob that slides with a little bounce */
         '.cw-theme-switch{position:relative;display:inline-block;flex-shrink:0;width:52px;height:28px;border-radius:999px;vertical-align:middle;',
-        'background:linear-gradient(135deg,#bae6fd 0%,#fde68a 100%);box-shadow:inset 0 1px 3px rgba(15,23,42,.18);transition:background .5s ease,box-shadow .3s ease}',
-        'html.dark .cw-theme-switch{background:linear-gradient(135deg,#1e293b 0%,#4338ca 100%);box-shadow:inset 0 1px 3px rgba(0,0,0,.45)}',
+        /* deeper colours and a thin ring, so the switch stands out on white menus and on dark ones */
+        'background:linear-gradient(135deg,#38bdf8 0%,#f59e0b 100%);box-shadow:inset 0 1px 3px rgba(15,23,42,.25),0 0 0 1px rgba(15,23,42,.12);transition:background .5s ease,box-shadow .3s ease}',
+        'html.dark .cw-theme-switch{background:linear-gradient(135deg,#312e81 0%,#6366f1 100%);box-shadow:inset 0 1px 3px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.18)}',
         '.cw-theme-switch::before,.cw-theme-switch::after{content:"";position:absolute;border-radius:50%;background:#fff;opacity:0;transition:opacity .4s ease,transform .5s cubic-bezier(.34,1.56,.64,1)}',
         '.cw-theme-switch::before{width:3px;height:3px;left:12px;top:8px;transform:scale(.2)}',
         '.cw-theme-switch::after{width:2px;height:2px;left:19px;top:17px;transform:scale(.2)}',
@@ -24,7 +25,7 @@
         'box-shadow:0 2px 6px rgba(15,23,42,.28);transition:transform .6s cubic-bezier(.34,1.56,.64,1),background .5s ease}',
         'html.dark .cw-ts-knob{transform:translateX(24px);background:#0f172a}',
         '.cw-ts-knob svg{position:absolute;width:14px;height:14px;transition:opacity .35s ease,transform .6s cubic-bezier(.34,1.56,.64,1)}',
-        '.cw-ts-sun{color:#f59e0b;opacity:1;transform:rotate(0) scale(1)}',
+        '.cw-ts-sun{color:#d97706;opacity:1;transform:rotate(0) scale(1)}',
         '.cw-ts-moon{color:#c7d2fe;opacity:0;transform:rotate(-90deg) scale(.4)}',
         'html.dark .cw-ts-sun{opacity:0;transform:rotate(90deg) scale(.4)}',
         'html.dark .cw-ts-moon{opacity:1;transform:rotate(0) scale(1)}',

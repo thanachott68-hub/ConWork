@@ -47,8 +47,11 @@ h1, h2, h3, .brand-word { font-family: 'Nunito', 'Kanit', sans-serif; letter-spa
 html[lang="th"] h1, html[lang="th"] h2, html[lang="th"] h3 { font-family: 'Kanit', 'Nunito', sans-serif; letter-spacing: 0; }
 
 /* ---------- top bar ---------- */
-.site-nav { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
-.site-nav .wrap { display: flex; align-items: center; gap: 22px; height: 72px; }
+/* same band as the landing page's bar: white in light theme, a lighter slate than the page in dark theme */
+.site-nav { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, .88); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: 1px solid #E2E8F0; box-shadow: 0 6px 24px rgba(15, 23, 42, .06); }
+html.dark .site-nav { background: rgba(51, 65, 85, .94); border-bottom-color: #475569; box-shadow: 0 6px 24px rgba(0, 0, 0, .35); }
+/* the bar runs edge to edge like the landing page's (logo at the left edge, tools at the right edge) */
+.site-nav .wrap { display: flex; align-items: center; gap: 22px; height: 72px; max-width: none; padding: 0 clamp(20px, 2.4vw, 32px); }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--brand); }
 .brand-word { font-weight: 800; font-size: 22px; color: var(--brand); }
 .navlinks { display: flex; align-items: center; gap: 26px; margin-left: 12px; font: 600 15px 'Kanit', 'IBM Plex Sans Thai', sans-serif; }
@@ -61,7 +64,7 @@ html[lang="th"] h1, html[lang="th"] h2, html[lang="th"] h3 { font-family: 'Kanit
 .lang-btn svg { width: 24px; height: 16px; border-radius: 3px; box-shadow: 0 0 0 1px rgba(15, 23, 42, .08); }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 22px; border-radius: 14px; font: 700 15px 'Nunito', 'Kanit', sans-serif; text-decoration: none; border: 0; cursor: pointer; white-space: nowrap; }
 .btn-dark { background: #0F172A; color: #fff; }
-html.dark .btn-dark { background: #F1F5F9; color: #0F172A; }
+html.dark .btn-dark { background: #3B82F6; color: #fff; }   /* same as the landing page's Sign in in dark theme */
 .btn-primary { background: var(--brand-2); color: #fff; box-shadow: 0 8px 20px rgba(37, 99, 235, .3); }
 .btn-ghost { background: var(--card); color: var(--text); border: 1px solid var(--line); }
 .menu-btn { display: none; width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }

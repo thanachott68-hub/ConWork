@@ -75,7 +75,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/work-report.css?v=3">
-    <link id="dark-mode-styles" rel="stylesheet" href="css/dark-mode.css?v=3">
+    <link id="dark-mode-styles" rel="stylesheet" href="css/dark-mode.css?v=4">
     <link rel="stylesheet" href="css/login-flow.css?v=2">
     <style>
         /* Rich Text Editor Tailwind Resets Reverter */
@@ -279,12 +279,7 @@
                             <i class="fa-solid fa-gear w-5 text-center text-gray-500"></i>
                             การตั้งค่าบัญชี
                         </button>
-                        <button
-                            class="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors text-sm text-left"
-                            onclick="App.openSettingsModal()">
-                            <i class="fa-regular fa-bell w-5 text-center text-gray-500"></i>
-                            การแจ้งเตือน
-                        </button>
+                        <!-- notification settings live in Account Settings (settings-modal) -->
 
                         <div class="border-t border-gray-100 my-1"></div>
 
@@ -336,13 +331,6 @@
                             ทีมของฉัน (สลับทีม)
                         </a>
 
-                        <button
-                            class="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors text-sm text-left"
-                            onclick="goToLandingPage()">
-                            <i class="fa-solid fa-house w-5 text-center text-gray-500"></i>
-                            หน้าหลัก (Landing Page)
-                        </button>
-
                         <div class="border-t border-gray-100 my-1"></div>
 
                         <button
@@ -372,13 +360,6 @@
                         title="ย่อ/ขยาย เมนูด้านข้าง">
                         <i class="fa-solid fa-bars text-lg"></i>
                     </button>
-                    <!-- Home/Landing button for convenient access -->
-                    <button onclick="goToLandingPage()"
-                        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white hover:bg-gray-50 hover:text-blue-600 border border-gray-200 rounded-lg shadow-sm transition-all"
-                        title="กลับสู่หน้าแรก (Landing Page)">
-                        <i class="fa-solid fa-house text-gray-400"></i>
-                        <span class="hidden sm:inline">หน้าหลัก</span>
-                    </button>
                     <div class="flex items-baseline gap-3">
                         <h2 id="main-header-title" class="font-semibold text-gray-800 text-lg">ทีมงาน</h2>
                         <span id="main-header-subtitle"
@@ -404,9 +385,6 @@
                                 <div class="flex gap-2">
                                     <button class="text-xs text-blue-600 hover:underline font-medium"
                                         onclick="App.markAllNotificationsRead()">อ่านแล้ว</button>
-                                    <span class="text-gray-300">|</span>
-                                    <button class="text-xs text-red-600 hover:underline font-medium"
-                                        onclick="App.deleteAllNotifications()">ลบทั้งหมด</button>
                                 </div>
                             </div>
                             <div id="notification-list"
@@ -3341,7 +3319,7 @@
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="ct-repeat" class="sr-only peer">
                                 <div
-                                    class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600">
+                                    class="cw-toggle cw-toggle-sm">
                                 </div>
                             </label>
                         </div>
@@ -4203,7 +4181,7 @@
                             <input type="checkbox" id="setting-app-notif" class="sr-only peer" checked
                                 onchange="App.toggleAppNotifications(this.checked)">
                             <div
-                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                class="cw-toggle">
                             </div>
                         </label>
                     </div>
@@ -4223,7 +4201,7 @@
                             <input type="checkbox" id="setting-email-notif" class="sr-only peer"
                                 onchange="App.toggleEmailNotifications(this.checked)">
                             <div
-                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                class="cw-toggle">
                             </div>
                         </label>
                     </div>
@@ -4638,16 +4616,16 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.17/purify.min.js" integrity="sha512-2wT0W6vojz3cJuLoa/DxrPVQRinkfRjFWMWIDK4NghTqObEhpem1nEkeK0d9ZE+/hyvfMNuJZlfxM4LsRgeoSA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="js/theme.js?v=5"></script>
+    <script src="js/theme.js?v=6"></script>
     <script src="js/mockData.js?v=9"></script>
     <script src="js/config.js?v=13"></script>
     <script src="js/supabaseClient.js?v=7"></script>
     <script src="js/apiService.js?v=8"></script>
-    <script src="js/i18n.js?v=18"></script>
+    <script src="js/i18n.js?v=19"></script>
     <script src="js/workReport.js?v=12"></script>
     <script src="js/dateFormat.js?v=2"></script>
-    <script src="js/app.js?v=63"></script>
-    <script src="js/login-flow.js?v=15"></script>
+    <script src="js/app.js?v=64"></script>
+    <script src="js/login-flow.js?v=16"></script>
     <script src="js/accounting.js?v=3"></script>
     <script src="js/personalInfo.js?v=2"></script>
     <script src="js/memberInfo.js?v=1"></script>
@@ -4655,7 +4633,7 @@
     <script src="js/mailbox.js?v=3"></script>
     <script src="js/invitePage.js?v=6"></script>
     <script src="js/memberActions.js?v=3"></script>
-    <script src="js/nav.js?v=7"></script>
+    <script src="js/nav.js?v=8"></script>
     <script src="js/shortcuts.js?v=1"></script>
 </body>
 

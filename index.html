@@ -75,7 +75,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/work-report.css?v=3">
-    <link id="dark-mode-styles" rel="stylesheet" href="css/dark-mode.css?v=3">
+    <link id="dark-mode-styles" rel="stylesheet" href="css/dark-mode.css?v=4">
     <link rel="stylesheet" href="css/login-flow.css?v=2">
     <style>
         /* Rich Text Editor Tailwind Resets Reverter */
@@ -148,7 +148,7 @@
             #landing-screen nav.nav .cw-logo { height: 34px !important; }
             #landing-screen nav.nav a.signin { padding: 0 14px !important; }
         }
-    </style>    <script src="js/theme.js?v=5"></script>
+    </style>    <script src="js/theme.js?v=6"></script>
 </head>
 
 <body data-page="landing" class="text-gray-800 antialiased h-screen overflow-hidden flex flex-col font-sans bg-cream">
@@ -1225,8 +1225,9 @@
             }
 
             /* nav bar: a solid band that stays on top through the whole scroll */
+            /* fixed to the top edge, also while the footer scrolls in (its right edge stops at the scrollbar, set in js) */
             .cwx-navwrap {
-                position: absolute;
+                position: fixed;
                 left: 0;
                 right: 0;
                 top: 0;
@@ -1238,8 +1239,8 @@
                 transition: background-color .35s ease, box-shadow .35s ease, border-color .35s ease, -webkit-backdrop-filter .35s ease, backdrop-filter .35s ease
             }
 
-            /* the band only shows up once the page starts to scroll */
-            .cwx-navwrap.cwx-band .nav {
+            /* the band is always there, so the bar stands apart from the page in both themes */
+            .cwx-navwrap .nav {
                 background-color: rgba(255, 255, 255, .88);
                 -webkit-backdrop-filter: blur(14px);
                 backdrop-filter: blur(14px);
@@ -7268,9 +7269,19 @@ pC26LaUt
             color: #F8FAFC !important
         }
 
-        html.dark #landing-screen .cwx-navwrap.cwx-band .nav {
-            background-color: rgba(1, 7, 54, .9) !important;
-            border-color: #1E293B !important;
+        /* menu links: light text on the dark bar (set by class, since the width lock rewrites their inline style) */
+        html.dark #landing-screen .navlink {
+            color: #F8FAFC !important
+        }
+
+        html.dark #landing-screen .navlink:hover {
+            color: #93C5FD !important
+        }
+
+        /* a clearly lighter band than the page (#0F172A), same as the other pages' bar (css/site.css) */
+        html.dark #landing-screen .cwx-navwrap .nav {
+            background-color: rgba(51, 65, 85, .94) !important;
+            border-color: #475569 !important;
             box-shadow: 0 6px 24px rgba(0, 0, 0, .35) !important
         }
 
@@ -7514,7 +7525,13 @@ pC26LaUt
                     el.style.minWidth = Math.ceil(w) + 'px'; el.style.justifyContent = 'center'; el.style.textAlign = 'center';
                 });
             }
-            var relock = function () { lockNav(lang() === 'th'); };
+            /* the fixed nav bar ends where the page's scrollbar starts */
+            var fitNav = function () {
+                var sc = document.querySelector('[data-cwx-scroll]'), nw = document.querySelector('.cwx-navwrap');
+                if (sc && nw) nw.style.right = Math.max(0, sc.offsetWidth - sc.clientWidth) + 'px';
+            };
+            var relock = function () { lockNav(lang() === 'th'); fitNav(); };
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fitNav); else fitNav();
             if (document.fonts && document.fonts.ready) document.fonts.ready.then(relock);
             var rt = 0; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(relock, 150); });
             function tools() {
@@ -7577,8 +7594,8 @@ pC26LaUt
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
         })();
     </script>
-    <script src="js/i18n.js?v=18"></script>
-    <script src="js/nav.js?v=7"></script>
+    <script src="js/i18n.js?v=19"></script>
+    <script src="js/nav.js?v=8"></script>
 </body>
 
 </html>

@@ -1946,6 +1946,19 @@ const App = {
     renderDashboardChart(timeframe = 'yearly', payload = null) {
         const u = this.state.currentUser;
         if (!u) return;
+        // the line is drawn in pixels: redraw it when the window size changes
+        this._chartArgs = [timeframe, payload];
+        if (!this._chartResize) {
+            let t = 0;
+            this._chartResize = () => {
+                clearTimeout(t);
+                t = setTimeout(() => {
+                    const v = document.getElementById('view-dashboard');
+                    if (v && !v.classList.contains('hidden') && this._chartArgs[0] !== 'custom') this.renderDashboardChart(...this._chartArgs);
+                }, 200);
+            };
+            window.addEventListener('resize', this._chartResize);
+        }
         const currentUserId = String(u.id);
         let myTasks = mockTasks.filter(t => t.assignees && t.assignees.some(id => String(id) === currentUserId || id == currentUserId));
         
@@ -1955,29 +1968,8 @@ const App = {
             myTasks = myTasks.filter(t => String(t.projectId) === String(projFilterEl.value));
         }
         
-        // Apply Global Date Filter if exists, ONLY IF timeframe is not custom
-        if (timeframe !== 'custom') {
-            const globalStart = document.getElementById('dash-global-start')?.value;
-            const globalEnd = document.getElementById('dash-global-end')?.value;
-            
-            if (globalStart || globalEnd) {
-                myTasks = myTasks.filter(t => {
-                    const d = t.dueDate ? new Date(t.dueDate) : (t.updatedAt ? new Date(t.updatedAt) : new Date(t.createdAt || new Date()));
-                    let isValid = true;
-                    if (globalStart) {
-                        const start = new Date(globalStart);
-                        start.setHours(0,0,0,0);
-                        if (d < start) isValid = false;
-                    }
-                    if (globalEnd) {
-                        const end = new Date(globalEnd);
-                        end.setHours(23,59,59,999);
-                        if (d > end) isValid = false;
-                    }
-                    return isValid;
-                });
-            }
-        }
+        // The chart sets its own time range (the whole year, one month, or the dates picked above the chart),
+        // so the dashboard's date filter (this month by default) is not applied here: it would cut the year down to one month
         
         // Find unique projects involved
         const projectMap = {};
@@ -2150,36 +2142,29 @@ const App = {
         const chartContainer = document.getElementById('dash-chart-container');
         if (!chartContainer) return;
         
+        const hasData = bins.some(b => b.total > 0);
         let maxVal = Math.max(...bins.map(b => b.total));
         maxVal = Math.max(4, Math.ceil(maxVal * 1.2));
         const step = Math.ceil(maxVal / 4);
-        maxVal = step * 4; 
+        maxVal = step * 4;
 
-        // 1. Grid Lines HTML
+        // the numbers sit inside the chart (left gutter), not over the card's edge
+        chartContainer.style.paddingLeft = '36px';
+
+        // 1. Grid Lines HTML (no scale when there is nothing to count)
+        const tick = (v) => hasData ? `<span class="absolute -top-2.5 -left-8 w-6 text-right text-xs text-gray-400">${v}</span>` : '';
         let html = `
-            <div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                <div class="w-full border-t border-gray-100 h-0 relative"><span class="absolute -top-2.5 -left-8 text-xs text-gray-400">${maxVal}</span></div>
-                <div class="w-full border-t border-gray-100 h-0 relative"><span class="absolute -top-2.5 -left-8 text-xs text-gray-400">${maxVal - step}</span></div>
-                <div class="w-full border-t border-gray-100 h-0 relative"><span class="absolute -top-2.5 -left-8 text-xs text-gray-400">${maxVal - step*2}</span></div>
-                <div class="w-full border-t border-gray-100 h-0 relative"><span class="absolute -top-2.5 -left-8 text-xs text-gray-400">${step}</span></div>
-                <div class="w-full border-t border-gray-200 h-0 relative"><span class="absolute -top-2.5 -left-4 text-xs text-gray-400">0</span></div>
+            <div class="absolute top-0 bottom-0 right-0 flex flex-col justify-between pointer-events-none" style="left: 36px">
+                <div class="w-full border-t border-gray-100 h-0 relative">${tick(maxVal)}</div>
+                <div class="w-full border-t border-gray-100 h-0 relative">${tick(maxVal - step)}</div>
+                <div class="w-full border-t border-gray-100 h-0 relative">${tick(maxVal - step * 2)}</div>
+                <div class="w-full border-t border-gray-100 h-0 relative">${tick(step)}</div>
+                <div class="w-full border-t border-gray-200 h-0 relative">${tick(0)}</div>
             </div>
         `;
-        
-        // 2. Line Graph Overlay SVG
-        let points = [];
-        const xStep = 100 / (bins.length - 1 || 1);
-        bins.forEach((bin, idx) => {
-            const x = timeframe === 'yearly' ? (idx * xStep) : (idx * xStep * 0.95 + 2.5); // Center lines a bit
-            const y = 100 - ((bin.total / maxVal) * 100);
-            points.push(`${x},${y}`);
-        });
-        
-        html += `
-            <svg class="absolute inset-0 w-full h-full pointer-events-none drop-shadow-md z-10" preserveAspectRatio="none" viewBox="0 0 100 100">
-                <polyline points="${points.join(' ')}" fill="none" stroke="#E65100" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-            </svg>
-        `;
+        if (!hasData) {
+            html += `<div class="absolute inset-0 flex items-center justify-center text-sm text-gray-400 pointer-events-none" style="left: 36px">ยังไม่มีงานในช่วงเวลานี้</div>`;
+        }
         
         // 3. Bars HTML
         bins.forEach((bin, idx) => {
@@ -2215,6 +2200,30 @@ const App = {
         });
 
         chartContainer.innerHTML = html;
+
+        // the chart box has no fixed height, so a % height on a bar would collapse: give the bars pixel heights
+        const box = chartContainer.getBoundingClientRect();
+        const bars = chartContainer.querySelectorAll(':scope > .w-8');
+        if (box.height > 0) {
+            bars.forEach((bar, idx) => { bar.style.height = Math.max(1, (bins[idx].total / maxVal) * box.height) + 'px'; });
+        }
+
+        // 2. Line through the top of each bar, drawn in pixels from where the bars actually are
+        if (hasData) {
+            const pts = [];
+            bars.forEach((bar, idx) => {
+                const r = bar.getBoundingClientRect();
+                const x = r.left + r.width / 2 - box.left;
+                const y = box.height - (bins[idx].total / maxVal) * box.height;
+                pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+            });
+            if (pts.length > 1 && box.width > 0) {
+                chartContainer.insertAdjacentHTML('afterbegin', `
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none drop-shadow-md z-10" viewBox="0 0 ${box.width.toFixed(1)} ${box.height.toFixed(1)}">
+                        <polyline points="${pts.join(' ')}" fill="none" stroke="#E65100" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+                    </svg>`);
+            }
+        }
     },
 
     renderProjects() {

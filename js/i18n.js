@@ -889,6 +889,7 @@ const th2enMore = {
     "ยังไม่มีข้อความ": "No messages yet",
     "ยังไม่มีข้อมูลงบประมาณ": "No budget data yet",
     "ยังไม่มีข้อมูลโปรเจกต์": "No project data yet",
+    "ยังไม่มีงานในช่วงเวลานี้": "No tasks in this period yet",
     "ยังไม่มีทีม": "No teams yet",
     "ยังไม่มีฝ่าย/แผนก": "No divisions/departments yet",
     "ยังไม่มีรายการ": "No entries yet",
@@ -1328,11 +1329,47 @@ const th2enTemplates = {
     "💬 ข้อความใหม่จาก {0}: {1}": "💬 New message from {0}: {1}"
 };
 
+/* People's names are never translated: a Thai surname such as "แดงโชติ" contains a dictionary word ("แดง" = Red),
+   so the names of everyone in the team (and the signed-in user) are set aside before translating and put back after. */
+let nameList = [], nameKey = '';
+function personNames() {
+    const people = [];
+    try { if (typeof mockUsers !== 'undefined' && Array.isArray(mockUsers)) people.push(...mockUsers); } catch (e) { }
+    try { if (typeof App !== 'undefined' && App.state && App.state.currentUser) people.push(App.state.currentUser); } catch (e) { }
+    try { const saved = JSON.parse(sessionStorage.getItem('conwork_user') || localStorage.getItem('conwork_user') || 'null'); if (saved) people.push(saved); } catch (e) { }
+    const key = people.map(p => p && (p.id + ':' + (p.name || '') + (p.nickname || ''))).join('|');
+    if (key === nameKey) return nameList;
+    const set = new Set();
+    people.forEach(p => {
+        if (!p) return;
+        [p.name, p.fullName, p.full_name, p.first_name, p.last_name, p.firstName, p.lastName, p.nickname].forEach(v => {
+            const s = String(v || '').replace(/\s+/g, ' ').trim();
+            if (!s || !THAI.test(s)) return;
+            set.add(s);
+            s.split(' ').forEach(w => { if (w.length > 1 && THAI.test(w)) set.add(w); });
+        });
+    });
+    nameKey = key;
+    nameList = [...set].sort((a, b) => b.length - a.length);
+    return nameList;
+}
+function keepNames(str, translate) {
+    const names = THAI.test(str) ? personNames() : [];
+    const slots = [];
+    let masked = str;
+    names.forEach(n => {
+        if (masked.includes(n)) { masked = masked.split(n).join('\u0003' + slots.length + '\u0004'); slots.push(n); }
+    });
+    if (!slots.length) return translate(str);
+    return translate(masked).replace(/\u0003(\d+)\u0004/g, (_, i) => slots[+i]);
+}
+
 function translateString(thStr) {
     if (!thStr) return thStr;
-    
+
     // Normalize whitespace to match dictionary keys (e.g., handle newlines in HTML)
     const normalized = thStr.replace(/\s+/g, ' ').trim();
+    if (THAI.test(normalized) && personNames().includes(normalized)) return thStr;
     if (th2en[normalized]) {
         // Preserve leading and trailing whitespace from the original string
         const leadingMatch = thStr.match(/^\s*/);
@@ -1353,10 +1390,12 @@ function translateString(thStr) {
         }
     }
     
-    const fromTemplate = translateTemplate(normalized);
-    if (fromTemplate !== null) return thStr.replace(normalized, fromTemplate);
-
-    return translatePhrases(thStr);
+    return keepNames(thStr, s => {
+        const n = s.replace(/\s+/g, ' ').trim();
+        const fromTemplate = translateTemplate(n);
+        if (fromTemplate !== null) return s.replace(n, fromTemplate);
+        return translatePhrases(s);
+    });
 }
 
 let templateList = null;
