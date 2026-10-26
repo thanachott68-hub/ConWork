@@ -32,21 +32,22 @@ a, button, [onclick], [role="button"], label, summary { -webkit-tap-highlight-co
 /* ---------- Text size setting (เล็ก / กลาง / ใหญ่): only the letters change size ----------
    js/app.js, js/nav.js and team.html set --cw-fs (0.9 / 1.1) and data-cw-fs on <html>; the page layout is untouched
    (before, the whole page was zoomed, which moved everything on iPad and phones). */
-html[data-cw-fs] body { font-size: calc(1rem * var(--cw-fs)); }
-html[data-cw-fs] .text-xs { font-size: calc(0.75rem * var(--cw-fs)) !important; line-height: calc(1rem * var(--cw-fs)) !important; }
-html[data-cw-fs] .text-sm { font-size: calc(0.875rem * var(--cw-fs)) !important; line-height: calc(1.25rem * var(--cw-fs)) !important; }
-html[data-cw-fs] .text-base { font-size: calc(1rem * var(--cw-fs)) !important; line-height: calc(1.5rem * var(--cw-fs)) !important; }
-html[data-cw-fs] .text-lg { font-size: calc(1.125rem * var(--cw-fs)) !important; line-height: calc(1.75rem * var(--cw-fs)) !important; }
-html[data-cw-fs] .text-xl { font-size: calc(1.25rem * var(--cw-fs)) !important; line-height: calc(1.75rem * var(--cw-fs)) !important; }
-html[data-cw-fs] .text-2xl { font-size: calc(1.5rem * var(--cw-fs)) !important; line-height: calc(2rem * var(--cw-fs)) !important; }
-html[data-cw-fs] .text-3xl { font-size: calc(1.875rem * var(--cw-fs)) !important; line-height: calc(2.25rem * var(--cw-fs)) !important; }
-html[data-cw-fs] .text-4xl { font-size: calc(2.25rem * var(--cw-fs)) !important; line-height: calc(2.5rem * var(--cw-fs)) !important; }
-html[data-cw-fs] .text-\[9px\] { font-size: calc(9px * var(--cw-fs)) !important; }
-html[data-cw-fs] .text-\[10px\] { font-size: calc(10px * var(--cw-fs)) !important; }
-html[data-cw-fs] .text-\[11px\] { font-size: calc(11px * var(--cw-fs)) !important; }
+/* sizes below are this project's own text scale (tailwind.config in each page: xs 14px, sm 16px, base 18px, lg 19px;
+   skylearn.css lifts 9/10/11px to 12/12/13px), multiplied by --cw-fs, so Small < Medium < Large always holds */
+html[data-cw-fs] body { font-size: calc(16px * var(--cw-fs)); }
+html[data-cw-fs] .text-xs { font-size: calc(14px * var(--cw-fs)) !important; line-height: calc(20px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-sm { font-size: calc(16px * var(--cw-fs)) !important; line-height: calc(24px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-base { font-size: calc(18px * var(--cw-fs)) !important; line-height: calc(28px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-lg { font-size: calc(19px * var(--cw-fs)) !important; line-height: calc(28px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-xl { font-size: calc(20px * var(--cw-fs)) !important; line-height: calc(28px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-2xl { font-size: calc(24px * var(--cw-fs)) !important; line-height: calc(32px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-3xl { font-size: calc(30px * var(--cw-fs)) !important; line-height: calc(36px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-4xl { font-size: calc(36px * var(--cw-fs)) !important; line-height: calc(40px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-\[9px\] { font-size: calc(12px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-\[10px\] { font-size: calc(12px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-\[11px\] { font-size: calc(13px * var(--cw-fs)) !important; }
 html[data-cw-fs] .text-\[12px\] { font-size: calc(12px * var(--cw-fs)) !important; }
 html[data-cw-fs] .text-\[13px\] { font-size: calc(13px * var(--cw-fs)) !important; }
-
 /* ---------- App top bar: title on the left shrinks; team switch, Finish and bell on the right never overlap ---------- */
 body[data-page="app"] main > header > div:first-child { min-width: 0; }
 body[data-page="app"] main > header > div:first-child > div { min-width: 0; }

@@ -594,9 +594,9 @@ const App = {
 
         // Font size application
         const zoomMap = {
-            'small': '0.9',
+            'small': '0.875',
             'medium': '1',
-            'large': '1.1'
+            'large': '1.125'
         };
         const zoomLevel = zoomMap[this.settings.fontSize || 'medium'];
         // Only the text grows or shrinks (css/ipad.css scales the text sizes by --cw-fs); the page itself is not

@@ -140,7 +140,7 @@
     <!-- Skylearn theme (loaded last so it wins over the older styles) -->
     <link rel="stylesheet" href="css/skylearn.css?v=5">
     <link rel="stylesheet" href="css/bubble.css?v=3">
-    <link rel="stylesheet" href="css/ipad.css?v=6">
+    <link rel="stylesheet" href="css/ipad.css?v=7">
 </head>
 
 <body data-page="team" class="text-gray-800 antialiased h-screen overflow-hidden flex flex-col font-sans bg-cream">
@@ -633,7 +633,7 @@
 
             <main class="tm-page-bg flex-1 min-w-0 overflow-y-auto">
                 <!-- ================= TEAM TAB ================= -->
-                <section id="tab-team" class="p-6 lg:p-8 max-w-6xl">
+                <section id="tab-team" class="p-6 lg:p-8 w-full">
                     <div class="flex flex-wrap items-start gap-4 mb-6">
                         <p class="text-sm text-gray-500 pt-2">กด <b class="text-gray-700">Enter</b> เพื่อเข้าทีม ·
                             คลิกที่การ์ดเพื่อดูรายละเอียดทีม รหัสเชิญ และสมาชิก</p>
@@ -682,7 +682,7 @@
                     </div>
 
                     <div id="tm-msg" class="hidden mb-5 px-4 py-3 rounded-xl text-sm"></div>
-                    <div id="tm-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+                    <div id="tm-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6"></div>
                     <div id="tm-empty" class="hidden text-center py-20 text-gray-500">
                         <i class="fa-solid fa-people-group text-4xl text-gray-300 mb-3"></i>
                         <p class="font-semibold text-gray-700">ยังไม่มีทีม</p>
@@ -693,8 +693,8 @@
                 </section>
 
                 <!-- ================= MAILBOX TAB ================= -->
-                <section id="tab-mailbox" class="hidden p-6 lg:p-8 max-w-3xl">
-                    <div id="tm-mailbox" class="bg-white rounded-2xl border border-gray-200 overflow-hidden"></div>
+                <section id="tab-mailbox" class="hidden p-6 lg:p-8 w-full min-h-full flex flex-col">
+                    <div id="tm-mailbox" class="flex-1 bg-white rounded-2xl border border-gray-200 overflow-hidden"></div>
                     <p class="text-xs text-gray-400 mt-3">คำเชิญทางอีเมล:
                         กดตอบรับแล้วเข้าทีมได้ทันทีตามตำแหน่งที่หัวหน้าทีมเลือกไว้</p>
                 </section>
@@ -1009,7 +1009,7 @@
     <script src="js/i18n.js?v=21"></script>
     <script src="js/personalInfo.js?v=2"></script>
     <script src="js/mailbox.js?v=5"></script>
-    <script src="js/nav.js?v=10"></script>
+    <script src="js/nav.js?v=11"></script>
     <script>
             /* ConWork — Teams page (first page after sign-in): Team tab + Profile tab */
             (function () {
@@ -1757,7 +1757,7 @@
                 var S = Object.assign({ language: 'th', darkMode: false, appNotifications: true, emailNotifications: false, fontSize: 'medium' }, read(SKEY, {}));
                 function applySettings() {
                     document.documentElement.classList.toggle('dark', !!S.darkMode);
-                    var zoom = { small: '0.9', medium: '1', large: '1.1' }[S.fontSize] || '1';
+                    var zoom = { small: '0.875', medium: '1', large: '1.125' }[S.fontSize] || '1';
                     /* dvh = the height actually visible on iPad/iPhone browsers (vh reaches under the browser's toolbar) */
                     var vhUnit = window.CSS && CSS.supports && CSS.supports('height', '100dvh') ? 'dvh' : 'vh';
                     /* text size: only the text is scaled (css/ipad.css, --cw-fs); the page is not zoomed */

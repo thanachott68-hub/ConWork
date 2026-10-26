@@ -54,7 +54,7 @@
         } catch (e) { }
         document.documentElement.classList.toggle('dark', !!settings.darkMode);
         /* the landing page is laid out to the window (full-screen scroll story): the app's text size would zoom it and leave a gap at the bottom */
-        const zoom = page === 'landing' ? '1' : ({ small: '0.9', medium: '1', large: '1.1' }[settings.fontSize] || '1');
+        const zoom = page === 'landing' ? '1' : ({ small: '0.875', medium: '1', large: '1.125' }[settings.fontSize] || '1');
         /* text size: only the text is scaled (css/ipad.css, --cw-fs), the page is not zoomed */
         document.documentElement.style.setProperty('--cw-fs', zoom);
         if (zoom === '1') document.documentElement.removeAttribute('data-cw-fs'); else document.documentElement.setAttribute('data-cw-fs', settings.fontSize);
