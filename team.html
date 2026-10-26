@@ -1108,7 +1108,7 @@
                     }).then(function (r2) {
                         var n = {}; (r2.data || []).forEach(function (x) {
                             var email = x.profiles && x.profiles.email;
-                            if (String(x.user_id) !== uid && !amAdmin() && window.cwIsAdminEmail && cwIsAdminEmail(email)) return;
+                            if (window.cwIsAdminEmail && cwIsAdminEmail(email)) return;   // Admins are never counted (members minus Admins)
                             n[x.company_id] = (n[x.company_id] || 0) + 1;
                         });
                         list.forEach(function (t) { t.members = n[t.id] || 1; }); return list;
@@ -1627,7 +1627,7 @@
                         list = list.filter(function (m) { return m.id === uid || amAdmin() || m.role !== 'sys_admin'; });
                         var rank = { sys_admin: -1, super_admin: 0, company_admin: 1, admin: 1, manager: 2, employee: 3, member: 3, worker: 3, guest: 4 };
                         list.sort(function (a, b) { return (rank[a.role] == null ? 5 : rank[a.role]) - (rank[b.role] == null ? 5 : rank[b.role]) || a.name.localeCompare(b.name); });
-                        $('tm-d-count').textContent = list.length;
+                        $('tm-d-count').textContent = list.filter(function (m) { return m.role !== 'sys_admin'; }).length;   // Admins are not counted
                         var canEdit = isLead(t);
                         $('tm-d-members').innerHTML = list.map(function (m) {
                             var self = m.id === uid, isOwner = m.role === 'super_admin';

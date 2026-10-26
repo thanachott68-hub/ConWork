@@ -817,7 +817,7 @@ const App = {
                                     companyRole,
                                     isSystemAdmin,
                                     jobTitle: jobTitle,
-                                    department: mDept,
+                                    department: isSystemAdmin ? '' : mDept,   // Admins: nothing under the name
                                     avatar: avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
                                     status: 'online'
                                 });
@@ -827,7 +827,7 @@ const App = {
                                     this.state.currentUser.isSystemAdmin = isSystemAdmin;
                                     this.state.currentUser.name = name;
                                     this.state.currentUser.avatar = avatar || this.state.currentUser.avatar;
-                                    this.state.currentUser.department = mDept;
+                                    this.state.currentUser.department = isSystemAdmin ? '' : mDept;
                                     this.state.currentUser.role = mappedRole;
                                     this.state.currentUser.jobTitle = jobTitle;
                                 }
@@ -4101,10 +4101,12 @@ const App = {
         });
 
         // 3. Update Statistics Cards
-        const totalCount = mockUsers.length;
-        const onlineCount = mockUsers.filter(u => u.status === 'online').length;
-        const offlineCount = mockUsers.filter(u => u.status === 'offline').length;
-        const deptsCount = new Set(mockUsers.map(u => u.department)).size;
+        // Admins are never counted: the numbers are the team's members minus the Admins
+        const counted = mockUsers.filter(u => !u.isSystemAdmin);
+        const totalCount = counted.length;
+        const onlineCount = counted.filter(u => u.status === 'online').length;
+        const offlineCount = counted.filter(u => u.status === 'offline').length;
+        const deptsCount = new Set(counted.map(u => u.department).filter(Boolean)).size;
 
         document.getElementById('stat-team-all').textContent = totalCount;
         document.getElementById('stat-team-online').textContent = onlineCount;
@@ -4114,11 +4116,14 @@ const App = {
         // 4. Group Users
         // CEO -> Admin -> Departments (Head -> members)
         const ceoGroup = [];
+        const sysAdminGroup = [];   // only Admins ever have anyone here (others never load Admins)
         const adminGroup = [];
         const deptGroups = {};
 
         filteredUsers.forEach(u => {
-            if (u.role === 'reviewer2') { // CEO
+            if (u.isSystemAdmin) {
+                sysAdminGroup.push(u);
+            } else if (u.role === 'reviewer2') { // CEO
                 ceoGroup.push(u);
             } else if (u.role === 'admin') {
                 adminGroup.push(u);
@@ -4175,7 +4180,7 @@ const App = {
                                 <h4 class="font-bold text-gray-800 text-sm" data-no-i18n>${App._esc(u.name)}</h4>
                                 <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${roleLabel}</span>
                             </div>
-                            <p class="text-xs text-gray-500 mt-0.5" data-no-i18n>${App._esc(u.department)} ${u.username ? `• @${App._esc(u.username)}` : ''}</p>
+                            <p class="text-xs text-gray-500 mt-0.5" data-no-i18n>${u.isSystemAdmin ? '' : `${App._esc(u.department)} ${u.username ? `• @${App._esc(u.username)}` : ''}`}</p>
                         </div>
                     </div>
                     <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -4197,6 +4202,12 @@ const App = {
         const deptContainerClass = this.state.teamViewMode === 'grid'
             ? 'bg-white rounded-2xl p-4 border border-gray-100 shadow-sm grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'
             : 'bg-white rounded-2xl p-3 border border-gray-100 shadow-sm space-y-2';
+
+        // Render the Admin group (seen by Admins only)
+        if (sysAdminGroup.length > 0) {
+            html += `<div class="mb-6"><h3 class="text-xs font-bold text-gray-500 mb-3 flex items-center gap-2 uppercase tracking-wider"><i class="fa-solid fa-user-shield text-slate-600"></i> <span>Admin</span> - (${sysAdminGroup.length})</h3>
+                <div class="bg-gradient-to-r from-slate-50 to-gray-100 rounded-2xl p-4 border border-slate-200 relative overflow-hidden ${this.state.teamViewMode !== 'grid' ? 'space-y-2' : ''}"><div class="${containerClass}">${sysAdminGroup.map(buildMemberHtml).join('')}</div></div></div>`;
+        }
 
         // Render CEO Group
         if (ceoGroup.length > 0) {

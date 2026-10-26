@@ -54,8 +54,8 @@
             var d = m.info || {};
             return [m.name, m.email, d.first_name_th, d.last_name_th, d.phone, m.dept, PI.ROLE_TH[m.role]].join(' ').toLowerCase().indexOf(q) >= 0;
         });
-        $('mi-count').textContent = list.length;
-        $('mi-filled').textContent = list.filter(function (m) { return PI.isComplete(m.info); }).length;
+        $('mi-count').textContent = list.filter(function (m) { return m.role !== 'sys_admin'; }).length;   // Admins are not counted
+        $('mi-filled').textContent = list.filter(function (m) { return m.role !== 'sys_admin' && PI.isComplete(m.info); }).length;
         if (!shown.length) { box.innerHTML = '<div class="text-center text-sm text-gray-500 py-16">' + (list.length ? 'ไม่พบสมาชิกที่ค้นหา' : 'ยังไม่มีสมาชิกในทีมนี้') + '</div>'; return; }
         box.innerHTML = GROUP.map(function (g) {
             var rows = shown.filter(function (m) { return m.role === g[0]; });
@@ -93,7 +93,7 @@
         return '<div><button type="button" data-mi="' + esc(m.id) + '" aria-expanded="' + isOpen + '" class="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-gray-50 transition-colors">'
             + '<img src="' + esc(av) + '" alt="" class="w-10 h-10 rounded-full border border-gray-200 object-cover shrink-0">'
             + '<span class="min-w-0 flex-1"><span class="block font-semibold text-gray-800 truncate">' + esc(m.name) + (m.self ? ' <span class="text-xs font-normal text-gray-400">(คุณ)</span>' : '') + '</span>'
-            + '<span class="block text-xs text-gray-500 truncate">' + esc(th || m.email) + '</span></span>'
+            + '<span class="block text-xs text-gray-500 truncate">' + esc(m.role === 'sys_admin' ? '' : (th || m.email)) + '</span></span>'
             + chip
             + '<span class="text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full shrink-0">' + esc(m.role === 'sys_admin' ? 'Admin' : (PI.ROLE_TH[m.role] || m.role)) + '</span>'
             + '<i class="fa-solid fa-chevron-down text-gray-300 text-xs transition-transform shrink-0" style="' + (isOpen ? 'transform:rotate(180deg)' : '') + '"></i>'
