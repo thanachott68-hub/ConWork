@@ -10,8 +10,22 @@
     var NOFN = /PGRST202|PGRST205|Could not find the (function|table)|does not exist|schema cache/i;
     var NEED_SQL = 'ฐานข้อมูลยังไม่มี Mailbox · รัน conwork-mailbox.sql ใน Supabase (SQL Editor) แล้วลองใหม่';
 
-    var ROLE = { company_admin: 'รองหัวหน้า', manager: 'หัวหน้างาน', employee: 'พนักงาน', guest: 'ผู้เยี่ยมชม', super_admin: 'หัวหน้า' };
-    var ROLES = [['company_admin', 'รองหัวหน้า'], ['manager', 'หัวหน้างาน'], ['employee', 'พนักงาน']];
+    var ROLE = { sys_admin: 'Admin', company_admin: 'รองหัวหน้า', manager: 'หัวหน้างาน', employee: 'พนักงาน', guest: 'ผู้เยี่ยมชม', super_admin: 'หัวหน้า' };
+    /* "Admin" can be given only to the system Admin emails (js/config.js); it is saved as company_admin and the person is hidden in the team */
+    var ROLES = [['sys_admin', 'Admin'], ['company_admin', 'รองหัวหน้า'], ['manager', 'หัวหน้างาน'], ['employee', 'พนักงาน']];
+    var ADMIN_ONLY = 'Admin ให้ได้เฉพาะอีเมล Admin ของระบบ (3 อีเมลที่กำหนดไว้) เท่านั้น';
+    var isAdminEmail = function (e) { return !!(window.cwIsAdminEmail && cwIsAdminEmail(e)); };
+    /* the role saved in the database for a role picked on screen */
+    var dbRole = function (role) { return role === 'sys_admin' ? 'company_admin' : role; };
+    /* approving someone as Admin: their account email must be one of the Admin emails */
+    function checkAdminFor(userId, role) {
+        if (role !== 'sys_admin') return Promise.resolve();
+        var sb = client();
+        if (!sb) return Promise.reject(new Error(ADMIN_ONLY));
+        return sb.from('profiles').select('email').eq('id', userId).maybeSingle().then(function (r) {
+            if (!(r.data && isAdminEmail(r.data.email))) throw new Error(ADMIN_ONLY);
+        });
+    }
 
     /* small drawn icons (no icon font needed) */
     var ICON = {
@@ -99,6 +113,13 @@
     }
     function decide(id, approve, role) {
         var sb = client();
+        /* approving as Admin: only when the person's account email is one of the Admin emails */
+        if (sb && approve && role === 'sys_admin') {
+            return sb.from('team_requests').select('user_id').eq('id', id).maybeSingle().then(function (r) {
+                return checkAdminFor(r.data && r.data.user_id, role);
+            }).then(function () { return decide(id, approve, 'company_admin'); });
+        }
+        if (role === 'sys_admin') { if (approve) return Promise.reject(new Error(ADMIN_ONLY)); role = 'employee'; }
         if (sb) return sb.rpc('decide_request', { p_id: id, p_approve: approve, p_role: role || 'employee' }).then(function (r) {
             if (r.error && NOFN.test((r.error.code || '') + ' ' + r.error.message)) return sb.rpc('decide_request', { p_id: id, p_approve: approve }).then(function (r2) { if (r2.error) throw r2.error; });
             if (r.error) throw r.error;
@@ -175,6 +196,8 @@
     function invite(team, email, role) {
         email = String(email || '').trim().toLowerCase();
         if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return Promise.reject(new Error('รูปแบบอีเมลไม่ถูกต้อง'));
+        if (role === 'sys_admin' && !isAdminEmail(email)) return Promise.reject(new Error(ADMIN_ONLY));
+        role = dbRole(role);
         if (client()) return rpc('send_team_invite', { p_company: team.id, p_email: email, p_role: role });
         return me().then(function (m) {
             var all = readLS(LKEY, []);
@@ -342,6 +365,7 @@
     window.Mailbox = {
         requests: requests, decide: decide, feed: feed, markSeen: markSeen,
         inbox: inbox, sentFor: sentFor, invite: invite, respond: respond, markRead: markRead, cancel: cancel, unreadCount: unreadCount,
-        renderInbox: renderInbox, ERR: ERR, ROLE: ROLE, ROLES: ROLES, ICON: ICON, ic: ic, when: when, CHIP: CHIP, me: me
+        renderInbox: renderInbox, ERR: ERR, ROLE: ROLE, ROLES: ROLES, ICON: ICON, ic: ic, when: when, CHIP: CHIP, me: me,
+        checkAdminFor: checkAdminFor, dbRole: dbRole
     };
 })();

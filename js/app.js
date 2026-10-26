@@ -24,6 +24,14 @@ const App = {
     },
 
     async init() {
+        // keep the "อ่านแล้ว" mark after every redraw of the messages, and refresh it while a chat is open
+        const drawMessages = this.renderMessages;
+        this.renderMessages = function () { const r = drawMessages.apply(this, arguments); this._renderReadMark(); return r; };
+        setInterval(() => {
+            if (document.hidden || this.state.currentView !== 'messages') return;
+            const chat = mockChats.find(c => c.id === this.state.currentChat);
+            if (chat) this._refreshChatReads(chat);
+        }, 8000);
         this._loadSettings();
         this._initMobileSidebar();
         this.checkAuth();
@@ -409,7 +417,7 @@ const App = {
             deptHtml: deptHtml,
             permissionsState: this.permissionsState
         };
-        localStorage.setItem('conwork_role_settings', JSON.stringify(data));
+        localStorage.setItem(App._teamKey('conwork_role_settings'), JSON.stringify(data));
 
         if (showNotification) {
             if (typeof this._showToast === 'function') {
@@ -423,7 +431,7 @@ const App = {
     },
 
     loadRoleSettings() {
-        const data = localStorage.getItem('conwork_role_settings');
+        const data = localStorage.getItem(App._teamKey('conwork_role_settings'));
         if (!data) return;
         try {
             const parsed = JSON.parse(data);
@@ -493,7 +501,7 @@ const App = {
                 if (names.length === sample.length && sample.every(n => names.includes(n))) {
                     deptHtml = '';
                     if (deptContainer) deptContainer.innerHTML = '';
-                    try { localStorage.setItem('conwork_role_settings', JSON.stringify(Object.assign({}, parsed, { deptHtml: '' }))); } catch (e) { }
+                    try { localStorage.setItem(App._teamKey('conwork_role_settings'), JSON.stringify(Object.assign({}, parsed, { deptHtml: '' }))); } catch (e) { }
                 }
             }
 
@@ -616,6 +624,23 @@ const App = {
         setActive(btnLarge, this.settings.fontSize === 'large');
     },
 
+    /* name shown for someone with the app's 'admin' rights: Admin only for the system Admin emails;
+       the team's creator / head is หัวหน้า, a deputy is รองหัวหน้า */
+    _adminLabel(u) {
+        if (!u) return 'หัวหน้า';
+        if (u.isSystemAdmin) return 'Admin';
+        return u.companyRole === 'company_admin' || u.companyRole === 'admin' ? 'รองหัวหน้า' : 'หัวหน้า';
+    },
+
+    /* the team the app is open in (chosen on team.html); every team keeps its own data */
+    _teamId() {
+        return String((this.state.currentUser && this.state.currentUser.workspaceId) || 'none');
+    },
+    /* browser-saved data (role settings, chats) is kept per team, so one team's never shows in another */
+    _teamKey(base) {
+        return `${base}_${this._teamId()}`;
+    },
+
     _saveData() {
         try {
             const wid = this.state.currentUser && this.state.currentUser.workspaceId ? this.state.currentUser.workspaceId : 'W-1';
@@ -692,7 +717,9 @@ const App = {
                         // Only the team chosen on the Team page (team.html → Enter); before, every team the user was in got mixed together
                         const chosenTeam = this.state.currentUser && this.state.currentUser.workspaceId;
                         const allTeamIds = this.state.members.map(m => m.workspace_id);
-                        const companyIds = chosenTeam && allTeamIds.some(id => String(id) === String(chosenTeam)) ? [chosenTeam] : allTeamIds.slice(0, 1);
+                        // Strict: with a team chosen, load only that team, never fall back to another team's data
+                        // (the database rules decide what is visible in it). The first team is used only when none was chosen.
+                        const companyIds = chosenTeam ? [chosenTeam] : allTeamIds.slice(0, 1);
                         
                         // Fetch companies
                         const { data: companiesData, error: compErr } = await window.conworkSupabase.client
@@ -767,14 +794,21 @@ const App = {
                                     mappedRole = 'admin';
                                 }
 
-                                const jobTitle = p?.job_title || (mappedRole === 'reviewer2' ? 'ประธานเจ้าหน้าที่บริหาร' : (mappedRole === 'admin' ? 'แอดมิน' : (mappedRole === 'reviewer1' ? 'หัวหน้า' : 'พนักงาน')));
+                                /* Admin = only the system Admin emails (js/config.js); the team's creator is หัวหน้า, not Admin */
+                                const isSystemAdmin = typeof cwIsAdminEmail === 'function' && cwIsAdminEmail(email);
+                                const companyRole = (isCompanyCreator || mRole === 'super_admin') ? 'super_admin' : (mRole || 'employee');
+                                const roleUser = { role: mappedRole, companyRole, isSystemAdmin };
+                                const jobTitle = p?.job_title || (mappedRole === 'reviewer2' ? 'ประธานเจ้าหน้าที่บริหาร' : (mappedRole === 'admin' ? App._adminLabel(roleUser) : (mappedRole === 'reviewer1' ? 'หัวหน้า' : 'พนักงาน')));
 
-                                mockUsers.push({
+                                /* Admins are hidden from everyone else in the team: not listed, not counted */
+                                if (!(isSystemAdmin && !isCurrentUser)) mockUsers.push({
                                     id: uid,
                                     email: email || `${uid.substring(0, 8)}@company.com`,
                                     username: name,
                                     name: name,
                                     role: mappedRole,
+                                    companyRole,
+                                    isSystemAdmin,
                                     jobTitle: jobTitle,
                                     department: mDept,
                                     avatar: avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
@@ -782,6 +816,8 @@ const App = {
                                 });
 
                                 if (isCurrentUser) {
+                                    this.state.currentUser.companyRole = companyRole;
+                                    this.state.currentUser.isSystemAdmin = isSystemAdmin;
                                     this.state.currentUser.name = name;
                                     this.state.currentUser.avatar = avatar || this.state.currentUser.avatar;
                                     this.state.currentUser.department = mDept;
@@ -1161,6 +1197,13 @@ const App = {
     updateProfile() {
         if (!this.state.currentUser) return;
 
+        // the team the app is open in, next to "สลับทีม" in the top bar
+        const teamNameEl = document.getElementById('header-team-name');
+        if (teamNameEl) {
+            const ws = (this.state.workspaces || []).find(w => String(w.workspace_id) === this._teamId());
+            teamNameEl.textContent = (ws && ws.name) || this.state.currentUser.workspaceName || '';
+        }
+
         // Keep mockUsers and state.currentUser 100% in sync
         const matchingUser = mockUsers.find(u => String(u.id) === String(this.state.currentUser.id) || u.email === this.state.currentUser.email);
         if (matchingUser) {
@@ -1175,7 +1218,7 @@ const App = {
 
         const rawRole = this.state.currentUser.role || 'worker';
         let roleLabel = 'พนักงานทั่วไป';
-        if (rawRole === 'admin' || rawRole === 'Company_admin' || rawRole === 'super_admin') roleLabel = 'แอดมิน';
+        if (rawRole === 'admin' || rawRole === 'Company_admin' || rawRole === 'super_admin') roleLabel = this._adminLabel(this.state.currentUser);
         else if (rawRole === 'reviewer2' || rawRole === 'ceo') roleLabel = 'ผู้บริหาร (CEO)';
         else if (rawRole === 'reviewer1' || rawRole === 'manager') roleLabel = 'ผู้จัดการ';
 
@@ -1452,7 +1495,7 @@ const App = {
 
         if (!this.permissionsState) {
             try {
-                const data = localStorage.getItem('conwork_role_settings');
+                const data = localStorage.getItem(App._teamKey('conwork_role_settings'));
                 if (data) {
                     const parsed = JSON.parse(data);
                     if (parsed.permissionsState) {
@@ -4002,7 +4045,7 @@ const App = {
                 });
             } else {
                 roleSelect.innerHTML += `
-                    <option value="admin">แอดมิน</option>
+                    <option value="admin">รองหัวหน้า</option>
                     <option value="reviewer2">ผู้บริหาร</option>
                     <option value="reviewer1">หัวหน้าแผนก</option>
                     <option value="requester">ผู้มอบหมายงาน</option>
@@ -4041,7 +4084,7 @@ const App = {
             // Search Query
             if (this.state.teamSearchQuery) {
                 const q = this.state.teamSearchQuery.toLowerCase();
-                const roleLabel = u.role === 'admin' ? 'แอดมิน' : u.role === 'reviewer2' ? 'ผู้บริหาร' : u.role === 'reviewer1' ? 'ผู้ตรวจสอบ' : u.role === 'worker' ? 'ผู้ปฏิบัติงาน' : 'ผู้มอบหมาย';
+                const roleLabel = u.role === 'admin' ? App._adminLabel(u) : u.role === 'reviewer2' ? 'ผู้บริหาร' : u.role === 'reviewer1' ? 'ผู้ตรวจสอบ' : u.role === 'worker' ? 'ผู้ปฏิบัติงาน' : 'ผู้มอบหมาย';
                 return (u.name && u.name.toLowerCase().includes(q)) ||
                     (u.department && u.department.toLowerCase().includes(q)) ||
                     (roleLabel.toLowerCase().includes(q));
@@ -4092,7 +4135,7 @@ const App = {
 
         const buildMemberHtml = (u) => {
             const isOnline = u.status === 'online';
-            const roleLabel = u.jobTitle || (u.role === 'admin' ? 'แอดมิน' : u.role === 'reviewer2' ? 'ผู้บริหาร' : u.role === 'reviewer1' ? 'หัวหน้าแผนก' : u.role === 'worker' ? 'พนักงาน' : 'ผู้มอบหมาย');
+            const roleLabel = u.jobTitle || (u.role === 'admin' ? App._adminLabel(u) : u.role === 'reviewer2' ? 'ผู้บริหาร' : u.role === 'reviewer1' ? 'หัวหน้าแผนก' : u.role === 'worker' ? 'พนักงาน' : 'ผู้มอบหมาย');
 
             if (this.state.teamViewMode === 'grid') {
                 return `
@@ -4172,7 +4215,7 @@ const App = {
             html += `
                 <div class="mb-6">
                     <h3 class="text-xs font-bold text-gray-500 mb-3 flex items-center gap-2 uppercase tracking-wider">
-                        <i class="fa-solid fa-shield-halved text-blue-500"></i> <span>แอดมิน</span> - (${adminGroup.length})
+                        <i class="fa-solid fa-shield-halved text-blue-500"></i> <span>หัวหน้า / รองหัวหน้า</span> - (${adminGroup.length})
                     </h3>
                     <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-100/50 relative overflow-hidden ${this.state.teamViewMode !== 'grid' ? 'space-y-2' : ''}">
                         <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4">
@@ -8564,7 +8607,7 @@ const App = {
 
     async loadUserChats() {
         try {
-            const saved = localStorage.getItem('conwork_chats');
+            const saved = localStorage.getItem(App._teamKey('conwork_chats'));
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -8593,7 +8636,9 @@ const App = {
 
             if (window.conworkSupabase && window.conworkSupabase.isAvailable()) {
                 await this._ensureTeamRoom(); // the team's own room, kept in sync with the team's members
-                const dbChannels = await window.conworkSupabase.fetchUserDirectChannels();
+                /* only this team's rooms: a room that belongs to another team stays in that team */
+                const dbChannels = (await window.conworkSupabase.fetchUserDirectChannels() || [])
+                    .filter(c => this._chatInTeam(c));
                 if (dbChannels && dbChannels.length > 0) {
                     dbChannels.forEach(c => {
                         const existingIdx = mockChats.findIndex(mc => mc.id === c.id || (c.supabaseChannelId && mc.supabaseChannelId === c.supabaseChannelId) || (c.userId && mc.userId === c.userId));
@@ -8613,7 +8658,24 @@ const App = {
                         }
                     });
                 }
+                /* when each room last had a message, so the list can put the newest on top */
+                const roomIds = mockChats.map(c => c.supabaseChannelId).filter(id => /^[0-9a-f-]{36}$/i.test(String(id || '')));
+                if (roomIds.length) {
+                    try {
+                        const { data: lastRows } = await window.conworkSupabase.client.from('chat_messages')
+                            .select('channel_id, created_at').in('channel_id', roomIds)
+                            .order('created_at', { ascending: false }).limit(1000);
+                        (lastRows || []).forEach(r => {
+                            const chat = mockChats.find(c => c.supabaseChannelId === r.channel_id);
+                            const t = new Date(r.created_at).getTime();
+                            if (chat && !isNaN(t) && t > (chat.lastAt || 0)) chat.lastAt = t;
+                        });
+                    } catch (e) { console.warn('[chat] last message times', e); }
+                }
             }
+
+            /* chats saved earlier that belong to another team (or to people no longer in this team) are dropped */
+            for (let i = mockChats.length - 1; i >= 0; i--) if (!this._chatInTeam(mockChats[i])) mockChats.splice(i, 1);
 
             mockChats.forEach(c => {
                 if (c.userId) c.status = 'offline'; // a saved "online" is old news; live presence sets it again
@@ -8622,16 +8684,79 @@ const App = {
                     if (u) {
                         c.name = u.name;
                         if (u.avatar) c.avatar = u.avatar;
-                        if (u.department) c.subtitle = `${u.department} (${u.role === 'admin' ? 'แอดมิน' : u.role === 'reviewer2' ? 'ผู้บริหาร' : u.role === 'reviewer1' ? 'ผู้จัดการ' : 'พนักงาน'})`;
+                        if (u.department) c.subtitle = `${u.department} (${u.role === 'admin' ? App._adminLabel(u) : u.role === 'reviewer2' ? 'ผู้บริหาร' : u.role === 'reviewer1' ? 'ผู้จัดการ' : 'พนักงาน'})`;
                     }
                 }
             });
 
-            localStorage.setItem('conwork_chats', JSON.stringify(mockChats));
+            localStorage.setItem(App._teamKey('conwork_chats'), JSON.stringify(mockChats));
             this.initGlobalChatRealtime();
         } catch (err) {
             console.warn('loadUserChats error:', err);
         }
+    },
+
+    // ---------- "อ่านแล้ว" (read) under my last message ----------
+    /* database: table chat_reads + functions mark_chat_read / chat_read_status. Without them nothing is shown. */
+    _chatRoomId(chat) {
+        const id = chat && chat.id !== 'note' ? String(chat.supabaseChannelId || '') : '';
+        return /^[0-9a-f-]{36}$/i.test(id) ? id : null;
+    },
+    _markChatRead(chat) {
+        const id = this._chatRoomId(chat);
+        if (!id || this._readsMissing || !window.conworkSupabase || !window.conworkSupabase.isAvailable()) return;
+        window.conworkSupabase.client.rpc('mark_chat_read', { p_channel: id }).then(r => {
+            if (r && r.error && /PGRST202|Could not find the function|does not exist/i.test(`${r.error.code || ''} ${r.error.message || ''}`)) this._readsMissing = true;
+        }, () => { });
+    },
+    async _refreshChatReads(chat) {
+        const id = this._chatRoomId(chat);
+        if (!id || this._readsMissing || !window.conworkSupabase || !window.conworkSupabase.isAvailable()) return;
+        try {
+            const { data, error } = await window.conworkSupabase.client.rpc('chat_read_status', { p_channel: id });
+            if (error) { if (/PGRST202|Could not find the function|does not exist/i.test(`${error.code || ''} ${error.message || ''}`)) this._readsMissing = true; return; }
+            chat.readBy = Array.isArray(data) ? data : [];
+            if (this.state.currentChat === chat.id) this._renderReadMark();
+        } catch (e) { }
+    },
+    _renderReadMark() {
+        const container = document.getElementById('chat-messages-container');
+        const chat = mockChats.find(c => c.id === this.state.currentChat);
+        if (!container || !chat || !Array.isArray(chat.readBy)) return;
+        container.querySelectorAll('.cw-read-mark').forEach(el => el.remove());
+        const myId = String(this.state.currentUser?.id || '');
+        const mine = mockMessages.filter(m => m.chatId === chat.id && String(m.senderId) === myId && m.createdAt && !m.pending);
+        const last = mine[mine.length - 1];
+        if (!last) return;
+        const at = new Date(last.createdAt).getTime();
+        const n = chat.readBy.filter(r => String(r.user_id) !== myId && new Date(r.last_read_at).getTime() >= at).length;
+        if (!n) return;
+        const rows = container.querySelectorAll('.flex.flex-col.items-end.mb-4');
+        const row = rows[rows.length - 1];
+        if (!row) return;
+        const mark = document.createElement('span');
+        mark.className = 'cw-read-mark text-[10px] text-gray-400 mt-0.5';
+        mark.textContent = chat.type === 'group' ? `อ่านแล้ว ${n}` : 'อ่านแล้ว';
+        row.appendChild(mark);
+    },
+
+    /* chats are per team: my note, this team's rooms, and one-to-one chats with people in this team only */
+    _chatInTeam(c) {
+        if (!c) return false;
+        if (c.id === 'note') return true;
+        const teamId = this._teamId();
+        if (c.companyId && String(c.companyId) !== teamId) return false;
+        if (c.type === 'group' || String(c.id).startsWith('chan-')) return !!c.companyId || !/^[0-9a-f-]{36}$/i.test(teamId);
+        if (c.userId) return mockUsers.some(u => String(u.id) === String(c.userId));
+        return false;
+    },
+
+    /* newest activity first: the chat with the latest message moves to the top (the note stays first) */
+    _touchChat(chat, when) {
+        if (!chat) return;
+        const t = when ? new Date(when).getTime() : Date.now();
+        if (!isNaN(t) && t > (chat.lastAt || 0)) chat.lastAt = t;
+        try { localStorage.setItem(App._teamKey('conwork_chats'), JSON.stringify(mockChats)); } catch (e) { }
     },
 
     initGlobalChatRealtime() {
@@ -8671,10 +8796,12 @@ const App = {
 
         if (!targetChat) {
             const senderUser = mockUsers.find(u => String(u.id) === String(newMsg.sender_id));
-            const senderId = senderUser ? senderUser.id : newMsg.sender_id;
-            targetChat = this.getOrCreateChat(senderId, senderUser);
+            if (!senderUser) return;   // someone outside this team: the message belongs to another team's chats
+            targetChat = this.getOrCreateChat(senderUser.id, senderUser);
             if (targetChat) targetChat.supabaseChannelId = newMsg.channel_id;
         }
+        if (!this._chatInTeam(targetChat)) return;   // another team's room: not shown here
+        this._touchChat(targetChat, newMsg.created_at);
 
         const isContentImage = newMsg.content && (newMsg.content.startsWith('data:image/') || newMsg.content.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i));
         const isContentFile = newMsg.content && (newMsg.content.startsWith('data:application/') || newMsg.content.match(/\.(pdf|docx|xlsx|zip)(\?.*)?$/i));
@@ -8685,6 +8812,7 @@ const App = {
         const isCurrentlyViewingThisChat = this.state.currentView === 'messages' && this.state.currentChat === targetChat?.id;
 
         if (isCurrentlyViewingThisChat) {
+            this._markChatRead(targetChat);
             this.renderMessages();
             this.renderChatList();
             const msgContainer = document.getElementById('chat-messages-container');
@@ -8744,7 +8872,7 @@ const App = {
         }
 
         const name = user ? user.name : chatId.replace('user-', '');
-        const dept = user ? (user.department ? `${user.department} (${user.role === 'admin' ? 'แอดมิน' : user.role === 'reviewer2' ? 'ผู้บริหาร' : user.role === 'reviewer1' ? 'ผู้จัดการ' : 'พนักงาน'})` : (user.role || 'ส่วนตัว')) : 'พนักงาน';
+        const dept = user ? (user.department ? `${user.department} (${user.role === 'admin' ? App._adminLabel(user) : user.role === 'reviewer2' ? 'ผู้บริหาร' : user.role === 'reviewer1' ? 'ผู้จัดการ' : 'พนักงาน'})` : (user.role || 'ส่วนตัว')) : 'พนักงาน';
         const status = 'offline'; // becomes "online" only when the other person has the chat open (realtime presence)
         const color = user ? (user.color || 'bg-blue-500') : 'bg-blue-500';
         const icon = user ? (user.icon || 'fa-user') : 'fa-user';
@@ -8764,7 +8892,7 @@ const App = {
 
         mockChats.unshift(chat);
         try {
-            localStorage.setItem('conwork_chats', JSON.stringify(mockChats));
+            localStorage.setItem(App._teamKey('conwork_chats'), JSON.stringify(mockChats));
         } catch (e) {}
         return chat;
     },
@@ -9019,10 +9147,14 @@ const App = {
                 });
                 this.renderMessages();
             }
+            // I have read this chat; and who has read my messages ("อ่านแล้ว")
+            this._markChatRead(chat);
+            this._refreshChatReads(chat);
 
             this.chatSubscription = window.conworkSupabase.subscribeToChannelMessages(
                 targetChanId,
                 (newMsg) => {
+                    if (newMsg && String(newMsg.sender_id) !== String(this.state.currentUser?.id)) this._markChatRead(chat);
                     const d = new Date(newMsg.created_at || Date.now());
                     const day = String(d.getDate()).padStart(2, '0');
                     const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -9188,8 +9320,8 @@ const App = {
 
         const myId = this.state.currentUser?.id;
 
-        // Combine existing chats + company employees from mockUsers
-        const candidates = [...mockChats];
+        // Combine this team's chats + every member of the team (each one can be messaged directly)
+        const candidates = mockChats.filter(c => this._chatInTeam(c));
 
         mockUsers.forEach(u => {
             if (String(u.id) === String(myId)) return;
@@ -9200,7 +9332,7 @@ const App = {
                     id: chatId,
                     userId: u.id,
                     name: u.name,
-                    subtitle: u.department ? `${u.department} (${u.role === 'admin' ? 'แอดมิน' : u.role === 'reviewer2' ? 'ผู้บริหาร' : u.role === 'reviewer1' ? 'ผู้จัดการ' : 'พนักงาน'})` : (u.role || 'พนักงานในบริษัท'),
+                    subtitle: u.department ? `${u.department} (${u.role === 'admin' ? App._adminLabel(u) : u.role === 'reviewer2' ? 'ผู้บริหาร' : u.role === 'reviewer1' ? 'ผู้จัดการ' : 'พนักงาน'})` : (u.role || 'พนักงานในบริษัท'),
                     type: 'personal',
                     icon: 'fa-user',
                     color: 'bg-blue-500',
@@ -9226,10 +9358,10 @@ const App = {
                 .sort((a, b) => b.score - a.score)
                 .map(res => res.item);
         } else {
-            filteredItems = mockChats.filter(c => {
-                if (filter !== 'all' && c.type !== filter) return false;
-                return true;
-            });
+            /* all members of the team are listed (personal chats), newest activity on top, the note first */
+            filteredItems = candidates.filter(c => filter === 'all' || c.type === filter)
+                .sort((a, b) => (b.id === 'note') - (a.id === 'note') || (b.lastAt || 0) - (a.lastAt || 0)
+                    || String(a.name || '').localeCompare(String(b.name || ''), 'th'));
         }
 
         if (filteredItems.length === 0) {
@@ -9541,9 +9673,7 @@ const App = {
                                     <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 whitespace-nowrap" onclick="event.preventDefault(); App.replyMessage('${m.id}')"><i class="fa-solid fa-reply mr-2 w-4 text-center"></i>ตอบกลับ</a>
                                     <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 whitespace-nowrap" onclick="event.preventDefault(); App.editMessage('${m.id}')"><i class="fa-solid fa-pen mr-2 w-4 text-center"></i>แก้ไขข้อความ</a>
                                     <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 whitespace-nowrap" onclick="event.preventDefault(); App.copyMessage('${m.id}')"><i class="fa-solid fa-copy mr-2 w-4 text-center"></i>คัดลอก</a>
-                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 whitespace-nowrap" onclick="event.preventDefault(); App.forwardMessage('${m.id}')"><i class="fa-solid fa-share mr-2 w-4 text-center"></i>ส่งต่อ</a>
-                                    <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 whitespace-nowrap" onclick="event.preventDefault(); App.deleteMessage('${m.id}')"><i class="fa-solid fa-trash mr-2 w-4 text-center"></i>ลบข้อความ</a>
-                                </div>
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 whitespace-nowrap" onclick="event.preventDefault(); App.forwardMessage('${m.id}')"><i class="fa-solid fa-share mr-2 w-4 text-center"></i>ส่งต่อ</a>                                </div>
                             </div>
                             <!-- Message Content -->
                             <div class="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[75%] shadow-sm flex flex-col">
@@ -9911,8 +10041,10 @@ const App = {
             senderId: myId,
             text: msgText,
             timestamp: timeStr,
+            createdAt: now.toISOString(),
             replyTo: this.state.replyingToMsgId || null
         });
+        this._touchChat(mockChats.find(c => c.id === this.state.currentChat), now);
 
         input.value = '';
         this.cancelReply();
@@ -10816,7 +10948,7 @@ const App = {
         if (!container) return;
 
         if (!this.permissionsState) {
-            const data = localStorage.getItem('conwork_role_settings');
+            const data = localStorage.getItem(App._teamKey('conwork_role_settings'));
             if (data) {
                 try {
                     const parsed = JSON.parse(data);
@@ -11227,7 +11359,7 @@ const App = {
                     if (String(c.userId) === String(user.id) || c.id === 'user-' + user.id) {
                         c.name = user.name;
                         if (user.avatar) c.avatar = user.avatar;
-                        if (user.department) c.subtitle = `${user.department} (${user.role === 'admin' ? 'แอดมิน' : user.role === 'reviewer2' ? 'ผู้บริหาร' : user.role === 'reviewer1' ? 'ผู้จัดการ' : 'พนักงาน'})`;
+                        if (user.department) c.subtitle = `${user.department} (${user.role === 'admin' ? App._adminLabel(user) : user.role === 'reviewer2' ? 'ผู้บริหาร' : user.role === 'reviewer1' ? 'ผู้จัดการ' : 'พนักงาน'})`;
                     }
                 });
 
@@ -11247,7 +11379,7 @@ const App = {
                 this.renderTeam();
                 this.renderMessages();
                 try {
-                    localStorage.setItem('conwork_chats', JSON.stringify(mockChats));
+                    localStorage.setItem(App._teamKey('conwork_chats'), JSON.stringify(mockChats));
                 } catch (e) {}
             }
             this.state.editingMemberId = null;
@@ -11349,7 +11481,7 @@ const App = {
         if (!modal) return;
 
         const isOnline = user.status === 'online';
-        const roleLabel = user.role === 'admin' ? 'แอดมิน' : user.role === 'reviewer2' ? 'ผู้บริหาร' : user.role === 'reviewer1' ? 'หัวหน้าแผนก' : user.role === 'worker' ? 'พนักงาน' : 'ผู้มอบหมาย';
+        const roleLabel = user.role === 'admin' ? App._adminLabel(user) : user.role === 'reviewer2' ? 'ผู้บริหาร' : user.role === 'reviewer1' ? 'หัวหน้าแผนก' : user.role === 'worker' ? 'พนักงาน' : 'ผู้มอบหมาย';
 
         let jobTitle = user.jobTitle;
         let jobTitleHtml = '';
@@ -11786,7 +11918,7 @@ const App = {
             if (String(c.userId) === String(user.id) || c.id === 'user-' + user.id) {
                 c.name = user.name;
                 if (user.avatar) c.avatar = user.avatar;
-                if (user.department) c.subtitle = `${user.department} (${user.role === 'admin' ? 'แอดมิน' : user.role === 'reviewer2' ? 'ผู้บริหาร' : user.role === 'reviewer1' ? 'ผู้จัดการ' : 'พนักงาน'})`;
+                if (user.department) c.subtitle = `${user.department} (${user.role === 'admin' ? App._adminLabel(user) : user.role === 'reviewer2' ? 'ผู้บริหาร' : user.role === 'reviewer1' ? 'ผู้จัดการ' : 'พนักงาน'})`;
             }
         });
 
@@ -11806,7 +11938,7 @@ const App = {
         this.renderChatList();
         this.renderMessages();
         try {
-            localStorage.setItem('conwork_chats', JSON.stringify(mockChats));
+            localStorage.setItem(App._teamKey('conwork_chats'), JSON.stringify(mockChats));
         } catch (e) {}
         this.closeEditProfileModal();
         this._showToast('บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว', 'success');
@@ -12052,10 +12184,14 @@ const App = {
         if (!window.conworkSupabase || !window.conworkSupabase.isAvailable() || !this.state.currentUser) return;
         try {
             const curUserId = String(this.state.currentUser.id);
-            const { data, error } = await window.conworkSupabase.client
+            /* this team's notifications, plus personal ones that belong to no team */
+            const teamId = this._teamId();
+            let q = window.conworkSupabase.client
                 .from('notifications')
                 .select('*')
-                .eq('user_id', curUserId)
+                .eq('user_id', curUserId);
+            if (/^[0-9a-f-]{36}$/i.test(teamId)) q = q.or(`company_id.is.null,company_id.eq.${teamId}`);
+            const { data, error } = await q
                 .order('created_at', { ascending: false })
                 .limit(50);
 

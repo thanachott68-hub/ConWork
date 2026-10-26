@@ -31,10 +31,19 @@ const CONFIG = {
 
     // ภาษาเริ่มต้นของทั้งระบบ: 'auto' = ตามภาษาของเครื่อง (ไทย ถ้าเครื่องตั้งเป็นไทย นอกนั้นอังกฤษ), 'en' = อังกฤษ, 'th' = ไทย
     // ภาษาที่ผู้ใช้เลือกเองในหน้าตั้งค่าจะใช้แทนค่านี้เสมอ
-    DEFAULT_LANGUAGE: 'auto'
+    DEFAULT_LANGUAGE: 'auto',
+
+    // Admin ของระบบ: มีได้เฉพาะ 3 อีเมลนี้ (คนสร้างทีมเป็นหัวหน้า/ประธาน ไม่ใช่ Admin)
+    // ในทุกทีม Admin ถูกซ่อน: ไม่ขึ้นในรายชื่อสมาชิก จำนวนสมาชิก หรือรายชื่อแชท
+    ADMIN_EMAILS: ['thanachottakaew@gmail.com', 'tittaya2550@gmail.com', 'j.natchanon.93@gmail.com']
 };
 
 window.CONWORK_CONFIG = CONFIG;
+/* is this email one of the system Admins? */
+window.cwIsAdminEmail = function (email) {
+    var e = String(email || '').trim().toLowerCase();
+    return !!e && (CONFIG.ADMIN_EMAILS || []).indexOf(e) >= 0;
+};
 
 // With the test shortcut off, sign out a test account left over in this browser
 // (the app copies the signed-in user into localStorage, so it would otherwise stay signed in)

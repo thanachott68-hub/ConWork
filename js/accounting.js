@@ -46,7 +46,12 @@ const Accounting = {
     },
     _sb() { return window.conworkSupabase && window.conworkSupabase.isAvailable() ? window.conworkSupabase.client : null; },
     _me() { return (typeof App !== 'undefined' && App.state && App.state.currentUser) || {}; },
-    _workspace() { return (typeof App !== 'undefined' && App.state && App.state.workspaces && App.state.workspaces[0]) || null; },
+    /* the team the app is open in (not just the first one loaded) */
+    _workspace() {
+        const ws = (typeof App !== 'undefined' && App.state && App.state.workspaces) || [];
+        const chosen = this._me().workspaceId;
+        return ws.find(w => String(w.workspace_id) === String(chosen)) || ws[0] || null;
+    },
     companyId() {
         const ws = this._workspace();
         const id = ws ? (ws.workspace_id || ws.id) : (this._me().workspaceId || '');
@@ -56,6 +61,14 @@ const Accounting = {
     isAdmin() {
         const me = this._me(), ws = this._workspace();
         return me.role === 'admin' || !!(ws && ws.created_by && String(ws.created_by) === String(me.id));
+    },
+    /* the chairman (ประธาน = the team's creator / หัวหน้า) confirms every income and expense;
+       everyone else's entries, admins included, wait for that confirmation. The database checks the same rule. */
+    isChair() {
+        const me = this._me(), ws = this._workspace();
+        if (me.companyRole === 'super_admin') return true;
+        if (window.TeamAdmin && TeamAdmin.tier && TeamAdmin.tier() === 1) return true;
+        return !!(ws && ws.created_by && String(ws.created_by) === String(me.id));
     },
     _toast(th, en, type) { if (typeof App !== 'undefined' && App._showToast) App._showToast(this.L(th, en), type || 'success'); },
     _missing(error) { return !!error && /PGRST205|PGRST202|42P01|42883|Could not find the (table|function)|does not exist/i.test(`${error.code || ''} ${error.message || ''}`); },
@@ -94,7 +107,7 @@ const Accounting = {
     _statusBadge(s) {
         const m = {
             posted: ['bg-green-50 text-green-700', this.L('บันทึกแล้ว', 'Posted')],
-            pending: ['bg-amber-50 text-amber-700', this.L('รออนุมัติ', 'Pending')],
+            pending: ['bg-amber-50 text-amber-700', this.L('รอประธานยืนยัน', 'Waiting for chairman')],
             rejected: ['bg-red-50 text-red-600', this.L('ไม่อนุมัติ', 'Rejected')],
             void: ['bg-gray-100 text-gray-500', this.L('ยกเลิก', 'Cancelled')]
         }[s] || ['bg-gray-100 text-gray-500', s];
@@ -141,6 +154,7 @@ const Accounting = {
             this.state.periods = list(per);
             this.state.budget = list(bud);
             this.state.overview = null;
+            this.state.inventory = null;   // read again when its tab is opened
             this.state.statements = null;
             this.state.ledgerRows = null;
             this.state.status = 'ready';
@@ -167,6 +181,8 @@ const Accounting = {
         const tabs = [
             ['overview', 'ภาพรวม', 'Overview', 'fa-chart-pie', true],
             ['entries', 'รายการ', 'Entries', 'fa-list-ul', true],
+            ['requests', 'ขอเบิก', 'Requests', 'fa-hand-holding-dollar', true],
+            ['inventory', 'ทะเบียนพัสดุ', 'Inventory', 'fa-boxes-stacked', true],
             ['ledger', 'สมุดบัญชี', 'Ledger', 'fa-book', admin],
             ['statements', 'งบการเงิน', 'Statements', 'fa-scale-balanced', admin],
             ['periods', 'งวดบัญชี', 'Periods', 'fa-calendar-check', admin],
@@ -207,6 +223,8 @@ const Accounting = {
             `<button type="button" onclick="Accounting.refresh()" class="mt-3 px-4 py-2 rounded-xl border border-gray-200 text-sm">${this.L('ลองใหม่', 'Try again')}</button>`);
         switch (s.tab) {
             case 'entries': return this._entriesHtml();
+            case 'requests': return this._requestsHtml();
+            case 'inventory': return this._inventoryHtml();
             case 'ledger': return this._ledgerHtml();
             case 'statements': return this._statementsHtml();
             case 'periods': return this._periodsHtml();
@@ -298,15 +316,15 @@ const Accounting = {
             this._money(e.amount),
             `<div class="flex gap-2 justify-end">
                 ${e.attachment_path ? `<button type="button" onclick="Accounting.openAttachment('${e.id}')" class="px-2 py-1 rounded-lg border border-gray-200 text-xs" title="${this.L('ดูเอกสาร', 'View document')}"><i class="fa-solid fa-paperclip"></i></button>` : ''}
-                <button type="button" onclick="Accounting.review('${e.id}', false)" class="px-3 py-1 rounded-lg border border-red-200 text-red-600 text-xs font-semibold">${this.L('ไม่อนุมัติ', 'Reject')}</button>
-                <button type="button" onclick="Accounting.review('${e.id}', true)" class="px-3 py-1 rounded-lg bg-green-600 text-white text-xs font-semibold">${this.L('อนุมัติ', 'Approve')}</button>
+                ${this.isChair() ? `<button type="button" onclick="Accounting.review('${e.id}', false)" class="px-3 py-1 rounded-lg border border-red-200 text-red-600 text-xs font-semibold">${this.L('ไม่ยืนยัน', 'Reject')}</button>
+                <button type="button" onclick="Accounting.review('${e.id}', true)" class="px-3 py-1 rounded-lg bg-green-600 text-white text-xs font-semibold">${this.L('ยืนยัน', 'Confirm')}</button>` : `<span class="text-xs text-amber-700">${this.L('รอประธานยืนยัน', 'Waiting for chairman')}</span>`}
             </div>`] }));
         return `<div class="space-y-4">
             <div class="flex justify-end">${this._periodBar()}</div>
             ${kpis}
             <div class="grid lg:grid-cols-2 gap-4">
                 ${this._budgetHtml()}
-                ${this._card(this.L('รออนุมัติ', 'Waiting for approval'), this._table([this.L('วันที่', 'Date'), this.L('รายการ', 'Description'), this.L('จำนวนเงิน', 'Amount'), ''], pendRows, this.L('ไม่มีรายการรออนุมัติ', 'Nothing waiting'), 2))}
+                ${this._card(this.L('รอประธานยืนยัน', 'Waiting for the chairman'), this._table([this.L('วันที่', 'Date'), this.L('รายการ', 'Description'), this.L('จำนวนเงิน', 'Amount'), ''], pendRows, this.L('ไม่มีรายการรออนุมัติ', 'Nothing waiting'), 2))}
             </div></div>`;
     },
 
@@ -369,9 +387,9 @@ const Accounting = {
             ${this._table([this.L('บัญชี', 'Account'), this.L('เดบิต', 'Debit'), this.L('เครดิต', 'Credit')], rows, '')}
             <div class="flex flex-wrap gap-2 justify-end mt-4">
                 ${e.attachment_path ? `<button type="button" onclick="Accounting.openAttachment('${e.id}')" class="px-4 py-2 rounded-xl border border-gray-200 text-sm"><i class="fa-solid fa-paperclip mr-1"></i>${this.L('ดูเอกสารแนบ', 'View attachment')}</button>` : ''}
-                ${admin && e.status === 'pending' ? `<button type="button" onclick="Accounting.review('${e.id}', false)" class="px-4 py-2 rounded-xl border border-red-200 text-red-600 text-sm font-semibold">${this.L('ไม่อนุมัติ', 'Reject')}</button>
+                ${this.isChair() && e.status === 'pending' ? `<button type="button" onclick="Accounting.review('${e.id}', false)" class="px-4 py-2 rounded-xl border border-red-200 text-red-600 text-sm font-semibold">${this.L('ไม่อนุมัติ', 'Reject')}</button>
                     <button type="button" onclick="Accounting.review('${e.id}', true)" class="px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-semibold">${this.L('อนุมัติ', 'Approve')}</button>` : ''}
-                ${admin && e.status === 'posted' && e.kind !== 'closing' ? `<button type="button" onclick="Accounting.voidEntry('${e.id}')" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm">${this.L('ยกเลิกรายการ', 'Cancel entry')}</button>` : ''}
+                ${this.isChair() && e.status === 'posted' && e.kind !== 'closing' ? `<button type="button" onclick="Accounting.voidEntry('${e.id}')" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm">${this.L('ยกเลิกรายการ', 'Cancel entry')}</button>` : ''}
             </div>`;
         this._modal(this.L('รายละเอียดรายการ', 'Entry details'), body);
     },
@@ -608,6 +626,138 @@ const Accounting = {
             if (s.tab === 'statements') this._renderBody();
         }
         if (s.tab === 'ledger') await this._loadLedger();
+        if (s.tab === 'inventory' && s.inventory == null) { await this._loadInventory(); if (s.tab === 'inventory') this._renderBody(); }
+    },
+
+    /* ---------- ขอเบิก: every expense request and where it stands ---------- */
+    _requestsHtml() {
+        const s = this.state, admin = this.isAdmin(), me = String(this._me().id || '');
+        /* a request = an entry that went through approval (waiting, rejected, or approved by someone) */
+        let reqs = s.entries.filter(e => e.status === 'pending' || e.status === 'rejected' || (e.status === 'posted' && e.approved_by));
+        if (!admin) reqs = reqs.filter(e => String(e.created_by) === me);
+        const f = s.reqFilter || 'all';
+        const st = e => e.status === 'posted' ? 'approved' : e.status;
+        const n = k => reqs.filter(e => k === 'all' || st(e) === k).length;
+        const filters = [['all', 'ทั้งหมด', 'All'], ['pending', 'รออนุมัติ', 'Waiting'], ['approved', 'อนุมัติแล้ว', 'Approved'], ['rejected', 'ไม่อนุมัติ', 'Rejected']];
+        const badge = e => {
+            const m = { pending: ['bg-amber-50 text-amber-700', this.L('รออนุมัติ', 'Waiting')], approved: ['bg-green-50 text-green-700', this.L('อนุมัติแล้ว', 'Approved')], rejected: ['bg-red-50 text-red-600', this.L('ไม่อนุมัติ', 'Rejected')] }[st(e)] || ['bg-gray-100 text-gray-500', e.status];
+            return `<span class="inline-block text-[11px] font-semibold rounded-md px-2 py-0.5 ${m[0]}">${m[1]}</span>`;
+        };
+        const rows = reqs.filter(e => f === 'all' || st(e) === f).map(e => ({ cells: [
+            this._esc(this._fmtDate(e.entry_date)),
+            `<div class="font-medium text-gray-800">${this._esc(e.description || '—')}</div><div class="text-xs text-gray-400">${this._esc(this._personName(e.created_by))}${e.project_id ? ' · ' + this._esc(this._projectName(e.project_id)) : ''}</div>`
+                + (e.review_note ? `<div class="text-xs text-gray-500 mt-0.5"><i class="fa-regular fa-comment mr-1"></i>${this._esc(e.review_note)}</div>` : ''),
+            `${badge(e)}${e.approved_at ? `<div class="text-[11px] text-gray-400 mt-0.5">${this._esc(this._personName(e.approved_by))} · ${this._esc(this._fmtDate(e.approved_at))}</div>` : ''}`,
+            this._money(e.amount),
+            `<div class="flex gap-2 justify-end">
+                ${e.attachment_path ? `<button type="button" onclick="Accounting.openAttachment('${e.id}')" class="px-2 py-1 rounded-lg border border-gray-200 text-xs" title="${this.L('ดูเอกสาร', 'View document')}"><i class="fa-solid fa-paperclip"></i></button>` : ''}
+                ${this.isChair() && e.status === 'pending' ? `<button type="button" onclick="Accounting.review('${e.id}', false)" class="px-3 py-1 rounded-lg border border-red-200 text-red-600 text-xs font-semibold">${this.L('ไม่อนุมัติ', 'Reject')}</button>
+                <button type="button" onclick="Accounting.review('${e.id}', true)" class="px-3 py-1 rounded-lg bg-green-600 text-white text-xs font-semibold">${this.L('อนุมัติ', 'Approve')}</button>` : ''}
+            </div>`] }));
+        const total = k => reqs.filter(e => st(e) === k).reduce((a, e) => a + this._num(e.amount), 0);
+        return `<div class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                ${this._kpi(this.L('รออนุมัติ', 'Waiting'), this._money(total('pending')), this.L(`${n('pending')} รายการ`, `${n('pending')} requests`), 'text-amber-600')}
+                ${this._kpi(this.L('อนุมัติแล้ว', 'Approved'), this._money(total('approved')), this.L(`${n('approved')} รายการ`, `${n('approved')} requests`), 'text-green-700')}
+                ${this._kpi(this.L('ไม่อนุมัติ', 'Rejected'), this._money(total('rejected')), this.L(`${n('rejected')} รายการ`, `${n('rejected')} requests`), 'text-red-600')}
+            </div>
+            ${this._card(admin ? this.L('คำขอเบิกทั้งหมด', 'All expense requests') : this.L('คำขอเบิกของฉัน', 'My expense requests'),
+                `<div class="flex flex-wrap gap-1 mb-3">${filters.map(([k, th, en]) => `<button type="button" onclick="Accounting.setReqFilter('${k}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${f === k ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}">${this.L(th, en)} (${n(k)})</button>`).join('')}</div>`
+                + this._table([this.L('วันที่', 'Date'), this.L('รายการ', 'Description'), this.L('สถานะ', 'Status'), this.L('จำนวนเงิน', 'Amount'), ''], rows, this.L('ยังไม่มีคำขอเบิก', 'No requests yet'), 3),
+                admin ? '' : `<button type="button" onclick="Accounting.openEntryForm('expense')" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold"><i class="fa-regular fa-paper-plane mr-1"></i>${this.L('ขอเบิกใหม่', 'New request')}</button>`)}
+        </div>`;
+    },
+    setReqFilter(f) { this.state.reqFilter = f; this._renderBody(); },
+
+    /* ---------- ทะเบียนพัสดุ (inventory register): table inventory_items ---------- */
+    INV_STATUS: { in_use: ['ใช้งาน', 'In use', 'bg-green-50 text-green-700'], in_stock: ['คงคลัง', 'In stock', 'bg-blue-50 text-blue-700'], lent: ['ยืม', 'Lent out', 'bg-amber-50 text-amber-700'], damaged: ['ชำรุด', 'Damaged', 'bg-red-50 text-red-600'], disposed: ['จำหน่ายแล้ว', 'Disposed', 'bg-gray-100 text-gray-500'] },
+    async _loadInventory() {
+        const sb = this._sb(), co = this.companyId();
+        if (!sb || !co) { this.state.inventory = []; return; }
+        const { data, error } = await sb.from('inventory_items').select('*').eq('company_id', co).order('created_at', { ascending: false });
+        this.state.inventory = error ? (this._missing(error) ? 'setup' : []) : (data || []);
+        if (error && !this._missing(error)) this._toast('โหลดทะเบียนพัสดุไม่สำเร็จ: ' + error.message, 'Could not load the inventory: ' + error.message);
+    },
+    _inventoryHtml() {
+        const s = this.state, admin = this.isAdmin();
+        if (s.inventory == null) return `<div class="py-16 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>${this.L('กำลังโหลด…', 'Loading…')}</div>`;
+        if (s.inventory === 'setup') return this._notice('fa-screwdriver-wrench', this.L('ทะเบียนพัสดุยังไม่ได้ติดตั้งในฐานข้อมูล', 'The inventory register is not set up in the database yet'),
+            this.L('ผู้ดูแลระบบต้องรันคำสั่ง SQL ชุดทะเบียนพัสดุใน Neon ก่อน', 'An administrator needs to run the inventory SQL in Neon first.'));
+        const q = String(s.invQuery || '').trim().toLowerCase();
+        const items = s.inventory.filter(i => !q || [i.code, i.name, i.category, i.location, i.holder, i.note].join(' ').toLowerCase().includes(q));
+        const stBadge = k => { const m = this.INV_STATUS[k] || [k, k, 'bg-gray-100 text-gray-500']; return `<span class="inline-block text-[11px] font-semibold rounded-md px-2 py-0.5 ${m[2]}">${this.L(m[0], m[1])}</span>`; };
+        const rows = items.map(i => ({ cells: [
+            `<div class="font-medium text-gray-800">${this._esc(i.name)}</div><div class="text-xs text-gray-400">${this._esc([i.code, i.category].filter(Boolean).join(' · ') || '—')}</div>`,
+            `${this._esc(i.location || '—')}${i.holder ? `<div class="text-xs text-gray-400">${this._esc(i.holder)}</div>` : ''}`,
+            stBadge(i.status),
+            `${this._esc(String(this._num(i.quantity)))} ${this._esc(i.unit || '')}`,
+            i.unit_price != null ? this._money(this._num(i.unit_price) * this._num(i.quantity || 1)) : '—',
+            admin ? `<div class="flex gap-2 justify-end"><button type="button" onclick="Accounting.openInventoryForm('${i.id}')" class="px-2 py-1 rounded-lg border border-gray-200 text-xs">${this.L('แก้ไข', 'Edit')}</button>
+                <button type="button" onclick="Accounting.deleteInventory('${i.id}')" class="px-2 py-1 rounded-lg border border-red-200 text-red-600 text-xs">${this.L('ลบ', 'Delete')}</button></div>` : ''] }));
+        const value = s.inventory.filter(i => i.status !== 'disposed').reduce((a, i) => a + this._num(i.unit_price) * this._num(i.quantity || 1), 0);
+        return `<div class="space-y-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                ${this._kpi(this.L('รายการพัสดุ', 'Items'), String(s.inventory.length))}
+                ${this._kpi(this.L('ชำรุด', 'Damaged'), String(s.inventory.filter(i => i.status === 'damaged').length), '', 'text-red-600')}
+                ${this._kpi(this.L('มูลค่ารวม (ที่ยังใช้งาน)', 'Total value (not disposed)'), this._money(value))}
+            </div>
+            ${this._card(this.L('ทะเบียนพัสดุ', 'Inventory register'),
+                `<input type="search" value="${this._esc(s.invQuery || '')}" oninput="Accounting.setInvQuery(this.value)" placeholder="${this.L('ค้นหา รหัส ชื่อ หมวด ที่เก็บ ผู้รับผิดชอบ…', 'Search code, name, category, place, person…')}" class="w-full sm:w-80 border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3">`
+                + `<div id="acc-inv-table">${this._table([this.L('พัสดุ', 'Item'), this.L('ที่เก็บ / ผู้รับผิดชอบ', 'Place / person'), this.L('สถานะ', 'Status'), this.L('จำนวน', 'Qty'), this.L('มูลค่า', 'Value'), ''], rows, this.L('ยังไม่มีพัสดุในทะเบียน', 'No items yet'), 3)}</div>`,
+                admin ? `<button type="button" onclick="Accounting.openInventoryForm()" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold"><i class="fa-solid fa-plus mr-1"></i>${this.L('เพิ่มพัสดุ', 'Add item')}</button>` : '')}
+        </div>`;
+    },
+    setInvQuery(v) {
+        this.state.invQuery = v;
+        const body = document.getElementById('accounting-body'); if (!body) return;
+        /* redraw only the table, so the search box keeps focus */
+        const tmp = document.createElement('div'); tmp.innerHTML = this._inventoryHtml();
+        const fresh = tmp.querySelector('#acc-inv-table'), cur = document.getElementById('acc-inv-table');
+        if (fresh && cur) cur.innerHTML = fresh.innerHTML;
+    },
+    openInventoryForm(id) {
+        if (!this.isAdmin()) return;
+        const it = (Array.isArray(this.state.inventory) ? this.state.inventory : []).find(x => String(x.id) === String(id)) || {};
+        const input = 'w-full border border-gray-200 rounded-xl px-3 py-2 text-sm';
+        const field = (label, html, cls) => `<label class="block ${cls || ''}"><span class="block text-xs font-semibold text-gray-600 mb-1">${label}</span>${html}</label>`;
+        const v = k => this._esc(it[k] == null ? '' : it[k]);
+        this._modal(id ? this.L('แก้ไขพัสดุ', 'Edit item') : this.L('เพิ่มพัสดุ', 'Add item'), `<form id="acc-inv-form" class="grid sm:grid-cols-2 gap-3" onsubmit="event.preventDefault(); Accounting.saveInventory(${id ? `'${this._esc(id)}'` : ''})">
+            ${field(this.L('ชื่อพัสดุ *', 'Name *'), `<input name="name" required maxlength="200" value="${v('name')}" class="${input}">`, 'sm:col-span-2')}
+            ${field(this.L('รหัส / เลขครุภัณฑ์', 'Code / asset no.'), `<input name="code" maxlength="60" value="${v('code')}" class="${input}">`)}
+            ${field(this.L('หมวด', 'Category'), `<input name="category" maxlength="100" value="${v('category')}" class="${input}" placeholder="${this.L('เช่น อุปกรณ์ไอที', 'e.g. IT equipment')}">`)}
+            ${field(this.L('จำนวน', 'Quantity'), `<input name="quantity" type="number" min="0" step="any" value="${it.quantity == null ? 1 : v('quantity')}" class="${input}">`)}
+            ${field(this.L('หน่วย', 'Unit'), `<input name="unit" maxlength="30" value="${v('unit')}" class="${input}" placeholder="${this.L('เช่น เครื่อง, ชิ้น', 'e.g. pcs')}">`)}
+            ${field(this.L('ราคาต่อหน่วย (บาท)', 'Unit price (THB)'), `<input name="unit_price" type="number" min="0" step="0.01" value="${v('unit_price')}" class="${input}">`)}
+            ${field(this.L('วันที่ได้รับ', 'Received on'), `<input name="acquired_on" type="date" value="${v('acquired_on')}" class="${input}">`)}
+            ${field(this.L('ที่เก็บ', 'Place'), `<input name="location" maxlength="200" value="${v('location')}" class="${input}">`)}
+            ${field(this.L('ผู้รับผิดชอบ / ผู้ยืม', 'Person in charge / borrower'), `<input name="holder" maxlength="200" value="${v('holder')}" class="${input}">`)}
+            ${field(this.L('สถานะ', 'Status'), `<select name="status" class="${input}">${Object.keys(this.INV_STATUS).map(k => `<option value="${k}" ${(it.status || 'in_use') === k ? 'selected' : ''}>${this.L(this.INV_STATUS[k][0], this.INV_STATUS[k][1])}</option>`).join('')}</select>`)}
+            ${field(this.L('หมายเหตุ', 'Note'), `<textarea name="note" maxlength="1000" rows="2" class="${input}">${v('note')}</textarea>`, 'sm:col-span-2')}
+            <p id="acc-inv-error" class="sm:col-span-2 text-sm text-red-600 hidden"></p>
+            <div class="sm:col-span-2 flex justify-end gap-2 pt-1">
+                <button type="button" onclick="Accounting._closeModal()" class="px-4 py-2 rounded-xl border border-gray-200 text-sm">${this.L('ยกเลิก', 'Cancel')}</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold">${this.L('บันทึก', 'Save')}</button>
+            </div></form>`);
+    },
+    async saveInventory(id) {
+        const f = document.getElementById('acc-inv-form'); if (!f) return;
+        const val = n => f.elements[n].value.trim();
+        const num = n => val(n) === '' ? null : Number(val(n));
+        const row = { name: val('name'), code: val('code') || null, category: val('category') || null, quantity: num('quantity') == null ? 1 : num('quantity'), unit: val('unit') || null,
+            unit_price: num('unit_price'), acquired_on: val('acquired_on') || null, location: val('location') || null, holder: val('holder') || null, status: val('status'), note: val('note') || null };
+        const sb = this._sb(), co = this.companyId();
+        const q = id ? sb.from('inventory_items').update(Object.assign(row, { updated_at: new Date().toISOString() })).eq('id', id)
+            : sb.from('inventory_items').insert(Object.assign(row, { company_id: co }));
+        const { error } = await q;
+        if (error) { const p = document.getElementById('acc-inv-error'); p.textContent = error.message; p.classList.remove('hidden'); return; }
+        this._closeModal(); this._toast('บันทึกพัสดุแล้ว', 'Item saved');
+        await this._loadInventory(); this._renderBody();
+    },
+    async deleteInventory(id) {
+        if (!confirm(this.L('ลบพัสดุรายการนี้ออกจากทะเบียน?', 'Delete this item from the register?'))) return;
+        const { error } = await this._sb().from('inventory_items').delete().eq('id', id);
+        if (error) { alert(error.message); return; }
+        await this._loadInventory(); this._renderBody();
     },
 
     /* ---------- controls ---------- */
@@ -677,7 +827,7 @@ const Accounting = {
             <p id="acc-entry-error" class="sm:col-span-2 text-sm text-red-600 hidden"></p>
             <div class="sm:col-span-2 flex justify-end gap-2 pt-1">
                 <button type="button" onclick="Accounting._closeModal()" class="px-4 py-2 rounded-xl border border-gray-200 text-sm">${this.L('ยกเลิก', 'Cancel')}</button>
-                <button type="submit" id="acc-entry-save" class="px-5 py-2 rounded-xl ${isIncome ? 'bg-green-600' : 'bg-blue-600'} text-white text-sm font-semibold">${admin ? this.L('บันทึก', 'Save') : this.L('ส่งคำขอ', 'Send request')}</button>
+                <button type="submit" id="acc-entry-save" class="px-5 py-2 rounded-xl ${isIncome ? 'bg-green-600' : 'bg-blue-600'} text-white text-sm font-semibold">${this.isChair() ? this.L('บันทึก', 'Save') : admin ? this.L('ส่งให้ประธานยืนยัน', 'Send to the chairman') : this.L('ส่งคำขอ', 'Send request')}</button>
             </div></form>`;
         this._modal(title, body);
     },
@@ -749,7 +899,7 @@ const Accounting = {
             };
             await this._post(entry, lines);
             this._closeModal();
-            this._toast(this.isAdmin() ? 'บันทึกรายการแล้ว' : 'ส่งคำขอแล้ว รอผู้ดูแลอนุมัติ', this.isAdmin() ? 'Entry saved' : 'Request sent for approval');
+            this._toast(this.isChair() ? 'บันทึกรายการแล้ว' : 'ส่งแล้ว · รอประธานยืนยัน', this.isChair() ? 'Entry saved' : 'Sent · waiting for the chairman to confirm');
             await this.refresh();
             if (typeof App !== 'undefined' && App.fetchNotificationsFromSupabase) App.fetchNotificationsFromSupabase();
         } catch (e) {
@@ -760,7 +910,7 @@ const Accounting = {
     /* owner/admin posts; everyone else sends a request */
     async _post(entry, lines) {
         const sb = this._sb(), co = this.companyId();
-        const fn = this.isAdmin() ? 'post_journal_entry' : 'submit_journal_request';
+        const fn = this.isChair() ? 'post_journal_entry' : 'submit_journal_request';
         const { data, error } = await sb.rpc(fn, { p_company: co, p_entry: entry, p_lines: lines });
         if (error) throw error;
         return data;

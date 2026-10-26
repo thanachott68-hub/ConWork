@@ -689,6 +689,7 @@ class ConWorkSupabaseService {
                 /* group / project / announcement rooms: shown by the room's own name, not as a chat with one of its members */
                 if (chan.type && chan.type !== 'direct') {
                     channels.push({
+                        companyId: chan.company_id || null,
                         id: 'chan-' + chan.id,
                         supabaseChannelId: chan.id,
                         name: chan.name || 'กลุ่มสนทนา',
@@ -720,6 +721,7 @@ class ConWorkSupabaseService {
                 const targetSubtitle = otherUser ? (otherUser.department ? `${otherUser.department}` : 'พนักงาน') : (chan.type === 'direct' ? 'ส่วนตัว' : 'กรุ๊ป');
 
                 channels.push({
+                    companyId: chan.company_id || null,
                     id: 'user-' + targetUserId,
                     supabaseChannelId: chan.id,
                     userId: targetUserId,

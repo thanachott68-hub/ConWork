@@ -88,6 +88,7 @@
                     + (m.joined ? field('เข้าร่วมทีม', esc(PI.thaiDate(String(m.joined).slice(0, 10))), 'fa-calendar-check') : '')
                     + '</div>';
             }
+            detail += removeButton(m);
         }
         return '<div><button type="button" data-mi="' + esc(m.id) + '" aria-expanded="' + isOpen + '" class="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-gray-50 transition-colors">'
             + '<img src="' + esc(av) + '" alt="" class="w-10 h-10 rounded-full border border-gray-200 object-cover shrink-0">'
@@ -99,6 +100,43 @@
             + '</button>' + detail + '</div>';
     }
 
+    /* remove one member: the team leader (หัวหน้า) only, never the leader themself or another หัวหน้า.
+       The database checks the same rule (remove_team_member, conwork-members.sql). */
+    function canRemove(m) {
+        var tier = window.TeamAdmin && TeamAdmin.tier ? TeamAdmin.tier() : 0;
+        var sysAdmin = !!(window.cwIsAdminEmail && cwIsAdminEmail(me().email));   // the system Admins may remove members too
+        return (tier === 1 || sysAdmin) && !m.self && m.role !== 'super_admin';
+    }
+    function removeButton(m) {
+        if (!canRemove(m)) return '';
+        return '<div class="px-5 pb-3 sm:pl-[4.5rem] flex justify-end bg-gray-50"><button type="button" data-mi-remove="' + esc(m.id) + '" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50">'
+            + '<i class="fa-solid fa-user-minus"></i> ลบออกจากทีม</button></div>';
+    }
+    function removeMember(id) {
+        var m = list.find(function (x) { return x.id === id; }); if (!m || !canRemove(m)) return;
+        var u = me(), teamId = u.workspaceId;
+        if (!confirm('นำ “' + m.name + '” ออกจากทีม' + (u.workspaceName ? ' “' + u.workspaceName + '”' : '') + ' ?\nคนนี้จะออกจากทีมและโปรเจกต์ของทีมทันที · งานที่ทำไว้ยังอยู่')) return;
+        var sb = client();
+        var job = sb ? sb.rpc('remove_team_member', { p_company: teamId, p_user: id }).then(function (r) { if (r.error) throw r.error; })
+            : Promise.resolve().then(function () {
+                var mem = []; try { mem = JSON.parse(localStorage.getItem('workspace_members')) || []; } catch (e) { }
+                localStorage.setItem('workspace_members', JSON.stringify(mem.filter(function (x) { return !(String(x.workspace_id) === String(teamId) && String(x.user_id) === id); })));
+            });
+        job.then(function () {
+            list = list.filter(function (x) { return x.id !== id; }); delete open[id]; render();
+            if (typeof mockUsers !== 'undefined') { var i = mockUsers.findIndex(function (x) { return String(x.id) === id; }); if (i >= 0) mockUsers.splice(i, 1); }
+            var A = app(); if (A && A.renderTeam) try { A.renderTeam(); } catch (e) { }
+            if (A && A._showToast) A._showToast('นำ ' + m.name + ' ออกจากทีมแล้ว', 'success');
+        }).catch(function (e) {
+            var t = e.message || String(e);
+            alert(/owner cannot be removed/i.test(t) ? 'นำหัวหน้าทีมออกไม่ได้' : /Only the team leader/i.test(t) ? 'คุณไม่มีสิทธิ์นำคนออกจากทีม' : 'ลบไม่สำเร็จ: ' + t);
+        });
+    }
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest && e.target.closest('[data-mi-remove]'); if (!b) return;
+        e.stopPropagation(); removeMember(b.getAttribute('data-mi-remove'));
+    }, true);
+
     function load() {
         var u = me(), uid = String(u.id || u.user_id || ''), teamId = u.workspaceId;
         $('mi-team').textContent = u.workspaceName || '';
@@ -106,6 +144,8 @@
         if (!teamId) { $('mi-list').innerHTML = '<div class="text-center text-sm text-gray-500 py-16">ยังไม่ได้เลือกทีม · กลับไปเลือกทีมที่ <a href="team.html" class="text-blue-600 hover:underline">หน้าทีมของฉัน</a></div>'; return; }
         loadMembers(teamId).then(function (ms) {
             ms.forEach(function (m) { m.self = m.id === uid; });
+            /* system Admins (js/config.js) are hidden: not listed and not counted (they still see themselves) */
+            ms = ms.filter(function (m) { return m.self || !(window.cwIsAdminEmail && cwIsAdminEmail(m.email)); });
             var mine = ms.find(function (m) { return m.self; });
             iLead = !!mine && (mine.role === 'super_admin' || mine.role === 'company_admin');
             return PI.loadMany(ms.map(function (m) { return m.id; })).then(function (info) {

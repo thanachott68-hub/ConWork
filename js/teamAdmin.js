@@ -1,6 +1,6 @@
 /* ConWork — owner tools in app.html
  *  • "Finish / จบงาน" in the top bar of every tab (Owner only): every tab back to 0, the team stays. Confirm with password.
- *  • ทีมงาน → Remove สมาชิกทั้งหมด (Owner only). Confirm with password.
+ *  • (Remove สมาชิกทั้งหมด is no longer offered; ข้อมูลทีมงาน removes members one at a time, js/memberInfo.js)
  * Labels follow the language in Settings. The database checks the same rules again (conwork-reset.sql). */
 (function () {
     var $ = function (id) { return document.getElementById(id); };
@@ -66,16 +66,7 @@
             f.addEventListener('click', function () { if (tier === 1) confirmWithPassword('reset'); });
             bell.parentNode.insertBefore(f, bell);
         }
-        /* Remove all members: under ทีมงาน (Owner) */
-        var sub = $('team-submenu');
-        if (sub && !$('subnav-team-data')) {
-            var a = document.createElement('a');
-            a.href = '#'; a.id = 'subnav-team-data';
-            a.className = 'subnav-item hidden text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors px-3 py-2 rounded-lg items-center gap-2';
-            a.innerHTML = '<i class="fa-solid fa-user-xmark text-[10px] w-4"></i> <span data-ta-label></span>';
-            a.addEventListener('click', function (e) { e.preventDefault(); if (tier === 1) confirmWithPassword('remove'); });
-            sub.appendChild(a);
-        }
+        /* (the "Remove สมาชิกทั้งหมด" menu item was removed: members are removed one by one in ข้อมูลทีมงาน) */
         if (!$('ta-modal')) {
             var d = document.createElement('div');
             d.id = 'ta-modal';
@@ -115,8 +106,6 @@
             + '<div class="px-6 pb-6 space-y-3">'
             + '<button type="button" data-ta-act="reset" class="w-full text-left flex gap-3 p-4 rounded-xl border border-gray-200 hover:border-red-300 hover:bg-red-50/50 transition-colors">'
             + '<i class="fa-solid fa-flag-checkered text-red-500 mt-1 w-5"></i><span><span class="block font-semibold text-gray-800">จบงาน</span><span class="block text-xs text-gray-500 mt-0.5">เคลียร์งานทุกแท็บให้เป็น 0 (โปรเจกต์ งาน ปฏิทิน ข้อความ บัญชี) · ทีมงาน รหัสเชิญ และข้อมูลส่วนตัวยังอยู่ครบ</span></span></button>'
-            + '<button type="button" data-ta-act="remove" class="w-full text-left flex gap-3 p-4 rounded-xl border border-gray-200 hover:border-red-300 hover:bg-red-50/50 transition-colors">'
-            + '<i class="fa-solid fa-user-xmark text-red-500 mt-1 w-5"></i><span><span class="block font-semibold text-gray-800">Remove สมาชิกทั้งหมด</span><span class="block text-xs text-gray-500 mt-0.5">ทุกคนยกเว้นคุณจะออกจากทีม · งานยังอยู่ · คนที่ออกต้องขอเข้าร่วมใหม่ด้วยรหัสเชิญ</span></span></button>'
             + '</div>');
         $('ta-box').querySelectorAll('[data-ta-act]').forEach(function (b) {
             b.addEventListener('click', function () { confirmWithPassword(b.getAttribute('data-ta-act')); });

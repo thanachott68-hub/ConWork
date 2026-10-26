@@ -14,6 +14,16 @@
     .max-h-\[95vh\] { max-height: 95dvh; }
     .max-h-\[96vh\] { max-height: 96dvh; }
 }
+/* landing (index.html): its full-screen scenes use the visible height too, so nothing hides under the browser's bottom bar */
+@supports (height: 100dvh) {
+    @media (min-width: 600px) {
+        .cwx-scroll, .cwx-pin, #cw-hero1 .hero, .cwx-j2 .lp { height: 100dvh; }
+    }
+    @media (max-width: 599px) {
+        .cwx-scroll { height: 100dvh; }
+        .cwx-pin { min-height: 100dvh; }
+    }
+}
 
 /* no grey flash on tap, no double-tap zoom delay on controls, no text-size jump on rotate */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -39,18 +49,11 @@ a, button, [onclick], [role="button"], label, summary { -webkit-tap-highlight-co
     /* hover lift/scale effects stick after a tap on iPad: switch them off */
     .card:hover, .cta:hover, button:hover, .cursor-pointer:hover { transform: none !important; }
 
-    /* small icon buttons get an invisible 44px touch area around them (the drawn size and layout stay the same) */
-    button:has(> i:only-child):not(.absolute):not(.fixed):not(.sticky),
-    button:has(> svg:only-child):not(.absolute):not(.fixed):not(.sticky) { position: relative; }
-    button:has(> i:only-child)::after,
-    button:has(> svg:only-child)::after {
-        content: "";
-        position: absolute;
-        top: min(0px, calc((100% - 44px) / 2));
-        bottom: min(0px, calc((100% - 44px) / 2));
-        left: min(0px, calc((100% - 44px) / 2));
-        right: min(0px, calc((100% - 44px) / 2));
-    }
+    /* (an invisible enlarged touch area on every icon button was removed: next to each other, the areas overlapped
+       and a tap could press the neighbouring button, e.g. the mini calendar's previous/next) */
+    /* small arrows and close buttons that are easy to miss get a bigger real size instead */
+    #view-calendar button.p-1.rounded-full { min-width: 36px; min-height: 36px; }
+    .fixed.inset-0 button:has(> i.fa-xmark:only-child) { min-width: 40px; min-height: 40px; }
 
     /* app: header, sidebar and dropdown rows */
     #sidebar-toggle, #notification-container > button { min-width: 44px; min-height: 44px; }
@@ -94,11 +97,41 @@ a, button, [onclick], [role="button"], label, summary { -webkit-tap-highlight-co
 
     /* top bar stays on one line */
     #main-header-subtitle { display: none; }
+    #header-switch-team { max-width: 11rem; }
     #main-header-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 50vw; }
     #notification-dropdown { max-width: calc(100vw - 6rem); }
 }
 @media (max-width: 640px) {
     body[data-page="app"] #app-sidebar ~ main { margin-left: 4rem; }
+    /* phones: the rail is 4rem, so the logo shrinks to fit it */
+    body[data-page="app"] #app-sidebar.w-20 #sidebar-logo-btn .cw-logo { height: 24px !important; }
+    body[data-page="app"] #app-sidebar.w-20 #sidebar-logo-btn > a { max-width: 3rem; overflow: hidden; }
+    /* top bar: title, team switch (icon only), Finish (icon only), bell */
+    body[data-page="app"] main > header { padding-left: 0.5rem; padding-right: 0.5rem; gap: 0.25rem; }
+    body[data-page="app"] main > header > div:first-child { min-width: 0; gap: 0.25rem; }
+    #main-header-title { max-width: 38vw; }
+    #header-switch-team { padding: 0.5rem; max-width: none; }
+    #header-switch-team > span, #ta-finish [data-ta-label] { display: none; }
+    #ta-finish { padding: 0.5rem 0.6rem; }
+    #notification-dropdown { position: fixed; left: 4.5rem; right: 0.5rem; top: 4rem; width: auto; max-width: none; }
+    /* views: less padding so the content gets the width */
+    body[data-page="app"] .view-section.p-6 { padding-left: 0.75rem; padding-right: 0.75rem; padding-top: 0.75rem; }
+    #view-dashboard > div:first-child h2 { font-size: 1.5rem; line-height: 1.25; }
+    /* dashboard cards: date filters wrap inside the card */
+    #view-dashboard .bg-white.flex.items-center.gap-1 { flex-wrap: wrap; max-width: 100%; }
+    #view-dashboard .bg-white.flex.items-center.gap-1 input { min-width: 0; flex: 1 1 7rem; }
+    /* projects: filter buttons, then search + status, then the create button, each on its own row */
+    #view-projects > div:first-child { flex-wrap: wrap; gap: 0.5rem; }
+    #view-projects > div:first-child > div:nth-child(2) { order: 3; flex: 1 1 100%; max-width: none; margin: 0; }
+    #view-projects > div:first-child > div:nth-child(2) > .w-48 { width: 9.5rem; }
+    #proj-filter-toggle-container button { padding-left: 0.6rem; padding-right: 0.6rem; }
+    /* reports: the Project / Personal / Division switch wraps */
+    #view-work-report .flex.bg-gray-100.p-1.rounded-xl { flex-wrap: wrap; max-width: 100%; }
+    /* calendar controls: wrap */
+    #cal-group-bar + div > div { flex-wrap: wrap; gap: 0.5rem; }
+    /* staff settings: header buttons wrap */
+    #view-role-settings .flex.justify-between, #view-role-settings .flex.justify-between > .flex.items-center.gap-3 { flex-wrap: wrap; gap: 0.5rem; }
+    #view-role-settings .p-6 { padding: 0.9rem; }
 }
 
 /* ---------- App views that are too wide for a tablet (portrait, or landscape with the menu open) ---------- */

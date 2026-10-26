@@ -134,7 +134,7 @@
         var lead = tier() === 1 || tier() === 2;
         $('iv-denied').classList.toggle('hidden', lead); $('iv-body').classList.toggle('hidden', !lead);
         /* only the owner may invite a รองหัวหน้า */
-        $('iv-role').innerHTML = MB().ROLES.map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === 'employee' ? ' selected' : '') + (r[0] === 'company_admin' && tier() !== 1 ? ' disabled' : '') + '>' + r[1] + '</option>'; }).join('');
+        $('iv-role').innerHTML = MB().ROLES.map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === 'employee' ? ' selected' : '') + ((r[0] === 'company_admin' || r[0] === 'sys_admin') && tier() !== 1 ? ' disabled' : '') + '>' + r[1] + '</option>'; }).join('');
         team().then(function (t) {
             cur = t;
             $('iv-code').textContent = t.code || '—';
@@ -182,7 +182,7 @@
                 return '<div class="flex flex-wrap items-center gap-2 py-3"><div class="min-w-0 flex-1"><div class="font-semibold text-gray-800 truncate">' + esc(r.user_name || 'สมาชิก') + '</div>'
                     + '<div class="text-xs ' + (join ? 'text-amber-700' : 'text-red-600') + '">' + (join ? 'ขอเข้าร่วมด้วยรหัสเชิญ' : 'ขอออกจากทีม') + '</div></div>'
                     + (join ? '<select data-iv-role="' + esc(r.id) + '" class="bg-gray-50 border border-gray-200 rounded-lg py-1.5 px-2 text-xs font-semibold text-gray-700"><option value="" selected disabled>เลือกตำแหน่ง…</option>'
-                        + MB().ROLES.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === 'company_admin' && tier() !== 1 ? ' disabled' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' : '')
+                        + MB().ROLES.map(function (o) { return '<option value="' + o[0] + '"' + ((o[0] === 'company_admin' || o[0] === 'sys_admin') && tier() !== 1 ? ' disabled' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' : '')
                     + '<button type="button" data-iv-ok="' + esc(r.id) + '"' + (join ? ' disabled title="เลือกตำแหน่งก่อน"' : '') + ' class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed">อนุมัติ</button>'
                     + '<button type="button" data-iv-no="' + esc(r.id) + '" class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50">ปฏิเสธ</button></div>';
             }).join('') : '<p class="text-sm text-gray-400 py-2">ไม่มีคำขอที่รออยู่</p>';
@@ -195,6 +195,15 @@
         if (ok && sel && !role) { sel.focus(); return; }
         (ok || no).disabled = true;
         var sb = client();
+        /* "Admin" only for the system Admin emails; it is saved as company_admin */
+        if (ok && role === 'sys_admin') {
+            MB().checkAdminFor(q.user_id, role).then(function () {
+                sel.value = 'company_admin';
+                var opt = sel.querySelector('option[value="company_admin"]'); if (opt) opt.disabled = false;
+                (ok || no).disabled = false; (ok || no).click();
+            }).catch(function (er) { (ok || no).disabled = false; alert(er.message || er); });
+            return;
+        }
         var job = sb ? sb.rpc('decide_request', { p_id: id, p_approve: !!ok, p_role: role }).then(function (r) {
             if (r.error && NOFN.test((r.error.code || '') + ' ' + r.error.message)) return sb.rpc('decide_request', { p_id: id, p_approve: !!ok }).then(function (r2) { if (r2.error) throw r2.error; });
             if (r.error) throw r.error;
