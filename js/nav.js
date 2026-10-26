@@ -56,7 +56,9 @@
         /* the landing page is laid out to the window (full-screen scroll story): the app's text size would zoom it and leave a gap at the bottom */
         const zoom = page === 'landing' ? '1' : ({ small: '0.9', medium: '1', large: '1.1' }[settings.fontSize] || '1');
         document.body.style.zoom = zoom;
-        document.body.style.height = (100 / parseFloat(zoom)) + 'vh';
+        // dvh = the visible height on iPad/iPhone Safari (vh includes the part under the toolbar)
+        const vh = window.CSS && CSS.supports && CSS.supports('height', '100dvh') ? 'dvh' : 'vh';
+        document.body.style.height = (100 / parseFloat(zoom)) + vh;
 
         window.App = {
             settings: settings,

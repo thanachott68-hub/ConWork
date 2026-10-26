@@ -1263,6 +1263,9 @@ const App = {
                 e.preventDefault();
                 const view = e.currentTarget.getAttribute('data-view');
                 this.switchView(view);
+                // under 1024px the open menu covers the page: close it once a page is picked (Team keeps it open for its submenu)
+                const sb = document.getElementById('app-sidebar');
+                if (window.innerWidth < 1024 && view !== 'team' && sb && sb.classList.contains('w-64')) this.toggleSidebar();
             });
         });
 
@@ -1630,14 +1633,18 @@ const App = {
         this.switchView('role-settings');
     },
 
-    // Phones: start with the menu closed, and close it again when the page behind it is tapped
+    // Phones and portrait tablets (under 1024px, the menu slides over the page there — css/ipad.css):
+    // start with the menu closed, and close it again when the page behind it is tapped
     _initMobileSidebar() {
         const sidebar = document.getElementById('app-sidebar');
-        if (!sidebar || window.innerWidth > 640) return;
-        if (sidebar.classList.contains('w-64')) this.toggleSidebar();
+        if (!sidebar) return;
+        if (window.innerWidth < 1024 && sidebar.classList.contains('w-64')) this.toggleSidebar();
         document.addEventListener('click', (e) => {
-            if (window.innerWidth > 640 || !sidebar.classList.contains('w-64')) return;
+            if (window.innerWidth >= 1024 || !sidebar.classList.contains('w-64')) return;
             if (sidebar.contains(e.target) || e.target.closest('#sidebar-toggle')) return;
+            // this tap only closes the menu; it must not also press whatever was under the dimmed page
+            e.preventDefault();
+            e.stopPropagation();
             this.toggleSidebar();
         }, true);
     },
@@ -10641,8 +10648,10 @@ const App = {
         const modal = document.getElementById('invite-company-modal');
         if (!modal) return;
         
-        const companyId = this.state.currentUser?.workspaceId || 'W-1';
-        const inviteLink = `${window.location.origin}${window.location.pathname}?code=${companyId}`;
+        // the team's invite code (the same one team.html shows), never its internal id
+        const ws = this.state.workspaces.find(w => String(w.workspace_id) === String(this.state.currentUser?.workspaceId)) || this.state.workspaces[0] || {};
+        const code = ws.code || '';
+        const inviteLink = code ? `${window.location.origin}${window.location.pathname.replace(/[^/]*$/, '')}login.html?mode=signup&code=${encodeURIComponent(code)}` : '';
         
         const qrImg = document.getElementById('invite-qr-code');
         if (qrImg) {
@@ -11453,7 +11462,8 @@ const App = {
                 companyInfoDiv.classList.remove('hidden');
                 companyJoinDiv.classList.add('hidden');
                 document.getElementById('up-company-name').textContent = userWorkspace.name;
-                document.getElementById('up-company-code').textContent = userWorkspace.code || userWorkspace.workspace_id;
+                // the team's internal id is not a code anyone can join with: show a dash when the code is missing
+                document.getElementById('up-company-code').textContent = userWorkspace.code || '—';
             } else {
                 companyInfoDiv.classList.add('hidden');
                 if (this.state.currentUser && this.state.currentUser.id === userId) {

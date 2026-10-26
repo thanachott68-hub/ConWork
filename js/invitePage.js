@@ -25,6 +25,11 @@
     /* the team the app is open in: id, name, invite code */
     function team() {
         var u = currentUser(), t = { id: u.workspaceId || null, name: u.workspaceName || '', code: '' };
+        /* use the team the app actually loaded (App._loadData falls back to the first team when the saved choice is not one of mine),
+           so this page never shows another team's code */
+        var A = app(), ws = (A && A.state && A.state.workspaces) || [];
+        var loaded = ws.find(function (w) { return String(w.workspace_id) === String(t.id); }) || ws[0];
+        if (loaded && loaded.workspace_id) { t.id = loaded.workspace_id; t.name = loaded.name || t.name; t.code = loaded.code || ''; }
         if (!t.id) return Promise.resolve(t);
         var sb = client();
         if (sb) return sb.from('companies').select('name, code').eq('id', t.id).maybeSingle().then(function (r) {

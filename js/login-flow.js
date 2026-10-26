@@ -81,7 +81,8 @@ async function saveWorkspace(workspace) {
         try {
             const payload = {
                 name: workspace.name,
-                code: workspace.code || workspace.workspace_id,
+                // every team gets a real invite code (COMP-XXXX); the local id "W-<time>" is not one people can join with
+                code: workspace.code || (workspace.code = generateInviteCode()),
                 is_personal: workspace.type === 'personal', // User's DB uses is_personal
                 created_by: workspace.created_by
             };
