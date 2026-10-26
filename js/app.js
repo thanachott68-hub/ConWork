@@ -599,13 +599,17 @@ const App = {
             'large': '1.1'
         };
         const zoomLevel = zoomMap[this.settings.fontSize || 'medium'];
-        document.body.style.zoom = zoomLevel;
-        document.documentElement.style.fontSize = '16px'; // Reset base to prevent double scaling
+        // Only the text grows or shrinks (css/ipad.css scales the text sizes by --cw-fs); the page itself is not
+        // zoomed any more: zooming the whole body moved and scaled everything on iPad and phones.
+        document.body.style.zoom = '';
+        document.documentElement.style.fontSize = '16px';
+        document.documentElement.style.setProperty('--cw-fs', zoomLevel);
+        if (zoomLevel === '1') document.documentElement.removeAttribute('data-cw-fs');
+        else document.documentElement.setAttribute('data-cw-fs', this.settings.fontSize);
 
-        // Fix sidebar/layout bug: Adjust height to counteract zoom scaling on vh units
         // dvh = the height actually visible on iPad/iPhone browsers (vh reaches under the browser's toolbar)
         const vhUnit = window.CSS && CSS.supports && CSS.supports('height', '100dvh') ? 'dvh' : 'vh';
-        document.body.style.height = `${100 / parseFloat(zoomLevel)}${vhUnit}`;
+        document.body.style.height = `100${vhUnit}`;
 
         // Font size button active states
         const btnSmall = document.getElementById('btn-font-small');
@@ -1317,9 +1321,8 @@ const App = {
                 e.preventDefault();
                 const view = e.currentTarget.getAttribute('data-view');
                 this.switchView(view);
-                // under 1024px the open menu covers the page: close it once a page is picked (Team keeps it open for its submenu)
-                const sb = document.getElementById('app-sidebar');
-                if (window.innerWidth < 1024 && view !== 'team' && sb && sb.classList.contains('w-64')) this.toggleSidebar();
+                // ☰ menu: close it once a page is picked (Team keeps it open for its submenu)
+                if (view !== 'team') this.closeNavMenu();
             });
         });
 
@@ -1661,9 +1664,7 @@ const App = {
     },
 
     closeTeamSubmenuOnMobile() {
-        if (window.innerWidth < 1024) { // Tailwind lg breakpoint
-            this.toggleSidebar(); // Close sidebar on mobile after clicking
-        }
+        this.closeNavMenu(); // a submenu item was picked: close the ☰ menu
     },
 
     handleSubnavClick(id) {
@@ -1687,43 +1688,38 @@ const App = {
         this.switchView('role-settings');
     },
 
-    // Phones and portrait tablets (under 1024px, the menu slides over the page there — css/ipad.css):
-    // start with the menu closed, and close it again when the page behind it is tapped
+    // ☰ menu: the side menu is hidden and opens as a popup from the ☰ button (css/ipad.css, body.cw-nav-open).
+    // A tap outside the menu closes it (and does not also press what was under it).
     _initMobileSidebar() {
         const sidebar = document.getElementById('app-sidebar');
         if (!sidebar) return;
-        if (window.innerWidth < 1024 && sidebar.classList.contains('w-64')) this.toggleSidebar();
         document.addEventListener('click', (e) => {
-            if (window.innerWidth >= 1024 || !sidebar.classList.contains('w-64')) return;
+            if (!document.body.classList.contains('cw-nav-open')) return;
             if (sidebar.contains(e.target) || e.target.closest('#sidebar-toggle')) return;
-            // this tap only closes the menu; it must not also press whatever was under the dimmed page
             e.preventDefault();
             e.stopPropagation();
-            this.toggleSidebar();
+            this.closeNavMenu();
         }, true);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.closeNavMenu(); });
+        // an item picked in the profile menu (profile, settings, help…) also closes the ☰ menu
+        const pm = document.getElementById('profile-menu-dropdown');
+        if (pm) pm.addEventListener('click', (e) => {
+            const item = e.target.closest('button, a');
+            if (item && !item.closest('#profile-theme-btn') && !/toggleLanguage/.test(item.getAttribute('onclick') || '')) {
+                pm.classList.add('hidden');
+                this.closeNavMenu();
+            }
+        });
     },
 
     toggleSidebar() {
-        const sidebar = document.getElementById('app-sidebar');
-        if (!sidebar) return;
-        const isCollapsed = sidebar.classList.contains('w-20');
-        const texts = sidebar.querySelectorAll('.sidebar-text');
+        const open = document.body.classList.toggle('cw-nav-open');
+        const btn = document.getElementById('sidebar-toggle');
+        if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    },
 
-        if (isCollapsed) {
-            // Expand
-            sidebar.classList.remove('w-20');
-            sidebar.classList.add('w-64');
-            texts.forEach(t => {
-                t.classList.remove('opacity-0', 'pointer-events-none', 'w-0');
-            });
-        } else {
-            // Collapse
-            sidebar.classList.remove('w-64');
-            sidebar.classList.add('w-20');
-            texts.forEach(t => {
-                t.classList.add('opacity-0', 'pointer-events-none', 'w-0');
-            });
-        }
+    closeNavMenu() {
+        if (document.body.classList.contains('cw-nav-open')) this.toggleSidebar();
     },
     clearGlobalDateFilter() {
         const now = new Date();
