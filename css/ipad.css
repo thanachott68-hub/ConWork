@@ -209,25 +209,30 @@ body[data-page="app"] main > header > div:last-child > :not([hidden]) ~ :not([hi
     #landing-screen nav.nav a.signin { padding: 0 16px !important; }
 }
 
-/* Phone navigation: keep the sidebar off-canvas until the burger opens it */
+/* /* Phone navigation: hide the rail and show the menu only while open */
 @media (max-width: 767px) {
     body[data-page="app"] #app-sidebar {
-        position: fixed;
+        position: fixed !important;
         inset: 0 auto 0 0;
         z-index: 60;
         width: 17rem !important;
-        transform: translateX(-100%);
-        visibility: hidden;
-        transition: transform 220ms ease, visibility 220ms;
+        height: 100dvh;
+        transition: transform 220ms ease;
         box-shadow: none !important;
     }
+    body[data-page="app"] #app-sidebar.w-20 {
+        display: none !important;
+        transform: translateX(-100%);
+    }
     body[data-page="app"] #app-sidebar.w-64 {
+        display: flex !important;
         transform: translateX(0);
-        visibility: visible;
         box-shadow: 0 0 0 100vmax rgba(15, 23, 42, 0.4) !important;
     }
-    body[data-page="app"] #app-sidebar.w-20 { transform: translateX(-100%); visibility: hidden; }
-    body[data-page="app"] #app-sidebar ~ main { margin-left: 0 !important; width: 100%; }
+    body[data-page="app"] #app-sidebar ~ main {
+        margin-left: 0 !important;
+        width: 100%;
+    }
     body[data-page="app"] #app-sidebar.w-64 .sidebar-text {
         opacity: 1;
         pointer-events: auto;
