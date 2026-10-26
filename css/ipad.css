@@ -29,6 +29,24 @@
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 a, button, [onclick], [role="button"], label, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
+/* ---------- Text size setting (เล็ก / กลาง / ใหญ่): only the letters change size ----------
+   js/app.js, js/nav.js and team.html set --cw-fs (0.9 / 1.1) and data-cw-fs on <html>; the page layout is untouched
+   (before, the whole page was zoomed, which moved everything on iPad and phones). */
+html[data-cw-fs] body { font-size: calc(1rem * var(--cw-fs)); }
+html[data-cw-fs] .text-xs { font-size: calc(0.75rem * var(--cw-fs)) !important; line-height: calc(1rem * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-sm { font-size: calc(0.875rem * var(--cw-fs)) !important; line-height: calc(1.25rem * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-base { font-size: calc(1rem * var(--cw-fs)) !important; line-height: calc(1.5rem * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-lg { font-size: calc(1.125rem * var(--cw-fs)) !important; line-height: calc(1.75rem * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-xl { font-size: calc(1.25rem * var(--cw-fs)) !important; line-height: calc(1.75rem * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-2xl { font-size: calc(1.5rem * var(--cw-fs)) !important; line-height: calc(2rem * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-3xl { font-size: calc(1.875rem * var(--cw-fs)) !important; line-height: calc(2.25rem * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-4xl { font-size: calc(2.25rem * var(--cw-fs)) !important; line-height: calc(2.5rem * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-\[9px\] { font-size: calc(9px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-\[10px\] { font-size: calc(10px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-\[11px\] { font-size: calc(11px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-\[12px\] { font-size: calc(12px * var(--cw-fs)) !important; }
+html[data-cw-fs] .text-\[13px\] { font-size: calc(13px * var(--cw-fs)) !important; }
+
 /* ---------- App top bar: title on the left shrinks; team switch, Finish and bell on the right never overlap ---------- */
 body[data-page="app"] main > header > div:first-child { min-width: 0; }
 body[data-page="app"] main > header > div:first-child > div { min-width: 0; }
@@ -189,4 +207,28 @@ body[data-page="app"] main > header > div:last-child > :not([hidden]) ~ :not([hi
     #landing-screen nav.nav > div:nth-child(2) { gap: 16px !important; margin-left: 4px !important; }
     #landing-screen nav.nav > div:last-child { gap: 10px !important; }
     #landing-screen nav.nav a.signin { padding: 0 16px !important; }
+}
+
+/* ---------- Phone navigation: keep the sidebar off-canvas until the burger opens it ---------- */
+@media (max-width: 767px) {
+    body[data-page="app"] #app-sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 60;
+        width: 17rem !important;
+        transform: translateX(-100%);
+        transition: transform 220ms ease;
+        box-shadow: none !important;
+    }
+    body[data-page="app"] #app-sidebar.w-64 {
+        transform: translateX(0);
+        box-shadow: 0 0 0 100vmax rgba(15, 23, 42, 0.4) !important;
+    }
+    body[data-page="app"] #app-sidebar.w-20 { transform: translateX(-100%); }
+    body[data-page="app"] #app-sidebar ~ main { margin-left: 0 !important; width: 100%; }
+    body[data-page="app"] #app-sidebar.w-64 .sidebar-text {
+        opacity: 1;
+        pointer-events: auto;
+        width: auto;
+    }
 }

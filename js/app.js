@@ -599,13 +599,17 @@ const App = {
             'large': '1.1'
         };
         const zoomLevel = zoomMap[this.settings.fontSize || 'medium'];
-        document.body.style.zoom = zoomLevel;
-        document.documentElement.style.fontSize = '16px'; // Reset base to prevent double scaling
+        // Only the text grows or shrinks (css/ipad.css scales the text sizes by --cw-fs); the page itself is not
+        // zoomed any more: zooming the whole body moved and scaled everything on iPad and phones.
+        document.body.style.zoom = '';
+        document.documentElement.style.fontSize = '16px';
+        document.documentElement.style.setProperty('--cw-fs', zoomLevel);
+        if (zoomLevel === '1') document.documentElement.removeAttribute('data-cw-fs');
+        else document.documentElement.setAttribute('data-cw-fs', this.settings.fontSize);
 
-        // Fix sidebar/layout bug: Adjust height to counteract zoom scaling on vh units
         // dvh = the height actually visible on iPad/iPhone browsers (vh reaches under the browser's toolbar)
         const vhUnit = window.CSS && CSS.supports && CSS.supports('height', '100dvh') ? 'dvh' : 'vh';
-        document.body.style.height = `${100 / parseFloat(zoomLevel)}${vhUnit}`;
+        document.body.style.height = `100${vhUnit}`;
 
         // Font size button active states
         const btnSmall = document.getElementById('btn-font-small');

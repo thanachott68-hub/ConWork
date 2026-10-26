@@ -55,10 +55,12 @@
         document.documentElement.classList.toggle('dark', !!settings.darkMode);
         /* the landing page is laid out to the window (full-screen scroll story): the app's text size would zoom it and leave a gap at the bottom */
         const zoom = page === 'landing' ? '1' : ({ small: '0.9', medium: '1', large: '1.1' }[settings.fontSize] || '1');
-        document.body.style.zoom = zoom;
+        /* text size: only the text is scaled (css/ipad.css, --cw-fs), the page is not zoomed */
+        document.documentElement.style.setProperty('--cw-fs', zoom);
+        if (zoom === '1') document.documentElement.removeAttribute('data-cw-fs'); else document.documentElement.setAttribute('data-cw-fs', settings.fontSize);
         // dvh = the visible height on iPad/iPhone Safari (vh includes the part under the toolbar)
         const vh = window.CSS && CSS.supports && CSS.supports('height', '100dvh') ? 'dvh' : 'vh';
-        document.body.style.height = (100 / parseFloat(zoom)) + vh;
+        document.body.style.height = '100' + vh;
 
         window.App = {
             settings: settings,
