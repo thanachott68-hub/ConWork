@@ -208,7 +208,12 @@
             }
             if (x) { x.status = ok ? 'approved' : 'declined'; writeLS('conwork_team_requests', all); }
         });
-        job.then(function () { loadPending(); refreshCount(); var A = app(); if (A && A.loadPlanUsage) A.loadPlanUsage(); }).catch(function (er) {
+        job.then(function () {
+            loadPending(); refreshCount();
+            var A = app(); if (A && A.loadPlanUsage) A.loadPlanUsage();
+            /* an approved person is a member now: reload the team so they show on ทีมงาน without refreshing the page */
+            if (ok) reloadTeam();
+        }).catch(function (er) {
             (ok || no).disabled = false;
             var A = app(), plan = A && A.planLimitMessage ? A.planLimitMessage(er) : null; // the team's package is full
             if (plan && A._showToast) A._showToast(plan, 'error'); else alert('ทำรายการไม่สำเร็จ: ' + (er.message || er));
@@ -224,7 +229,14 @@
     function decided() {
         refreshCount();
         if ($('iv-pending') && cur.id && tier() === 1) loadPending();
-        var A = app(); if (A && A._loadData) try { A._loadData(); } catch (e) { }
+        reloadTeam();
+    }
+    /* reload members from the database, then redraw ทีมงาน (_loadData only loads; the Team list is drawn by renderTeam) */
+    function reloadTeam() {
+        var A = app(); if (!A || !A._loadData) return;
+        Promise.resolve().then(function () { return A._loadData(); }).then(function () {
+            if (A.renderTeam) A.renderTeam();
+        }).catch(function (e) { console.warn('[Invite] reload team', e); });
     }
     function joined(r) {
         var A = app();

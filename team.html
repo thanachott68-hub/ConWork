@@ -1063,7 +1063,7 @@
                             if (!ids.length) return list;
                             /* same invite code as the app shows (old "W-…" codes become COMP-XXXX once, see js/supabaseClient.js) */
                             var cs = window.conworkSupabase;
-                            var fixCodes = cs && cs.teamInviteCode ? Promise.all(list.map(function (t) {
+                            var fixCodes = cs && cs.teamInviteCode ? Promise.all(list.filter(function (t) { return !t.personal; }).map(function (t) {
                                 return cs.teamInviteCode(t.id, t.code || '').then(function (c) { t.code = c; }, function () { });
                             })) : Promise.resolve();
                             return fixCodes.then(function () { return countMembers(list, ids); });

@@ -751,7 +751,10 @@ async function checkAndRouteUser() {
             if (!data || data.length === 0) { goToDashboard(); return; }
 
             if (data && data.length > 0) {
-                const companyId = data[0].company_id;
+                /* keep the team picked on the Teams page (team.html → Enter): this also runs when app.html opens,
+                   and data[0] is often the Personal Space, which made the app show that space's invite code and data */
+                const chosen = data.find(m => String(m.company_id) === String(chosenTeamId())) || data[0];
+                const companyId = chosen.company_id;
                 
                 // Fetch company details
                 const { data: compData } = await window.conworkSupabase.client
@@ -771,7 +774,7 @@ async function checkAndRouteUser() {
                     localStorage.setItem('workspaces', JSON.stringify(localWs));
                 }
 
-                goToDashboard(companyId, data[0].company_role);
+                goToDashboard(companyId, chosen.company_role);
                 return;
             }
         } catch(e) {
@@ -787,7 +790,13 @@ async function checkAndRouteUser() {
         return;
     }
 
-    goToDashboard(memberships[0].workspace_id, memberships[0].role);
+    const chosenLocal = memberships.find(m => String(m.workspace_id) === String(chosenTeamId())) || memberships[0];
+    goToDashboard(chosenLocal.workspace_id, chosenLocal.role);
+}
+
+/* the team opened from the Teams page, saved in this tab's session */
+function chosenTeamId() {
+    try { return (JSON.parse(sessionStorage.getItem('conwork_user') || 'null') || {}).workspaceId || null; } catch (e) { return null; }
 }
 
 function goToDashboard(passedWorkspaceId = null, passedRole = null) {

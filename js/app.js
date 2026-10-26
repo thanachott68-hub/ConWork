@@ -712,7 +712,7 @@ const App = {
                             created_by: c.created_by
                         }));
                         // same invite code as team.html shows (old "W-…" codes become COMP-XXXX once, see js/supabaseClient.js)
-                        await Promise.all(this.state.workspaces.map(async w => {
+                        await Promise.all(this.state.workspaces.filter(w => w.type !== 'personal').map(async w => {
                             try { w.code = await window.conworkSupabase.teamInviteCode(w.workspace_id, w.code || ''); } catch (e) { }
                         }));
 
