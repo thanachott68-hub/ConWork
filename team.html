@@ -140,7 +140,7 @@
     <!-- Skylearn theme (loaded last so it wins over the older styles) -->
     <link rel="stylesheet" href="css/skylearn.css?v=5">
     <link rel="stylesheet" href="css/bubble.css?v=3">
-    <link rel="stylesheet" href="css/ipad.css?v=5">
+    <link rel="stylesheet" href="css/ipad.css?v=6">
 </head>
 
 <body data-page="team" class="text-gray-800 antialiased h-screen overflow-hidden flex flex-col font-sans bg-cream">
@@ -610,7 +610,6 @@
             <!-- ================= TOP BAR (same look as app.html) ================= -->
             <header
                 class="tm-topbar h-16 shrink-0 bg-cream border-b border-gray-200 flex items-center px-6 gap-3 shadow-sm z-10">
-                <!-- ☰ menu: opens the side menu as a popup (css/ipad.css, body.cw-nav-open) -->
                 <button id="tm-nav-toggle" type="button" aria-expanded="false" aria-controls="app-sidebar" title="เมนู"
                     class="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"><i class="fa-solid fa-bars text-lg"></i></button>
                 <h2 id="tm-title" class="font-semibold text-gray-800 text-lg">ทีมของฉัน</h2>
@@ -1660,19 +1659,6 @@
                 $('tm-d-link').addEventListener('click', function () { if (detailTeam && detailTeam.code) copy(location.origin + location.pathname.replace(/[^/]*$/, '') + 'login.html?mode=register&code=' + encodeURIComponent(detailTeam.code), 'Invite link'); });
                 $('tm-d-enter').addEventListener('click', function () { if (detailTeam) enterTeam(detailTeam); });
 
-                // ---------- ☰ menu: the side menu as a popup; closes on a pick, a tap outside, or Escape ----------
-                (function () {
-                    var btn = $('tm-nav-toggle'), menu = $('app-sidebar');
-                    var setOpen = function (on) { document.body.classList.toggle('cw-nav-open', on); btn.setAttribute('aria-expanded', on ? 'true' : 'false'); };
-                    btn.addEventListener('click', function () { setOpen(!document.body.classList.contains('cw-nav-open')); });
-                    menu.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
-                    document.addEventListener('click', function (e) {
-                        if (!document.body.classList.contains('cw-nav-open') || menu.contains(e.target) || btn.contains(e.target)) return;
-                        e.preventDefault(); e.stopPropagation(); setOpen(false);
-                    }, true);
-                    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
-                })();
-
                 // ---------- team settings: delete the team (owner) ----------
                 var NEED_FN = 'ฐานข้อมูลยังไม่มีคำสั่งนี้ · ต้องรัน SQL ชุดใหม่ใน Neon ก่อน';
                 $('tm-d-delete').addEventListener('click', function () {
@@ -1859,6 +1845,42 @@
                 });
             })();
 
+    </script>
+    <!-- Mobile only (≤640px): the side bar is hidden and ☰ opens it as a popup; closes on a pick or a tap outside -->
+    <style>
+        #tm-nav-toggle { display: none; }
+        @media (max-width: 640px) {
+            #tm-nav-toggle { display: inline-flex; }
+            body[data-page="team"] #app-sidebar { display: none !important; }
+            body.cw-nav-open[data-page="team"] #app-sidebar {
+                display: flex !important; position: fixed !important; top: 4.5rem; left: 0.5rem; z-index: 45; width: 16rem !important;
+                height: auto !important; bottom: auto; max-height: calc(100dvh - 5.5rem);
+                max-width: calc(100vw - 1rem); border-radius: 1rem; overflow: hidden; box-shadow: 0 18px 50px rgba(15, 23, 42, 0.35) !important;
+            }
+            /* the popup shows the full menu (labels and profile), not the tablet icon rail */
+            body.cw-nav-open[data-page="team"] #app-sidebar > a:first-child { padding: 0 1.5rem; justify-content: flex-start; }
+            body.cw-nav-open[data-page="team"] #app-sidebar > a:first-child h2 { display: block; }
+            body.cw-nav-open[data-page="team"] #app-sidebar .nav-item { justify-content: flex-start; padding-left: 1rem; padding-right: 1rem; }
+            body.cw-nav-open[data-page="team"] #app-sidebar .nav-item > span.font-medium { display: inline; }
+            body.cw-nav-open[data-page="team"] #sidebar-profile-section { justify-content: flex-start; padding-left: 1rem; padding-right: 1rem; }
+            body.cw-nav-open[data-page="team"] #sidebar-profile-section > span.flex-col { display: flex; }
+            body.cw-nav-open[data-page="team"] #sidebar-profile-section > i { display: inline-block; }
+            body.cw-nav-open[data-page="team"] #tm-mail-badge { position: static; margin-left: auto; }
+        }
+    </style>
+    <script>
+        (function () {
+            var btn = document.getElementById('tm-nav-toggle'), menu = document.getElementById('app-sidebar');
+            if (!btn || !menu) return;
+            var setOpen = function (on) { document.body.classList.toggle('cw-nav-open', on); btn.setAttribute('aria-expanded', on ? 'true' : 'false'); };
+            btn.addEventListener('click', function () { setOpen(!document.body.classList.contains('cw-nav-open')); });
+            menu.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
+            document.addEventListener('click', function (e) {
+                if (!document.body.classList.contains('cw-nav-open') || menu.contains(e.target) || btn.contains(e.target)) return;
+                e.preventDefault(); e.stopPropagation(); setOpen(false);
+            }, true);
+            window.addEventListener('resize', function () { if (window.innerWidth > 640) setOpen(false); });
+        })();
     </script>
 </body>
 

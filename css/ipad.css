@@ -98,32 +98,47 @@ body[data-page="app"] main > header > div:last-child > :not([hidden]) ~ :not([hi
     .site-foot .links a { display: inline-flex; align-items: center; min-height: 44px; }
 }
 
-/* ---------- app.html / team.html: no side bar; the menu opens as a popup from the ☰ button ---------- */
-/* js/app.js (toggleSidebar) and team.html add body.cw-nav-open; a tap outside or picking an item closes it. */
-body[data-page="app"] #app-sidebar,
-body[data-page="team"] #app-sidebar {
-    display: none !important;
-    position: fixed !important; top: 4.5rem !important; left: 0.5rem !important; bottom: auto !important; z-index: 45 !important;
-    width: 16rem !important; max-width: calc(100vw - 1rem); max-height: calc(100dvh - 5.5rem);
-    border-radius: 1rem; overflow: visible !important; box-shadow: 0 18px 50px rgba(15, 23, 42, 0.35) !important;
-}
-body.cw-nav-open[data-page="app"] #app-sidebar,
-body.cw-nav-open[data-page="team"] #app-sidebar { display: flex !important; }
-body[data-page="app"] #app-sidebar > nav,
-body[data-page="team"] #app-sidebar > nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; }
-body[data-page="app"] #app-sidebar > :first-child,
-body[data-page="team"] #app-sidebar > :first-child { border-radius: 1rem 1rem 0 0; }
-body[data-page="app"] #sidebar-profile-section,
-body[data-page="team"] #sidebar-profile-section { border-radius: 0 0 1rem 1rem; flex-shrink: 0; }
-body[data-page="app"] #app-sidebar ~ main { margin-left: 0 !important; }
+/* ---------- App (app.html): the side menu on tablets ---------- */
+/* Under 1024px the open menu slides over the page instead of squeezing it; closed it is an icon rail.
+   (js/app.js starts it closed under 1024px and closes it when the page behind is tapped.) */
+@media (max-width: 1023px) {
+    /* z-index 40: above the page, below every popup (they start at z-50) */
+    body[data-page="app"] #app-sidebar { position: fixed; top: 0; bottom: 0; left: 0; z-index: 40; }
+    body[data-page="app"] #app-sidebar.w-64 { box-shadow: 0 0 0 100vmax rgba(15, 23, 42, 0.35) !important; }
+    body[data-page="app"] #app-sidebar ~ main { margin-left: 5rem; min-width: 0; }
+    body[data-page="app"] #app-sidebar.w-20 .sidebar-text { display: none; }
+    body[data-page="app"] #app-sidebar.w-20 #sidebar-logo-btn { padding-left: 0; padding-right: 0; justify-content: center; }
+    body[data-page="app"] #app-sidebar.w-20 nav { padding-left: 0.75rem; padding-right: 0.75rem; }
+    body[data-page="app"] #app-sidebar.w-20 .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+    body[data-page="app"] #app-sidebar.w-20 .nav-item > :not([hidden]) ~ :not([hidden]) { margin-left: 0; }
+    body[data-page="app"] #app-sidebar.w-20 #sidebar-profile-section { justify-content: center; padding-left: 0; padding-right: 0; }
+    /* the profile menu opens beside the narrow rail, not cut off by it */
+    body[data-page="app"] #app-sidebar { overflow: visible !important; }
+    body[data-page="app"] #app-sidebar > nav { overflow-x: hidden; }
 
-@media (max-width: 1023px) {    /* top bar stays on one line */
+    /* team.html: its menu has only Team / Mailbox / Profile, so it becomes a fixed icon rail */
+    body[data-page="team"] #app-sidebar.w-64 { width: 5rem; position: static; box-shadow: none !important; }
+    body[data-page="team"] #app-sidebar > a:first-child { padding: 0; justify-content: center; }
+    body[data-page="team"] #app-sidebar > a:first-child h2,
+    body[data-page="team"] #app-sidebar .nav-item > span.font-medium,
+    body[data-page="team"] #sidebar-profile-section > span.flex-col,
+    body[data-page="team"] #sidebar-profile-section > i { display: none; }
+    body[data-page="team"] #app-sidebar nav { padding-left: 0.75rem; padding-right: 0.75rem; }
+    body[data-page="team"] #app-sidebar .nav-item { justify-content: center; padding-left: 0; padding-right: 0; position: relative; }
+    body[data-page="team"] #tm-mail-badge { position: absolute; top: 2px; right: 2px; margin: 0; }
+    body[data-page="team"] #sidebar-profile-section { justify-content: center; padding-left: 0; padding-right: 0; }
+
+    /* top bar stays on one line */
     #main-header-subtitle { display: none; }
     #header-switch-team { max-width: 11rem; }
     #main-header-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 50vw; }
     #notification-dropdown { max-width: calc(100vw - 6rem); }
 }
 @media (max-width: 640px) {
+    body[data-page="app"] #app-sidebar ~ main { margin-left: 4rem; }
+    /* phones: the rail is 4rem, so the logo shrinks to fit it */
+    body[data-page="app"] #app-sidebar.w-20 #sidebar-logo-btn .cw-logo { height: 24px !important; }
+    body[data-page="app"] #app-sidebar.w-20 #sidebar-logo-btn > a { max-width: 3rem; overflow: hidden; }
     /* top bar: title, team switch (icon only), Finish (icon only), bell */
     body[data-page="app"] main > header { padding-left: 0.5rem; padding-right: 0.5rem; gap: 0.25rem; }
     body[data-page="app"] main > header > div:first-child { min-width: 0; gap: 0.25rem; }

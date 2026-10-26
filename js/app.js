@@ -1321,8 +1321,9 @@ const App = {
                 e.preventDefault();
                 const view = e.currentTarget.getAttribute('data-view');
                 this.switchView(view);
-                // ☰ menu: close it once a page is picked (Team keeps it open for its submenu)
-                if (view !== 'team') this.closeNavMenu();
+                // under 1024px the open menu covers the page: close it once a page is picked (Team keeps it open for its submenu)
+                const sb = document.getElementById('app-sidebar');
+                if (window.innerWidth < 1024 && view !== 'team' && sb && sb.classList.contains('w-64')) this.toggleSidebar();
             });
         });
 
@@ -1664,7 +1665,9 @@ const App = {
     },
 
     closeTeamSubmenuOnMobile() {
-        this.closeNavMenu(); // a submenu item was picked: close the ☰ menu
+        if (window.innerWidth < 1024) { // Tailwind lg breakpoint
+            this.toggleSidebar(); // Close sidebar on mobile after clicking
+        }
     },
 
     handleSubnavClick(id) {
@@ -1688,38 +1691,43 @@ const App = {
         this.switchView('role-settings');
     },
 
-    // ☰ menu: the side menu is hidden and opens as a popup from the ☰ button (css/ipad.css, body.cw-nav-open).
-    // A tap outside the menu closes it (and does not also press what was under it).
+    // Phones and portrait tablets (under 1024px, the menu slides over the page there — css/ipad.css):
+    // start with the menu closed, and close it again when the page behind it is tapped
     _initMobileSidebar() {
         const sidebar = document.getElementById('app-sidebar');
         if (!sidebar) return;
+        if (window.innerWidth < 1024 && sidebar.classList.contains('w-64')) this.toggleSidebar();
         document.addEventListener('click', (e) => {
-            if (!document.body.classList.contains('cw-nav-open')) return;
+            if (window.innerWidth >= 1024 || !sidebar.classList.contains('w-64')) return;
             if (sidebar.contains(e.target) || e.target.closest('#sidebar-toggle')) return;
+            // this tap only closes the menu; it must not also press whatever was under the dimmed page
             e.preventDefault();
             e.stopPropagation();
-            this.closeNavMenu();
+            this.toggleSidebar();
         }, true);
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.closeNavMenu(); });
-        // an item picked in the profile menu (profile, settings, help…) also closes the ☰ menu
-        const pm = document.getElementById('profile-menu-dropdown');
-        if (pm) pm.addEventListener('click', (e) => {
-            const item = e.target.closest('button, a');
-            if (item && !item.closest('#profile-theme-btn') && !/toggleLanguage/.test(item.getAttribute('onclick') || '')) {
-                pm.classList.add('hidden');
-                this.closeNavMenu();
-            }
-        });
     },
 
     toggleSidebar() {
-        const open = document.body.classList.toggle('cw-nav-open');
-        const btn = document.getElementById('sidebar-toggle');
-        if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    },
+        const sidebar = document.getElementById('app-sidebar');
+        if (!sidebar) return;
+        const isCollapsed = sidebar.classList.contains('w-20');
+        const texts = sidebar.querySelectorAll('.sidebar-text');
 
-    closeNavMenu() {
-        if (document.body.classList.contains('cw-nav-open')) this.toggleSidebar();
+        if (isCollapsed) {
+            // Expand
+            sidebar.classList.remove('w-20');
+            sidebar.classList.add('w-64');
+            texts.forEach(t => {
+                t.classList.remove('opacity-0', 'pointer-events-none', 'w-0');
+            });
+        } else {
+            // Collapse
+            sidebar.classList.remove('w-64');
+            sidebar.classList.add('w-20');
+            texts.forEach(t => {
+                t.classList.add('opacity-0', 'pointer-events-none', 'w-0');
+            });
+        }
     },
     clearGlobalDateFilter() {
         const now = new Date();
