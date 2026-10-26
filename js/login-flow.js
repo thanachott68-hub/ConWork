@@ -352,7 +352,7 @@ document.getElementById('form-auth')?.addEventListener('submit', async function(
                         email: data.user.email,
                         first_name: data.user.user_metadata?.full_name || email.split('@')[0],
                         last_name: '',
-                        avatar: data.user.user_metadata?.avatar_url || null,
+                        avatar: null /* initials until a photo is uploaded in ConWork */,
                         created_at: new Date().toISOString(),
                         password: pwInput.value
                     };
@@ -1013,7 +1013,8 @@ async function syncGoogleProfile(supabaseUser) {
     if (!supabaseUser || !(window.conworkSupabase && window.conworkSupabase.isAvailable())) return;
     const meta = supabaseUser.user_metadata || {};
     const fullName = meta.full_name || meta.name || '';
-    const avatar = meta.avatar_url || meta.picture || null;
+    /* Google's picture is not copied: until the person uploads a photo in ConWork, the initials of the name are shown */
+    const avatar = null;
     try {
         const sb = window.conworkSupabase.client;
         const { data: prof } = await sb.from('profiles').select('id, full_name, avatar_url').eq('id', supabaseUser.id).maybeSingle();
@@ -1063,7 +1064,7 @@ if (window.conworkSupabase && window.conworkSupabase.isAvailable()) {
                     email: supabaseUser.email || '',
                     first_name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || (supabaseUser.email ? supabaseUser.email.split('@')[0] : 'User'),
                     last_name: '',
-                    avatar: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture || null,
+                    avatar: null /* initials until a photo is uploaded in ConWork */,
                     created_at: new Date().toISOString()
                 };
                 if (isGoogle) {

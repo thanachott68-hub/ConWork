@@ -603,7 +603,9 @@ const App = {
         document.documentElement.style.fontSize = '16px'; // Reset base to prevent double scaling
 
         // Fix sidebar/layout bug: Adjust height to counteract zoom scaling on vh units
-        document.body.style.height = `${100 / parseFloat(zoomLevel)}vh`;
+        // dvh = the height actually visible on iPad/iPhone browsers (vh reaches under the browser's toolbar)
+        const vhUnit = window.CSS && CSS.supports && CSS.supports('height', '100dvh') ? 'dvh' : 'vh';
+        document.body.style.height = `${100 / parseFloat(zoomLevel)}${vhUnit}`;
 
         // Font size button active states
         const btnSmall = document.getElementById('btn-font-small');
@@ -762,6 +764,8 @@ const App = {
                             }
 
                             mockUsers.length = 0; // Clear mock
+                            /* only Admins see other Admins (js/config.js); to everyone else they are not in the team at all */
+                            const viewerIsAdmin = typeof cwIsAdminEmail === 'function' && cwIsAdminEmail(this.state.currentUser && this.state.currentUser.email);
                             userIds.forEach(uid => {
                                 const p = profileMap.get(uid);
                                 const memberObj = teamMembersData.find(m => m.user_id === uid);
@@ -779,7 +783,10 @@ const App = {
                                 const defaultEmail = isCurrentUser ? this.state.currentUser.email : '';
                                 const name = (p && p.full_name) ? p.full_name : (isCurrentUser && this.state.currentUser?.name ? this.state.currentUser.name : defaultName);
                                 const email = (p && p.email) ? p.email : defaultEmail;
-                                const avatar = (p && p.avatar_url) ? p.avatar_url : (isCurrentUser && this.state.currentUser?.avatar ? this.state.currentUser.avatar : null);
+                                /* only a photo the person uploaded in ConWork (a data: image); pictures set automatically
+                                   (Google, pravatar, ui-avatars) are not used: the initials of the name are shown instead */
+                                const ownPhoto = v => /^data:image\//.test(String(v || '')) ? v : null;
+                                const avatar = ownPhoto(p && p.avatar_url) || (isCurrentUser ? ownPhoto(this.state.currentUser?.avatar) : null);
 
                                 let mappedRole = 'worker';
                                 if (mRole === 'reviewer2' || mRole === 'ceo') {
@@ -798,10 +805,10 @@ const App = {
                                 const isSystemAdmin = typeof cwIsAdminEmail === 'function' && cwIsAdminEmail(email);
                                 const companyRole = (isCompanyCreator || mRole === 'super_admin') ? 'super_admin' : (mRole || 'employee');
                                 const roleUser = { role: mappedRole, companyRole, isSystemAdmin };
-                                const jobTitle = p?.job_title || (mappedRole === 'reviewer2' ? 'ประธานเจ้าหน้าที่บริหาร' : (mappedRole === 'admin' ? App._adminLabel(roleUser) : (mappedRole === 'reviewer1' ? 'หัวหน้า' : 'พนักงาน')));
+                                const jobTitle = isSystemAdmin ? 'Admin' : p?.job_title || (mappedRole === 'reviewer2' ? 'ประธานเจ้าหน้าที่บริหาร' : (mappedRole === 'admin' ? App._adminLabel(roleUser) : (mappedRole === 'reviewer1' ? 'หัวหน้า' : 'พนักงาน')));
 
                                 /* Admins are hidden from everyone else in the team: not listed, not counted */
-                                if (!(isSystemAdmin && !isCurrentUser)) mockUsers.push({
+                                if (!isSystemAdmin || isCurrentUser || viewerIsAdmin) mockUsers.push({
                                     id: uid,
                                     email: email || `${uid.substring(0, 8)}@company.com`,
                                     username: name,

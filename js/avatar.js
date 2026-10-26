@@ -57,10 +57,11 @@
     function fix(img) {
         if (!img || img.tagName !== 'IMG' || img._cwFixing) return;
         var src = img.getAttribute('src');
-        var isUi = /ui-avatars\.com/.test(src || '');
+        /* pictures set automatically (not uploaded in ConWork) also become the initials */
+        var isUi = /ui-avatars\.com|pravatar\.cc|googleusercontent\.com|gravatar\.com/.test(src || '');
         if (!isUi && !((src === '' || src === null) && looksLikeAvatar(img))) return;
         var n = nameFor(img);
-        if (!n && !isUi) return;   // nothing to draw yet (the page fills the name in a moment)
+        if (!n && !/ui-avatars\.com/.test(src || '')) return;   // nothing to draw yet (the page fills the name in a moment)
         img._cwFixing = true; img.setAttribute('src', cwAvatar(n)); img._cwFixing = false;
     }
 
@@ -90,6 +91,77 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
+    /* "ปรับรูป": after choosing a photo, drag it to move and use the slider (or pinch / mouse wheel) to zoom,
+       then the circle is cut out as a square JPEG of `size` px. Resolves with a data URL; rejects with
+       Error('cancel') when the person closes the window. */
+    function cwCropImage(file, size) {
+        size = size || 256;
+        return new Promise(function (resolve, reject) {
+            if (!file || !/^image\//.test(file.type)) return reject(new Error('กรุณาเลือกไฟล์รูปภาพ'));
+            var url = URL.createObjectURL(file), img = new Image();
+            img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('อ่านรูปไม่ได้')); };
+            img.onload = function () {
+                var V = 280;                                     // the crop circle on screen
+                var base = Math.max(V / img.width, V / img.height), zoom = 1, x = 0, y = 0;
+                var box = document.createElement('div');
+                box.className = 'fixed inset-0 z-[900] bg-gray-900/70 flex items-center justify-center p-4';
+                box.innerHTML = '<div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5" role="dialog" aria-modal="true">'
+                    + '<h3 class="font-bold text-gray-800 mb-1">ปรับรูปโปรไฟล์</h3><p class="text-xs text-gray-500 mb-3">ลากเพื่อเลื่อน · เลื่อนแถบเพื่อย่อ/ขยาย</p>'
+                    + '<div data-crop style="position:relative;width:' + V + 'px;height:' + V + 'px;max-width:100%;margin:0 auto;overflow:hidden;border-radius:16px;background:#0f172a;touch-action:none;cursor:grab">'
+                    + '<img data-img alt="" draggable="false" style="position:absolute;left:50%;top:50%;max-width:none;user-select:none;-webkit-user-select:none;pointer-events:none">'
+                    + '<div style="position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 999px rgba(15,23,42,.55);pointer-events:none"></div></div>'
+                    + '<div class="flex items-center gap-3 mt-4"><span class="text-gray-400 text-sm">−</span><input data-zoom type="range" min="1" max="4" step="0.01" value="1" class="flex-1" aria-label="ย่อ/ขยาย"><span class="text-gray-400 text-sm">+</span></div>'
+                    + '<div class="flex gap-2 mt-4"><button type="button" data-cancel class="ml-auto px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold">ยกเลิก</button>'
+                    + '<button type="button" data-ok class="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold">ใช้รูปนี้</button></div></div>';
+                document.body.appendChild(box);
+                var stage = box.querySelector('[data-crop]'), pic = box.querySelector('[data-img]'), range = box.querySelector('[data-zoom]');
+                pic.src = url;
+                function clamp() {
+                    var s = base * zoom, mx = Math.max(0, (img.width * s - V) / 2), my = Math.max(0, (img.height * s - V) / 2);
+                    x = Math.min(mx, Math.max(-mx, x)); y = Math.min(my, Math.max(-my, y));
+                }
+                function draw() {
+                    clamp(); var s = base * zoom;
+                    pic.style.width = img.width * s + 'px'; pic.style.height = img.height * s + 'px';
+                    pic.style.transform = 'translate(calc(-50% + ' + x + 'px), calc(-50% + ' + y + 'px))';
+                }
+                draw();
+                range.addEventListener('input', function () { zoom = Number(range.value); draw(); });
+                stage.addEventListener('wheel', function (e) { e.preventDefault(); zoom = Math.min(4, Math.max(1, zoom - e.deltaY * 0.002)); range.value = zoom; draw(); }, { passive: false });
+                /* drag with mouse / finger; two fingers pinch to zoom */
+                var pts = {}, last = null, pinch = null;
+                stage.addEventListener('pointerdown', function (e) { stage.setPointerCapture(e.pointerId); pts[e.pointerId] = { x: e.clientX, y: e.clientY }; last = { x: e.clientX, y: e.clientY }; stage.style.cursor = 'grabbing'; });
+                stage.addEventListener('pointermove', function (e) {
+                    if (!pts[e.pointerId]) return;
+                    pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+                    var ids = Object.keys(pts);
+                    if (ids.length >= 2) {
+                        var a = pts[ids[0]], b = pts[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y);
+                        if (pinch) { zoom = Math.min(4, Math.max(1, zoom * d / pinch)); range.value = zoom; draw(); }
+                        pinch = d; return;
+                    }
+                    if (last) { x += e.clientX - last.x; y += e.clientY - last.y; draw(); }
+                    last = { x: e.clientX, y: e.clientY };
+                });
+                var up = function (e) { delete pts[e.pointerId]; pinch = null; last = null; stage.style.cursor = 'grab'; };
+                stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
+                function close() { box.remove(); URL.revokeObjectURL(url); }
+                box.querySelector('[data-cancel]').addEventListener('click', function () { close(); reject(new Error('cancel')); });
+                box.addEventListener('click', function (e) { if (e.target === box) { close(); reject(new Error('cancel')); } });
+                box.querySelector('[data-ok]').addEventListener('click', function () {
+                    var s = base * zoom, c = document.createElement('canvas'); c.width = c.height = size;
+                    /* the part of the photo inside the circle, in photo pixels */
+                    var sw = V / s, sx = img.width / 2 - x / s - sw / 2, sy = img.height / 2 - y / s - sw / 2;
+                    var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, size, size);
+                    g.drawImage(img, sx, sy, sw, sw, 0, 0, size, size);
+                    close(); resolve(c.toDataURL('image/jpeg', 0.85));
+                });
+            };
+            img.src = url;
+        });
+    }
+
     window.cwAvatar = cwAvatar;
     window.cwInitials = initials;
+    window.cwCropImage = cwCropImage;
 })();

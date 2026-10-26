@@ -29,6 +29,21 @@
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 a, button, [onclick], [role="button"], label, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
+/* ---------- App top bar: title on the left shrinks; team switch, Finish and bell on the right never overlap ---------- */
+body[data-page="app"] main > header > div:first-child { min-width: 0; }
+body[data-page="app"] main > header > div:first-child > div { min-width: 0; }
+#main-header-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body[data-page="app"] main > header > div:last-child { flex-shrink: 0; gap: 0.75rem; margin-left: 0.75rem; }
+body[data-page="app"] main > header > div:last-child > :not([hidden]) ~ :not([hidden]) { margin-left: 0; }
+@media (max-width: 1279px) {
+    #header-switch-team > span:last-child { display: none; }   /* "สลับทีม" text: the icon + team name stay */
+}
+@media (max-width: 900px) {
+    #header-switch-team > span { display: none; }               /* icon only */
+    #header-switch-team { padding: 0.5rem 0.6rem; }
+    #ta-finish [data-ta-label] { display: none; }
+}
+
 /* ---------- Touch screens ---------- */
 @media (hover: none) and (pointer: coarse) {
     /* iOS Safari only sends a tap on plain page areas to document-level click handlers when the area is "clickable":

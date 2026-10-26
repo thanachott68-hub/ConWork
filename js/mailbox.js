@@ -11,8 +11,8 @@
     var NEED_SQL = 'ฐานข้อมูลยังไม่มี Mailbox · รัน conwork-mailbox.sql ใน Supabase (SQL Editor) แล้วลองใหม่';
 
     var ROLE = { sys_admin: 'Admin', company_admin: 'รองหัวหน้า', manager: 'หัวหน้างาน', employee: 'พนักงาน', guest: 'ผู้เยี่ยมชม', super_admin: 'หัวหน้า' };
-    /* "Admin" can be given only to the system Admin emails (js/config.js); it is saved as company_admin and the person is hidden in the team */
-    var ROLES = [['sys_admin', 'Admin'], ['company_admin', 'รองหัวหน้า'], ['manager', 'หัวหน้างาน'], ['employee', 'พนักงาน']];
+    /* the Admin role is never handed out: only the 3 system Admin emails are Admins, added to every team by the database */
+    var ROLES = [['company_admin', 'รองหัวหน้า'], ['manager', 'หัวหน้างาน'], ['employee', 'พนักงาน']];
     var ADMIN_ONLY = 'Admin ให้ได้เฉพาะอีเมล Admin ของระบบ (3 อีเมลที่กำหนดไว้) เท่านั้น';
     var isAdminEmail = function (e) { return !!(window.cwIsAdminEmail && cwIsAdminEmail(e)); };
     /* the role saved in the database for a role picked on screen */

@@ -7,7 +7,7 @@
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
     var PI = window.PersonalInfo;
     var list = [], open = {}, iLead = false, query = '';
-    var GROUP = [['super_admin', 'หัวหน้า'], ['company_admin', 'รองหัวหน้า'], ['manager', 'หัวหน้างาน'], ['employee', 'พนักงาน'], ['guest', 'ผู้เยี่ยมชม']];
+    var GROUP = [['sys_admin', 'Admin'], ['super_admin', 'หัวหน้า'], ['company_admin', 'รองหัวหน้า'], ['manager', 'หัวหน้างาน'], ['employee', 'พนักงาน'], ['guest', 'ผู้เยี่ยมชม']];
     var norm = function (r) { r = String(r || 'employee'); return /super/.test(r) ? 'super_admin' : /admin/.test(r) ? 'company_admin' : /manager|reviewer1|supervisor/.test(r) ? 'manager' : r === 'guest' ? 'guest' : 'employee'; };
 
     /* app.js declares App with const, so it is not on window */
@@ -95,7 +95,7 @@
             + '<span class="min-w-0 flex-1"><span class="block font-semibold text-gray-800 truncate">' + esc(m.name) + (m.self ? ' <span class="text-xs font-normal text-gray-400">(คุณ)</span>' : '') + '</span>'
             + '<span class="block text-xs text-gray-500 truncate">' + esc(th || m.email) + '</span></span>'
             + chip
-            + '<span class="text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full shrink-0">' + esc(PI.ROLE_TH[m.role] || m.role) + '</span>'
+            + '<span class="text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full shrink-0">' + esc(m.role === 'sys_admin' ? 'Admin' : (PI.ROLE_TH[m.role] || m.role)) + '</span>'
             + '<i class="fa-solid fa-chevron-down text-gray-300 text-xs transition-transform shrink-0" style="' + (isOpen ? 'transform:rotate(180deg)' : '') + '"></i>'
             + '</button>' + detail + '</div>';
     }
@@ -105,7 +105,7 @@
     function canRemove(m) {
         var tier = window.TeamAdmin && TeamAdmin.tier ? TeamAdmin.tier() : 0;
         var sysAdmin = !!(window.cwIsAdminEmail && cwIsAdminEmail(me().email));   // the system Admins may remove members too
-        return (tier === 1 || sysAdmin) && !m.self && m.role !== 'super_admin';
+        return (tier === 1 || sysAdmin) && !m.self && m.role !== 'super_admin' && m.role !== 'sys_admin';
     }
     function removeButton(m) {
         if (!canRemove(m)) return '';
@@ -144,13 +144,17 @@
         if (!teamId) { $('mi-list').innerHTML = '<div class="text-center text-sm text-gray-500 py-16">ยังไม่ได้เลือกทีม · กลับไปเลือกทีมที่ <a href="team.html" class="text-blue-600 hover:underline">หน้าทีมของฉัน</a></div>'; return; }
         loadMembers(teamId).then(function (ms) {
             ms.forEach(function (m) { m.self = m.id === uid; });
-            /* system Admins (js/config.js) are hidden: not listed and not counted (they still see themselves) */
-            ms = ms.filter(function (m) { return m.self || !(window.cwIsAdminEmail && cwIsAdminEmail(m.email)); });
+            /* system Admins (js/config.js): only other Admins see them (listed as "Admin"); everyone else does not see or count them */
+            var isAdm = function (e) { return !!(window.cwIsAdminEmail && cwIsAdminEmail(e)); };
+            var viewerAdmin = isAdm(u.email);
+            ms.forEach(function (m) { if (isAdm(m.email)) m.role = 'sys_admin'; });
+            ms = ms.filter(function (m) { return m.self || viewerAdmin || m.role !== 'sys_admin'; });
             var mine = ms.find(function (m) { return m.self; });
             iLead = !!mine && (mine.role === 'super_admin' || mine.role === 'company_admin');
             return PI.loadMany(ms.map(function (m) { return m.id; })).then(function (info) {
                 ms.forEach(function (m) { m.info = info[m.id] || null; });
-                ms.sort(function (a, b) { return (PI.RANK[a.role] - PI.RANK[b.role]) || a.name.localeCompare(b.name, 'th'); });
+                var rk = function (r) { return r === 'sys_admin' ? -1 : (PI.RANK[r] == null ? 9 : PI.RANK[r]); };
+                ms.sort(function (a, b) { return (rk(a.role) - rk(b.role)) || a.name.localeCompare(b.name, 'th'); });
                 list = ms; render();
             });
         }).catch(function (e) {
