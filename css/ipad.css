@@ -209,7 +209,7 @@ body[data-page="app"] main > header > div:last-child > :not([hidden]) ~ :not([hi
     #landing-screen nav.nav a.signin { padding: 0 16px !important; }
 }
 
-/* ---------- Phone navigation: keep the sidebar off-canvas until the burger opens it ---------- */
+/* Phone navigation: keep the sidebar off-canvas until the burger opens it */
 @media (max-width: 767px) {
     body[data-page="app"] #app-sidebar {
         position: fixed;
@@ -217,14 +217,16 @@ body[data-page="app"] main > header > div:last-child > :not([hidden]) ~ :not([hi
         z-index: 60;
         width: 17rem !important;
         transform: translateX(-100%);
-        transition: transform 220ms ease;
+        visibility: hidden;
+        transition: transform 220ms ease, visibility 220ms;
         box-shadow: none !important;
     }
     body[data-page="app"] #app-sidebar.w-64 {
         transform: translateX(0);
+        visibility: visible;
         box-shadow: 0 0 0 100vmax rgba(15, 23, 42, 0.4) !important;
     }
-    body[data-page="app"] #app-sidebar.w-20 { transform: translateX(-100%); }
+    body[data-page="app"] #app-sidebar.w-20 { transform: translateX(-100%); visibility: hidden; }
     body[data-page="app"] #app-sidebar ~ main { margin-left: 0 !important; width: 100%; }
     body[data-page="app"] #app-sidebar.w-64 .sidebar-text {
         opacity: 1;
