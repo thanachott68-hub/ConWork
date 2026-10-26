@@ -388,6 +388,36 @@ class ConWorkSupabaseService {
         return company;
     }
 
+    /* The team's invite code, read from the database: every page (team.html, the app's add-member page, invite popup, profile)
+       shows it through this one function, so they always agree.
+       Older teams were saved with their temporary id "W-<time>" as the code: those get a real COMP-XXXX code once, here.
+       The update only applies while the old code is still there, so two pages fixing it at once end up with the same code. */
+    async teamInviteCode(companyId, knownCode) {
+        if (!this.isAvailable() || !companyId) return knownCode || '';
+        const REAL = /^COMP-[A-Z0-9]{4,}$/;
+        let code = knownCode;
+        if (code === undefined) {
+            const { data } = await this.client.from('companies').select('code').eq('id', companyId).maybeSingle();
+            code = data ? data.code : '';
+        }
+        if (code && REAL.test(code)) return code;
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        for (let attempt = 0; attempt < 3; attempt++) {
+            let fresh = 'COMP-';
+            for (let i = 0; i < 4; i++) fresh += chars.charAt(Math.floor(Math.random() * chars.length));
+            let q = this.client.from('companies').update({ code: fresh }).eq('id', companyId);
+            if (code) q = q.eq('code', code);
+            const { data, error } = await q.select('code');
+            if (!error && data && data.length) return data[0].code;
+            if (error && !/duplicate key|23505/i.test(`${error.code || ''} ${error.message || ''}`)) break;   // not allowed to change it: keep showing what is saved
+            if (!error) {   // someone else fixed it first: use theirs
+                const { data: now } = await this.client.from('companies').select('code').eq('id', companyId).maybeSingle();
+                return (now && now.code) || code || '';
+            }
+        }
+        return code || '';
+    }
+
     async joinCompanyByCode(inviteCode) {
         if (!this.isAvailable()) return null;
 

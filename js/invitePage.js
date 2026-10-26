@@ -33,7 +33,11 @@
         if (!t.id) return Promise.resolve(t);
         var sb = client();
         if (sb) return sb.from('companies').select('name, code').eq('id', t.id).maybeSingle().then(function (r) {
-            if (r.data) { t.name = r.data.name || t.name; t.code = r.data.code || ''; } return t;
+            if (!r.data) return t;
+            t.name = r.data.name || t.name; t.code = r.data.code || '';
+            /* same code as team.html shows (old "W-…" codes become COMP-XXXX once, see js/supabaseClient.js) */
+            var cs = window.conworkSupabase;
+            return cs && cs.teamInviteCode ? cs.teamInviteCode(t.id, t.code).then(function (c) { t.code = c; return t; }, function () { return t; }) : t;
         }).catch(function () { return t; });
         var w = readLS('workspaces', []).find(function (x) { return String(x.workspace_id) === String(t.id); }) || {};
         t.name = w.name || t.name; t.code = w.code || '';
@@ -62,7 +66,8 @@
                 + '</form><p id="iv-note" class="hidden text-sm mt-2"></p>'
                 + '<div class="mt-5"><div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">คำเชิญที่ส่งแล้ว</div><div id="iv-sent" class="divide-y divide-gray-100"></div></div>')
             + card(ic('key') + ' <span class="align-middle">รหัสเชิญ (Invite Code)</span>', 'คนที่เข้าร่วมด้วยรหัสนี้ต้องรอหัวหน้าทีมอนุมัติ (ดูที่ “รออนุมัติ”)',
-                '<div class="flex flex-wrap items-center gap-2"><span id="iv-code" class="px-4 py-2.5 rounded-lg bg-gray-100 font-mono text-lg font-bold tracking-widest text-gray-800">—</span>'
+                '<p id="iv-team-name" class="text-sm text-gray-500 mb-2"></p>'
+                + '<div class="flex flex-wrap items-center gap-2"><span id="iv-code" class="px-4 py-2.5 rounded-lg bg-gray-100 font-mono text-lg font-bold tracking-widest text-gray-800">—</span>'
                 + '<button type="button" id="iv-copy" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50">' + ic('copy', 'sm') + 'คัดลอกรหัส</button>'
                 + '<button type="button" id="iv-copy-link" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50">' + ic('link', 'sm') + 'คัดลอกลิงก์สมัคร</button>'
                 + '<span id="iv-copied" class="text-xs text-emerald-600"></span></div>')
@@ -133,6 +138,8 @@
         team().then(function (t) {
             cur = t;
             $('iv-code').textContent = t.code || '—';
+            /* which team this code belongs to, so it can be matched with the card on the Teams page */
+            $('iv-team-name').innerHTML = t.name ? 'ทีม: <b class="text-gray-700">' + esc(t.name) + '</b>' : '';
             $('iv-pending-card').classList.toggle('hidden', tier() !== 1);
             if (lead) { loadSent(); if (tier() === 1) loadPending(); }
         });

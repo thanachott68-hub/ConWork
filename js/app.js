@@ -711,6 +711,10 @@ const App = {
                             logo: c.logo_url,
                             created_by: c.created_by
                         }));
+                        // same invite code as team.html shows (old "W-…" codes become COMP-XXXX once, see js/supabaseClient.js)
+                        await Promise.all(this.state.workspaces.map(async w => {
+                            try { w.code = await window.conworkSupabase.teamInviteCode(w.workspace_id, w.code || ''); } catch (e) { }
+                        }));
 
                         // --- FETCH PROFILES (mockUsers) ---
                         const { data: teamMembersData } = await window.conworkSupabase.client

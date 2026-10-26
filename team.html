@@ -996,7 +996,7 @@
         /* SKIP_TEAM_PAGE in js/config.js: never stop on this page, go straight into the app */
         if (window.CONWORK_CONFIG && window.CONWORK_CONFIG.SKIP_TEAM_PAGE) location.replace('app.html' + location.search + location.hash);
     </script>
-    <script src="js/supabaseClient.js?v=7"></script>
+    <script src="js/supabaseClient.js?v=8"></script>
     <script src="js/theme.js?v=6"></script>
     <script src="js/i18n.js?v=19"></script>
     <script src="js/personalInfo.js?v=2"></script>
@@ -1061,10 +1061,12 @@
                             });
                             var ids = list.map(function (t) { return t.id; });
                             if (!ids.length) return list;
-                            return sb.from('company_members').select('company_id').in('company_id', ids).then(function (r2) {
-                                var n = {}; (r2.data || []).forEach(function (x) { n[x.company_id] = (n[x.company_id] || 0) + 1; });
-                                list.forEach(function (t) { t.members = n[t.id] || 1; }); return list;
-                            });
+                            /* same invite code as the app shows (old "W-…" codes become COMP-XXXX once, see js/supabaseClient.js) */
+                            var cs = window.conworkSupabase;
+                            var fixCodes = cs && cs.teamInviteCode ? Promise.all(list.map(function (t) {
+                                return cs.teamInviteCode(t.id, t.code || '').then(function (c) { t.code = c; }, function () { });
+                            })) : Promise.resolve();
+                            return fixCodes.then(function () { return countMembers(list, ids); });
                         }).catch(function (e) {
                             console.warn('[Teams] Supabase read failed, using this browser\'s data', e);
                             /* codes saved in this browser were made up on this device, not the team's real code: do not show them */
@@ -1072,6 +1074,12 @@
                         });
                     }
                     return Promise.resolve(localTeams());
+                }
+                function countMembers(list, ids) {
+                    return sb.from('company_members').select('company_id').in('company_id', ids).then(function (r2) {
+                        var n = {}; (r2.data || []).forEach(function (x) { n[x.company_id] = (n[x.company_id] || 0) + 1; });
+                        list.forEach(function (t) { t.members = n[t.id] || 1; }); return list;
+                    });
                 }
                 function localTeams() {
                     var ws = read('workspaces', []), mem = read('workspace_members', []);
