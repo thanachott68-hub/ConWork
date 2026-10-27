@@ -141,6 +141,7 @@
     <link rel="stylesheet" href="css/skylearn.css?v=5">
     <link rel="stylesheet" href="css/bubble.css?v=3">
     <link rel="stylesheet" href="css/ipad.css?v=4">
+    <link rel="stylesheet" href="css/mobile-redesign.css?v=4">
 </head>
 
 <body data-page="team" class="text-gray-800 antialiased h-screen overflow-hidden flex flex-col font-sans bg-cream">
@@ -573,6 +574,7 @@
                 <span class="flex items-center bg-white rounded-lg p-1 shadow-sm"><span class="cw-logo" style="height:34px"><img src="img/logo.png" alt="ConWork Logo"></span></span>
                 <h2 class="text-xl font-bold tracking-wide">ConWork</h2>
             </a>
+            <button id="tm-nav-close" type="button" onclick="document.body.classList.remove('mobile-nav-open')" class="hidden absolute top-3 right-3 w-10 h-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100" aria-label="ปิดเมนู"><i class="fa-solid fa-xmark"></i></button>
             <nav class="flex-1 py-6 px-4 space-y-2">
                 <a href="#team" data-tab="team"
                     class="tm-nav nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 transition-colors">
@@ -605,11 +607,14 @@
                 <i class="fa-solid fa-chevron-right ml-auto text-xs text-gray-500"></i>
             </a>
         </aside>
+        <button id="tm-nav-backdrop" class="hidden" type="button" aria-label="ปิดเมนู" onclick="document.body.classList.remove('mobile-nav-open')"></button>
 
         <div class="flex-1 min-w-0 flex flex-col">
             <!-- ================= TOP BAR (same look as app.html) ================= -->
             <header
                 class="tm-topbar h-16 shrink-0 bg-cream border-b border-gray-200 flex items-center px-6 gap-3 shadow-sm z-10">
+                <button id="tm-nav-toggle" class="hidden" type="button" onclick="document.body.classList.toggle('mobile-nav-open')" aria-label="เปิดเมนู"><i class="fa-solid fa-bars"></i></button>
+                <a class="mobile-app-brand hidden" href="index.html" aria-label="ConWork หน้าแรก"><img src="img/logo.png" alt=""><span>ConWork</span></a>
                 <h2 id="tm-title" class="font-semibold text-gray-800 text-lg">ทีมของฉัน</h2>
                 <span id="tm-subtitle"
                     class="hidden sm:inline text-xs text-gray-500">ทีมที่คุณอยู่และคำขอที่รออนุมัติ</span>
@@ -1286,7 +1291,7 @@
                     $('tm-title').textContent = name === 'profile' ? 'Profile' : name === 'mailbox' ? 'Mailbox' : 'ทีมของฉัน';
                     $('tm-subtitle').textContent = name === 'profile' ? 'ข้อมูลส่วนตัว บัญชีผู้ใช้ และการตั้งค่า' : name === 'mailbox' ? 'คำเชิญเข้าทีมและข้อความถึงคุณ' : 'ทีมที่คุณอยู่และคำขอที่รออนุมัติ';
                 }
-                document.querySelectorAll('.tm-nav').forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); history.replaceState(null, '', '#' + a.getAttribute('data-tab')); showTab(a.getAttribute('data-tab')); }); });
+                document.querySelectorAll('.tm-nav').forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); history.replaceState(null, '', '#' + a.getAttribute('data-tab')); showTab(a.getAttribute('data-tab')); document.body.classList.remove('mobile-nav-open'); }); });
                 showTab(location.hash.slice(1));
 
                 // ---------- modals ----------

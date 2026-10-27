@@ -146,6 +146,7 @@
     <link rel="stylesheet" href="css/skylearn.css?v=5">
     <link rel="stylesheet" href="css/bubble.css?v=3">
     <link rel="stylesheet" href="css/ipad.css?v=6">
+    <link rel="stylesheet" href="css/mobile-redesign.css?v=4">
 </head>
 
 <body data-page="app" class="text-gray-800 antialiased h-screen overflow-hidden flex flex-col font-sans bg-cream">
@@ -167,6 +168,7 @@
                     class="text-xl font-bold tracking-wide sidebar-text whitespace-nowrap transition-opacity duration-300">
                     ConWork
                 </h2>
+                <button id="sidebar-close" type="button" onclick="App.toggleSidebar()" class="hidden ml-auto w-10 h-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100" aria-label="ปิดเมนู"><i class="fa-solid fa-xmark"></i></button>
                 <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-400 opacity-0 peer-hover:opacity-100 transition-opacity ml-auto sidebar-text"
                     title="กลับหน้าแรก"></i>
             </div>
@@ -358,6 +360,7 @@
                         title="เมนู">
                         <i class="fa-solid fa-bars text-lg"></i>
                     </button>
+                    <a class="mobile-app-brand hidden" href="index.html" aria-label="ConWork หน้าแรก"><img src="img/logo.png" alt=""><span>ConWork</span></a>
                     <div class="flex items-baseline gap-3">
                         <h2 id="main-header-title" class="font-semibold text-gray-800 text-lg">ทีมงาน</h2>
                         <span id="main-header-subtitle"
@@ -401,6 +404,8 @@
                             </div>
                         </div>
                     </div>
+                    <button id="mobile-profile-button" type="button" onclick="App.openUserProfile()" aria-label="โปรไฟล์ของฉัน"><img id="mobile-user-avatar" src="" alt=""></button>
+
                 </div>
             </header>
 
@@ -943,6 +948,7 @@
                                 </div>
                             </div>
 
+                            <div id="cal-mobile-week" class="hidden" aria-label="เลือกวันในสัปดาห์"></div>
                             <!-- Calendar Controls -->
                             <div class="px-4 py-3 flex items-center justify-between border-b border-gray-100">
                                 <div class="flex items-center gap-4">

@@ -1,0 +1,395 @@
+<!DOCTYPE html><html lang="th" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"><meta content="mobile_tab" name="shell-type"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{width:100%;margin:0;padding:0;min-height:100%;}body{background-color:#faf8ff;background-image:radial-gradient(#CBD5E1 1px, transparent 1px);background-size:20px 20px;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-surface-variant": "#434655", "on-primary": "#ffffff", "secondary-container": "#57dffe", "primary-fixed": "#dbe1ff", "surface-container-highest": "#dae2fd", "primary": "#004ac6", "background": "#faf8ff", "on-tertiary-fixed": "#002113", "on-secondary-container": "#006172", "accent-sky": "#38BDF8", "surface": "#faf8ff", "on-tertiary-fixed-variant": "#005236", "dot-grid": "#CBD5E1", "secondary": "#00687a", "on-secondary-fixed": "#001f26", "on-error-container": "#93000a", "error-container": "#ffdad6", "on-surface": "#131b2e", "text-muted": "#64748B", "outline-variant": "#c3c6d7", "on-primary-fixed": "#00174b", "surface-bright": "#faf8ff", "surface-bg": "#F8FAFC", "primary-fixed-dim": "#b4c5ff", "status-warning": "#F59E0B", "on-secondary-fixed-variant": "#004e5c", "surface-container-low": "#f2f3ff", "tertiary-container": "#007d55", "surface-container-lowest": "#ffffff", "inverse-primary": "#b4c5ff", "on-secondary": "#ffffff", "on-error": "#ffffff", "inverse-on-surface": "#eef0ff", "primary-container": "#2563eb", "border-light": "#F1F5F9", "tertiary-fixed-dim": "#4edea3", "error": "#ba1a1a", "surface-variant": "#dae2fd", "on-background": "#131b2e", "tertiary-fixed": "#6ffbbe", "surface-dim": "#d2d9f4", "surface-card": "#FFFFFF", "on-primary-fixed-variant": "#003ea8", "status-danger": "#EF4444", "primary-dark": "#1D4ED8", "on-tertiary-container": "#bdffdb", "on-primary-container": "#eeefff", "surface-tint": "#0053db", "secondary-fixed": "#acedff", "on-tertiary": "#ffffff", "secondary-fixed-dim": "#4cd7f6", "inverse-surface": "#283044", "outline": "#737686", "border-subtle": "#E2E8F0", "surface-container": "#eaedff", "surface-container-high": "#e2e7ff", "tertiary": "#006242" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin-desktop": "2rem", "space-xs": "0.25rem", "margin": "1rem", "space-lg": "1.5rem", "space-xl": "2rem", "gutter-mobile": "0.75rem", "space-sm": "0.5rem", "margin-mobile": "1rem", "space-md": "1rem", "gutter": "1rem" }, "fontFamily": { "headline-xl": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "headline-xl-mobile": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "caption": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"] }, "fontSize": { "headline-xl": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}], "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700"}], "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}], "body-sm": ["13px", {"lineHeight": "20px", "fontWeight": "400"}], "label-lg": ["14px", {"lineHeight": "20px", "fontWeight": "600"}], "body-md": ["14px", {"lineHeight": "22px", "fontWeight": "400"}], "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}], "headline-xl-mobile": ["26px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}], "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}], "caption": ["10px", {"lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500"}], "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500"}], "body-lg": ["16px", {"lineHeight": "26px", "fontWeight": "400"}] } } } }</script></head><body class="bg-surface font-body-md text-on-surface flex flex-col min-h-screen antialiased"><header class="fixed top-0 w-full z-50 pt-safe bg-surface-card/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="px-margin-mobile flex flex-col justify-between py-space-xs h-14"><div class="flex items-center justify-between h-14"><div class="flex items-center gap-space-sm"><button id="menu-toggle-btn" aria-label="เปิดเมนูหลัก" class="w-10 h-10 -ml-1 flex items-center justify-center rounded-xl text-on-surface hover:text-primary hover:bg-surface-container-low transition-colors active:scale-95"><span class="material-symbols-outlined text-[24px]">menu</span></button><img alt="ConWork Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XFpLcU3rz6-sb1UElo0T-YlznYFsmtcBFoJ-MfCN-YlBlFGi0gGXQgEOy-7YG9j6WlutU52W6fgmJceKXxXEhanPRAlpQzYMcT4hU6nuxQFAEy9eVuwg0rTdJcubMiQG9SxOICRvPQNIUsT3LadrM6NyZDo4yphjb95naSZ23tUj7BD2KRudz84zrBDF3BjqOMM-pi-FyUw183QKUlOGAdnBPN9XATdiom3xf0qtyB3w"><span class="font-headline-sm text-headline-sm text-primary tracking-tight font-bold">ConWork</span><span class="font-label-md text-label-md text-on-surface-variant font-medium hidden sm:inline">Dashboard</span></div><div class="flex items-center gap-space-xs"><button aria-label="การแจ้งเตือน" class="relative w-11 h-11 flex items-center justify-center rounded-xl text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[24px]">notifications</span><span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-status-danger ring-2 ring-surface-card"></span></button><div class="flex items-center gap-space-xs pl-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><span class="font-label-md text-label-md text-on-surface font-semibold hidden min-[380px]:inline">พิมพ์ชนก</span></div></div></div></div></header><main class="flex flex-col relative w-full px-margin-mobile bg-surface min-h-screen pt-14"><div class="flex flex-col w-full gap-y-space-lg pb-6">
+<!-- 1. Quick In-App Search & Filter -->
+<section class="flex items-center gap-space-xs w-full">
+<div class="relative flex-1 h-12 bg-surface-container-lowest rounded-xl shadow-sm flex items-center px-space-md gap-space-sm transition-all focus-within:ring-2 focus-within:ring-primary-container">
+<span class="material-symbols-outlined text-text-muted text-[22px]">search</span>
+<input class="w-full bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-text-muted focus:outline-none" placeholder="ค้นหางาน, โปรเจกต์, หรือสมาชิกทีม..." type="search">
+<button aria-label="ล้างการค้นหา" class="text-text-muted hover:text-primary transition-colors flex items-center" type="button">
+<span class="material-symbols-outlined text-[18px]">cancel</span>
+</button>
+</div>
+<button aria-label="ตัวกรองด่วน" class="w-12 h-12 rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[22px]">tune</span>
+</button>
+</section>
+<!-- 2. Warm Human Greeting Banner with Agent Copilot Badge -->
+<section class="relative overflow-hidden bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-primary-fixed/30 blur-2xl pointer-events-none"></div>
+<div class="relative flex items-start justify-between gap-space-sm">
+<div class="flex flex-col gap-1 min-w-0">
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed text-primary font-caption text-caption uppercase tracking-wider font-semibold">
+            วันนี้ • 15 พ.ค. 2024
+          </span>
+<span class="inline-flex items-center gap-1 text-tertiary font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+            Agent พร้อมช่วยงาน
+          </span>
+</div>
+<h2 class="font-headline-xl-mobile text-headline-xl-mobile text-on-surface tracking-tight mt-1">
+          สวัสดีตอนเช้า, พิมพ์ชนก 👋
+        </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          วันนี้เป็นวันที่ดีสำหรับการทำงานให้สำเร็จ!
+        </p>
+</div>
+<button class="p-2 rounded-lg text-text-muted hover:text-on-surface hover:bg-surface-container-low transition-colors" title="ล้างการแจ้งเตือน" type="button">
+<span class="material-symbols-outlined text-[20px]">cleaning_services</span>
+</button>
+</div>
+<!-- Quick Team Mood / Status Pill -->
+<div class="mt-space-md pt-space-sm flex items-center justify-between gap-space-xs bg-surface-container-low/60 rounded-xl px-space-md py-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[20px]">smart_toy</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">AI Team Copilot</span>
+<span class="font-caption text-caption text-text-muted">ตรวจสอบตารางงานล่าสุดแล้ว</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold">สถานะปกติ</span>
+</div>
+</section>
+<!-- 3. Summary Stats 2x2 Grid + Priority Pip -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary-container text-[20px]">grid_view</span>
+<h3 class="font-label-lg text-label-lg text-on-surface font-semibold">สถิติงานปัจจุบัน</h3>
+</div>
+<span class="font-caption text-caption text-text-muted">อัปเดตเรียลไทม์</span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm">
+<!-- งานทั้งหมด -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between transition-transform active:scale-[0.98]">
+<div class="flex items-center justify-between text-on-surface-variant">
+<div class="w-9 h-9 rounded-xl bg-primary-fixed/40 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">assignment</span>
+</div>
+<button aria-label="ตัวเลือกงานทั้งหมด" class="text-text-muted hover:text-on-surface">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+<div class="mt-3">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider block">งานทั้งหมด</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold">0</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">งาน</span>
+</div>
+</div>
+</div>
+<!-- งานที่กำลังทำ -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between transition-transform active:scale-[0.98]">
+<div class="flex items-center justify-between text-on-surface-variant">
+<div class="w-9 h-9 rounded-xl bg-secondary-container/40 flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-[20px]">pending_actions</span>
+</div>
+<button aria-label="ตัวเลือกงานที่กำลังทำ" class="text-text-muted hover:text-on-surface">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+<div class="mt-3">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider block">งานที่กำลังทำ</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-lg text-headline-lg text-primary-container font-bold">0</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">งาน</span>
+</div>
+</div>
+</div>
+<!-- งานที่เสร็จสิ้น -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between transition-transform active:scale-[0.98]">
+<div class="flex items-center justify-between text-on-surface-variant">
+<div class="w-9 h-9 rounded-xl bg-tertiary-fixed/40 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</div>
+<button aria-label="ตัวเลือกงานที่เสร็จสิ้น" class="text-text-muted hover:text-on-surface">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+<div class="mt-3">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider block">งานที่เสร็จสิ้น</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-lg text-headline-lg text-tertiary font-bold">0</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">งาน</span>
+</div>
+</div>
+</div>
+<!-- งานที่ค้าง -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between transition-transform active:scale-[0.98]">
+<div class="flex items-center justify-between text-on-surface-variant">
+<div class="w-9 h-9 rounded-xl bg-error-container/60 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[20px]">hourglass_empty</span>
+</div>
+<button aria-label="ตัวเลือกงานที่ค้าง" class="text-text-muted hover:text-on-surface">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+<div class="mt-3">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider block">งานที่ค้าง</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-lg text-headline-lg text-error font-bold">0</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">งาน</span>
+</div>
+</div>
+</div>
+</div>
+<!-- ใกล้ถึงกำหนด (Full Width Warning Card) -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center justify-between transition-transform active:scale-[0.99]">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-xl bg-status-warning/15 flex items-center justify-center text-status-warning">
+<span class="material-symbols-outlined text-[22px]">alarm</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<h4 class="font-label-lg text-label-lg text-on-surface font-semibold">ใกล้ถึงกำหนด</h4>
+<span class="px-2 py-0.5 rounded-full bg-status-warning/20 text-on-surface font-caption text-caption font-semibold">
+              ภายใน 3 วัน
+            </span>
+</div>
+<span class="font-body-sm text-body-sm text-text-muted">งานที่ต้องส่งเร็วๆ นี้</span>
+</div>
+</div>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-lg text-headline-lg text-status-warning font-bold">0</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">งาน</span>
+</div>
+</div>
+</section>
+<!-- 4. Progress Overview & Visual Distribution -->
+<section class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider">ทุกโปรเจกต์</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">ภาพรวมความคืบหน้า</h3>
+</div>
+<span class="font-headline-lg text-headline-lg text-primary-container font-bold">0%</span>
+</div>
+<!-- Inline Modern Progress Track -->
+<div class="w-full h-3 rounded-full bg-surface-container-low overflow-hidden flex">
+<div class="h-full bg-tertiary-fixed-dim" style="width: 0%" title="Completed"></div>
+<div class="h-full bg-primary-container" style="width: 0%" title="In Progress"></div>
+<div class="h-full bg-secondary-fixed-dim" style="width: 0%" title="Pending"></div>
+<div class="h-full bg-status-warning" style="width: 0%" title="Stalled / Due Soon"></div>
+</div>
+<!-- Status Breakdown Tags -->
+<div class="grid grid-cols-2 gap-space-sm pt-space-xs">
+<div class="flex items-center gap-2 p-2 rounded-xl bg-surface-container-low/60">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<div class="flex flex-col min-w-0">
+<span class="font-caption text-caption text-text-muted truncate">Completed</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">0 (0%)</span>
+</div>
+</div>
+<div class="flex items-center gap-2 p-2 rounded-xl bg-surface-container-low/60">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>
+<div class="flex flex-col min-w-0">
+<span class="font-caption text-caption text-text-muted truncate">In Progress</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">0 (0%)</span>
+</div>
+</div>
+<div class="flex items-center gap-2 p-2 rounded-xl bg-surface-container-low/60">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<div class="flex flex-col min-w-0">
+<span class="font-caption text-caption text-text-muted truncate">Pending</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">0 (0%)</span>
+</div>
+</div>
+<div class="flex items-center gap-2 p-2 rounded-xl bg-surface-container-low/60">
+<span class="w-2.5 h-2.5 rounded-full bg-status-warning"></span>
+<div class="flex flex-col min-w-0">
+<span class="font-caption text-caption text-text-muted truncate">Stalled / Due Soon</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">0 (0%)</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. Recent Projects Section & Filtering -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary-container text-[20px]">folder</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">โปรเจกต์ล่าสุด</h3>
+</div>
+<a class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-0.5" href="#">
+        ดูทั้งหมด
+        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+<!-- Filter Chips Carousel (Thumb friendly) -->
+<div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+<button class="px-3.5 h-8 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm shadow-sm whitespace-nowrap active:scale-95 transition-all">
+        ทั้งหมด
+      </button>
+<button class="px-3.5 h-8 rounded-full bg-surface-container-lowest text-text-muted font-label-sm text-label-sm shadow-sm whitespace-nowrap hover:text-primary active:scale-95 transition-all">
+        วางแผน
+      </button>
+<button class="px-3.5 h-8 rounded-full bg-surface-container-lowest text-text-muted font-label-sm text-label-sm shadow-sm whitespace-nowrap hover:text-primary active:scale-95 transition-all">
+        กำลังดำเนินการ
+      </button>
+<button class="px-3.5 h-8 rounded-full bg-surface-container-lowest text-text-muted font-label-sm text-label-sm shadow-sm whitespace-nowrap hover:text-primary active:scale-95 transition-all">
+        เสร็จสิ้น
+      </button>
+</div>
+<!-- Create Project Floating-Style Action Button -->
+<button class="w-full h-12 rounded-xl bg-primary-container text-on-primary font-label-lg text-label-lg shadow-md flex items-center justify-center gap-space-xs hover:bg-primary-dark active:scale-[0.98] transition-all" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span class="">สร้างโปรเจกต์ใหม่</span>
+</button>
+<!-- Sample Project Card (As specified: Project Name + Subtasks badges) -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-md">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-xl bg-primary-fixed/50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[22px]">rocket_launch</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Project Name</h4>
+<span class="font-caption text-caption text-text-muted">กำลังดำเนินการ • ฝ่ายพัฒนาผลิตภัณฑ์</span>
+</div>
+</div>
+<button aria-label="การตั้งค่าโปรเจกต์" class="p-1.5 rounded-lg text-text-muted hover:text-on-surface">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<!-- Quick Subtasks Badges Row -->
+<div class="grid grid-cols-3 gap-2">
+<div class="bg-surface-container-low p-2 rounded-xl flex flex-col items-center justify-center text-center">
+<span class="font-caption text-caption text-text-muted">งานตนเอง</span>
+<span class="font-label-lg text-label-lg text-primary font-bold">0</span>
+</div>
+<div class="bg-surface-container-low p-2 rounded-xl flex flex-col items-center justify-center text-center">
+<span class="font-caption text-caption text-text-muted">สั่งงาน</span>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">0</span>
+</div>
+<div class="bg-surface-container-low p-2 rounded-xl flex flex-col items-center justify-center text-center">
+<span class="font-caption text-caption text-text-muted">ตรวจสอบ</span>
+<span class="font-label-lg text-label-lg text-tertiary font-bold">0</span>
+</div>
+</div>
+<!-- Subtask Actions & Quick Team Chat -->
+<div class="flex items-center justify-between pt-space-xs">
+<button class="flex items-center gap-1.5 font-label-sm text-label-sm text-primary font-semibold hover:underline" type="button">
+<span class="material-symbols-outlined text-[18px]">add_task</span>
+<span class="">เพิ่มงาน</span>
+</button>
+<button class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm hover:text-primary active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[16px]">chat_bubble_outline</span>
+<span class="">สร้างกลุ่มแชท</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 6. Personal Space / Quick Note Widget -->
+<section class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-secondary-container/30 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">edit_note</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">พื้นที่ส่วนตัว (Note)</h3>
+</div>
+<div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-tertiary-fixed/30 text-tertiary font-caption text-caption font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+<span class="">ออนไลน์</span>
+</div>
+</div>
+<!-- Quick Note Composer Input -->
+<div class="relative bg-surface-container-low rounded-xl p-space-sm flex flex-col gap-2">
+<textarea class="w-full bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-text-muted focus:outline-none resize-none" placeholder="จดบันทึกด่วน ไอเดีย หรือสิ่งที่ต้องทำวันนี้..." rows="2"></textarea>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-1 text-text-muted">
+<button aria-label="แนบรูปภาพ" class="p-1 hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">image</span>
+</button>
+<button aria-label="บันทึกเสียง" class="p-1 hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">mic</span>
+</button>
+<span class="font-caption text-caption text-text-muted ml-1">กำลังแก้ไขข้อความ...</span>
+</div>
+<button class="px-3 py-1 rounded-lg bg-primary-container text-on-primary font-label-sm text-label-sm active:scale-95 transition-all" type="button">
+          บันทึก
+        </button>
+</div>
+</div>
+</section>
+<!-- 7. Mobile Calendar Agenda Preview -->
+<section class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-md">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs text-text-muted">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span class="font-caption text-caption uppercase tracking-wider">พฤษภาคม 2024</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-0.5">
+          กิจกรรมวันพุธที่ 15 พฤษภาคม 2024
+        </h3>
+</div>
+<button class="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-primary-fixed/50 text-primary font-label-sm text-label-sm font-semibold active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span class="">สร้างกิจกรรม</span>
+</button>
+</div>
+<!-- Mini Day Strip Indicator -->
+<div class="grid grid-cols-7 gap-1 text-center py-1 bg-surface-container-low/50 rounded-xl p-1">
+<div class="flex flex-col items-center py-1">
+<span class="font-caption text-caption text-text-muted">อา.</span>
+<span class="font-label-sm text-label-sm text-on-surface mt-0.5">12</span>
+</div>
+<div class="flex flex-col items-center py-1">
+<span class="font-caption text-caption text-text-muted">จ.</span>
+<span class="font-label-sm text-label-sm text-on-surface mt-0.5">13</span>
+</div>
+<div class="flex flex-col items-center py-1">
+<span class="font-caption text-caption text-text-muted">อ.</span>
+<span class="font-label-sm text-label-sm text-on-surface mt-0.5">14</span>
+</div>
+<!-- Today Highlighted -->
+<div class="flex flex-col items-center py-1 rounded-lg bg-primary-container text-on-primary shadow-sm">
+<span class="font-caption text-caption opacity-80">พ.</span>
+<span class="font-label-sm text-label-sm font-bold mt-0.5">15</span>
+</div>
+<div class="flex flex-col items-center py-1">
+<span class="font-caption text-caption text-text-muted">พฤ.</span>
+<span class="font-label-sm text-label-sm text-on-surface mt-0.5">16</span>
+</div>
+<div class="flex flex-col items-center py-1">
+<span class="font-caption text-caption text-text-muted">ศ.</span>
+<span class="font-label-sm text-label-sm text-on-surface mt-0.5">17</span>
+</div>
+<div class="flex flex-col items-center py-1">
+<span class="font-caption text-caption text-text-muted">ส.</span>
+<span class="font-label-sm text-label-sm text-on-surface mt-0.5">18</span>
+</div>
+</div>
+<!-- Empty Agenda State with Character & Delight -->
+<div class="flex flex-col items-center justify-center p-space-md bg-surface-container-low/40 rounded-xl text-center gap-2">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[26px]">event_available</span>
+</div>
+<div class="flex flex-col">
+<p class="font-label-lg text-label-lg text-on-surface font-semibold">ไม่มีกิจกรรมที่ต้องทำในวันนี้</p>
+<p class="font-caption text-caption text-text-muted mt-0.5">คุณมีเวลาโฟกัสกับงานโปรเจกต์อย่างเต็มที่ 🎉</p>
+</div>
+<a class="font-label-sm text-label-sm text-primary hover:underline mt-1" href="#">
+        ดูรายการกิจกรรมทั้งหมด
+      </a>
+</div>
+</section>
+<!-- 8. Interactive Micro-Script for Filter Chips & Delight -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Toggle Filter Pills visual state
+      const filterButtons = document.querySelectorAll('section button.whitespace-nowrap');
+      filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterButtons.forEach(b => {
+            b.classList.remove('bg-primary-container', 'text-on-primary');
+            b.classList.add('bg-surface-container-lowest', 'text-text-muted');
+          });
+          btn.classList.add('bg-primary-container', 'text-on-primary');
+          btn.classList.remove('bg-surface-container-lowest', 'text-text-muted');
+        });
+      });
+    });
+  </script>
+</div></main>
+
+<div id="nav-drawer-overlay" class="fixed inset-0 z-50 bg-on-background/40 backdrop-blur-sm transition-opacity duration-300 hidden opacity-0"><div id="nav-drawer-content" class="fixed top-0 left-0 bottom-0 w-[280px] bg-surface-container-lowest shadow-2xl z-50 flex flex-col justify-between transition-transform duration-300 -translate-x-full"><div class="flex flex-col"><div class="flex items-center justify-between p-space-md border-b border-border-subtle"><div class="flex items-center gap-2"><img alt="ConWork Logo" class="h-7 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XFpLcU3rz6-sb1UElo0T-YlznYFsmtcBFoJ-MfCN-YlBlFGi0gGXQgEOy-7YG9j6WlutU52W6fgmJceKXxXEhanPRAlpQzYMcT4hU6nuxQFAEy9eVuwg0rTdJcubMiQG9SxOICRvPQNIUsT3LadrM6NyZDo4yphjb95naSZ23tUj7BD2KRudz84zrBDF3BjqOMM-pi-FyUw183QKUlOGAdnBPN9XATdiom3xf0qtyB3w"><span class="font-headline-sm text-headline-sm text-primary font-bold">ConWork</span></div><button id="menu-close-btn" aria-label="ปิดเมนู" class="w-9 h-9 flex items-center justify-center rounded-lg text-text-muted hover:text-on-surface hover:bg-surface-container-low transition-colors"><span class="material-symbols-outlined text-[20px]">close</span></button></div><div class="px-space-md py-3"><span class="font-caption text-caption text-text-muted uppercase tracking-wider font-semibold">เมนูการใช้งาน</span></div><nav class="flex flex-col gap-1 px-space-sm"><a href="#" class="flex items-center gap-space-sm px-space-md py-2.5 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors"><span class="material-symbols-outlined text-[22px] text-text-muted">assignment</span><span class="font-label-lg text-label-lg">1. งานทั้งหมด</span></a><a href="#" class="flex items-center gap-space-sm px-space-md py-2.5 rounded-xl bg-primary-fixed/40 text-primary font-semibold transition-colors"><span class="material-symbols-outlined text-[22px] text-primary">dashboard</span><span class="font-label-lg text-label-lg">2. แดชบอร์ด</span></a><a href="#" class="flex items-center gap-space-sm px-space-md py-2.5 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors"><span class="material-symbols-outlined text-[22px] text-text-muted">bar_chart</span><span class="font-label-lg text-label-lg">3. รายงาน</span></a><a href="#" class="flex items-center gap-space-sm px-space-md py-2.5 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors"><span class="material-symbols-outlined text-[22px] text-text-muted">account_balance_wallet</span><span class="font-label-lg text-label-lg">4. บัญชี</span></a><a href="#" class="flex items-center gap-space-sm px-space-md py-2.5 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors"><span class="material-symbols-outlined text-[22px] text-text-muted">chat</span><span class="font-label-lg text-label-lg">5. ข้อความ</span></a><a href="#" class="flex items-center gap-space-sm px-space-md py-2.5 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors"><span class="material-symbols-outlined text-[22px] text-text-muted">calendar_today</span><span class="font-label-lg text-label-lg">6. ปฏิทิน</span></a><a href="#" class="flex items-center gap-space-sm px-space-md py-2.5 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors"><span class="material-symbols-outlined text-[22px] text-text-muted">groups</span><span class="font-label-lg text-label-lg">7. ทีมงาน</span></a></nav></div><div class="p-space-md border-t border-border-subtle bg-surface-container-low/50"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold"><span class="material-symbols-outlined text-[18px]">person</span></div><div class="flex flex-col min-w-0"><span class="font-label-sm text-label-sm text-on-surface font-semibold truncate">พิมพ์ชนก</span><span class="font-caption text-caption text-text-muted truncate">pimchanok@conwork.io</span></div></div></div></div></div><script class="">const openBtn=document.getElementById('menu-toggle-btn');const closeBtn=document.getElementById('menu-close-btn');const overlay=document.getElementById('nav-drawer-overlay');const drawer=document.getElementById('nav-drawer-content');function openMenu(){if(!overlay||!drawer)return;overlay.classList.remove('hidden');requestAnimationFrame(()=>{overlay.classList.remove('opacity-0');overlay.classList.add('opacity-100');drawer.classList.remove('-translate-x-full');drawer.classList.add('translate-x-0');});}function closeMenu(){if(!overlay||!drawer)return;overlay.classList.remove('opacity-100');overlay.classList.add('opacity-0');drawer.classList.remove('translate-x-0');drawer.classList.add('-translate-x-full');setTimeout(()=>{overlay.classList.add('hidden');},300);}if(openBtn)openBtn.addEventListener('click',openMenu);if(closeBtn)closeBtn.addEventListener('click',closeMenu);if(overlay)overlay.addEventListener('click',(e)=>{if(e.target===overlay)closeMenu();});</script></body></html>

@@ -1,0 +1,251 @@
+/* Mobile redesign based on Stitch mobile references. Desktop styles and app data remain unchanged. */
+@media (max-width: 767px) {
+    body[data-page="app"], body[data-page="team"] {
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+        overflow: hidden !important;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body[data-page="app"] #app-sidebar {
+        position: fixed !important;
+        inset: 0 auto 0 0 !important;
+        z-index: 80 !important;
+        width: min(84vw, 320px) !important;
+        height: 100dvh !important;
+        flex: none !important;
+        transform: translateX(-105%);
+        visibility: hidden;
+        transition: transform 220ms ease, visibility 220ms;
+        overflow: hidden !important;
+        border-radius: 0 22px 22px 0;
+        box-shadow: none !important;
+    }
+    body[data-page="app"] #app-sidebar.w-20 {
+        display: none !important;
+        transform: translateX(-105%);
+        visibility: hidden;
+    }
+    body[data-page="app"] #app-sidebar.w-64 {
+        display: flex !important;
+        transform: translateX(0);
+        visibility: visible;
+        box-shadow: 0 0 0 100vmax rgba(15, 23, 42, .38), 0 18px 45px rgba(15, 23, 42, .18) !important;
+    }
+    body[data-page="app"] #app-sidebar > nav { flex: 1 1 auto; overflow-y: auto; padding: 12px; }
+    body[data-page="app"] #app-sidebar .nav-item { min-height: 46px; border-radius: 13px; }
+    body[data-page="app"] #app-sidebar .subnav-item { min-height: 42px; }
+    body[data-page="app"] #app-sidebar.w-64 .sidebar-text { opacity: 1; pointer-events: auto; width: auto; }
+    body[data-page="app"] #app-sidebar.w-64 #sidebar-logo-btn { padding: 0 14px; gap: 10px; }
+    body[data-page="app"] #app-sidebar.w-64 #sidebar-logo-btn .sidebar-text { display: block; }
+    body[data-page="app"] #app-sidebar.w-64 #sidebar-close { display: inline-flex; }
+    body[data-page="app"] #app-sidebar ~ main { width: 100% !important; min-width: 0; margin-left: 0 !important; }
+
+    body[data-page="app"] main > header,
+    body[data-page="team"] .tm-topbar {
+        position: relative;
+        z-index: 30;
+        height: 60px !important;
+        min-height: 60px;
+        flex: 0 0 60px;
+        gap: 8px;
+        padding: 0 12px !important;
+        background: rgba(255,255,255,.94) !important;
+        border-color: #e2e8f0 !important;
+        box-shadow: 0 1px 8px rgba(15,23,42,.05) !important;
+        backdrop-filter: blur(14px);
+    }
+    body[data-page="app"] main > header > div:first-child { min-width: 0; gap: 8px; }
+    body[data-page="app"] #sidebar-toggle,
+    body[data-page="team"] #tm-nav-toggle {
+        display: inline-flex;
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e2e8f0;
+        border-radius: 13px;
+        background: #fff;
+        color: #334155;
+        box-shadow: 0 1px 3px rgba(15,23,42,.05);
+    }
+    .mobile-app-brand { display: inline-flex !important; align-items: center; gap: 7px; flex: 0 0 auto; color: #0f172a; font-size: 15px; font-weight: 700; white-space: nowrap; }
+    .mobile-app-brand img { display: block; width: 28px; height: 28px; object-fit: contain; }
+    body[data-page="app"] #main-header-subtitle,
+    body[data-page="team"] #tm-title,
+    body[data-page="team"] #tm-subtitle { display: none !important; }
+    body[data-page="app"] #main-header-title { max-width: 24vw; font-size: 13px !important; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    body[data-page="app"] main > header > div:last-child { min-width: 0; gap: 6px; margin-left: auto; }
+    body[data-page="app"] #mobile-profile-button { display: inline-flex; width: 38px; height: 38px; padding: 2px; border: 0; border-radius: 50%; background: #2563eb; overflow: hidden; }
+    body[data-page="app"] #mobile-profile-button img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+    body[data-page="app"] #header-switch-team { width: 40px; height: 40px; min-width: 40px; justify-content: center; padding: 0; border-radius: 13px; }
+    body[data-page="app"] #header-switch-team > span { display: none !important; }
+    body[data-page="app"] #notification-container > button,
+    body[data-page="team"] #tm-bell { width: 42px; height: 42px; min-width: 42px; display: inline-flex; align-items: center; justify-content: center; border-radius: 13px; }
+    body[data-page="app"] #notification-dropdown,
+    body[data-page="team"] #tm-bell-menu { position: fixed; top: 66px; left: 8px; right: 8px; width: auto; max-width: none; max-height: min(70dvh, 520px); z-index: 100; }
+
+    body[data-page="app"] main { background: #f8fafc !important; }
+    body[data-page="app"] main > .flex-1.overflow-hidden { min-height: 0; overflow: hidden; }
+    body[data-page="app"] .view-section:not(#view-messages) {
+        min-height: 0;
+        padding: 14px 12px 24px !important;
+        background: transparent;
+    }
+    body[data-page="app"] #view-dashboard,
+    body[data-page="app"] #view-projects,
+    body[data-page="app"] #view-tasks,
+    body[data-page="app"] #view-calendar,
+    body[data-page="app"] #view-team,
+    body[data-page="app"] #view-accounting { overflow-y: auto !important; overscroll-behavior: contain; }
+
+    /* Dashboard: 2-column glanceable stats and compact cards. */
+    body[data-page="app"] #view-dashboard > div:first-child { margin: 0 0 14px; padding: 14px; gap: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+    body[data-page="app"] #view-dashboard > div:first-child h2 { font-size: 22px; line-height: 1.35; }
+    body[data-page="app"] #view-dashboard > div:first-child p { font-size: 13px; line-height: 1.5; }
+    body[data-page="app"] #view-dashboard > div:first-child > div:last-child { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 6px; padding: 8px 10px; }
+    body[data-page="app"] #view-dashboard > div:first-child input[type="date"] { width: 38%; min-width: 0; font-size: 12px; }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; width: 100%; min-height: 0; margin: 0; padding: 0; overflow: visible; }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) > div { width: auto; min-width: 0 !important; min-height: 122px; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) > div:last-child { grid-column: 1 / -1; min-height: 88px; }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) > div .w-14 { width: 40px; height: 40px; font-size: 18px; }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) > div .text-3xl { font-size: 26px; }
+    body[data-page="app"] #view-dashboard > div:nth-child(3) { gap: 12px; margin: 16px 0; padding: 0; }
+    body[data-page="app"] #view-dashboard > div:nth-child(3) > div { min-width: 0; padding: 16px; border: 1px solid #e2e8f0; border-radius: 18px; background: #fff; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+    body[data-page="app"] #view-dashboard > div:nth-child(3) .w-48 { width: 144px; height: 144px; }
+    body[data-page="app"] #view-dashboard > div:nth-child(3) .lg\:col-span-8 { overflow-x: auto; }
+    body[data-page="app"] #dash-recent-projects > * { border-radius: 16px; }
+
+    /* Projects and task boards become full-width, thumb-friendly cards. */
+    body[data-page="app"] #view-projects > div:first-child { align-items: stretch; gap: 10px; margin-bottom: 14px; }
+    body[data-page="app"] #proj-filter-toggle-container { width: 100%; overflow-x: auto; }
+    body[data-page="app"] #view-projects > div:first-child > div:nth-child(2) { flex: 1 1 100%; width: 100%; max-width: none; margin: 0; gap: 8px; }
+    body[data-page="app"] #view-projects > div:first-child > div:nth-child(2) > div:first-child { flex: 1 1 100%; }
+    body[data-page="app"] #view-projects > div:first-child > div:nth-child(2) > .w-48 { width: 100%; }
+    body[data-page="app"] #btn-create-project { width: 100%; min-height: 46px; justify-content: center; }
+    body[data-page="app"] #projects-container { grid-template-columns: minmax(0,1fr); gap: 12px; }
+    body[data-page="app"] #projects-container > div { min-height: 0; padding: 16px; border-radius: 18px; background: #fff; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(15,23,42,.05); }
+    body[data-page="app"] #view-tasks > div:first-child { gap: 12px; margin-bottom: 14px; }
+    body[data-page="app"] #view-tasks > div:first-child > div:first-child { flex-wrap: wrap; gap: 8px; margin: 0; }
+    body[data-page="app"] #task-project-name { font-size: 18px; }
+    body[data-page="app"] #add-task-section-btn { min-height: 42px; padding: 8px 12px; }
+    body[data-page="app"] #task-sections-board { flex-direction: column; overflow-x: hidden; overflow-y: auto; gap: 12px; padding: 0 0 18px; }
+    body[data-page="app"] #task-sections-board > [data-section-id] { width: 100%; min-width: 0; flex: 0 0 auto; }
+    body[data-page="app"] #task-sections-board .column-body { flex: none; max-height: none; overflow: visible; padding: 4px; background: transparent !important; }
+    body[data-page="app"] .task-section-header { min-height: 48px; margin-bottom: 8px; border-radius: 14px; }
+    body[data-page="app"] .task-card { border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 2px 8px rgba(15,23,42,.05); }
+
+    /* Reports, finance and team cards. */
+    body[data-page="app"] #view-work-report { overflow-y: auto !important; overflow-x: hidden; }
+    body[data-page="app"] #view-work-report > div { height: auto; min-height: 0; }
+    body[data-page="app"] #wr-report { padding-bottom: 16px; }
+    body[data-page="app"] .wr-controls { position: static; padding: 12px; border-radius: 16px; }
+    body[data-page="app"] .wr-controls > div { gap: 8px; }
+    body[data-page="app"] .wr-controls select { min-width: 0; width: 100%; }
+    body[data-page="app"] .wr-controls button { min-height: 40px; }
+    body[data-page="app"] #wr-report > div { border-radius: 16px; }
+    body[data-page="app"] #wr-report .overflow-x-auto { max-width: 100%; }
+    body[data-page="app"] #accounting-root > div { min-width: 0; }
+    body[data-page="app"] #accounting-root .overflow-x-auto { max-width: 100%; }
+    body[data-page="app"] #accounting-root > div > div:first-child { position: sticky; top: 0; z-index: 5; background: #f8fafc; }
+    body[data-page="app"] #accounting-root [class*="rounded-2xl"] { border-radius: 16px; }
+    body[data-page="app"] #accounting-root button { min-height: 40px; }
+    body[data-page="app"] #view-team > .grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+    body[data-page="app"] #view-team > .grid > div { padding: 12px; border-radius: 16px; }
+    body[data-page="app"] #view-team #team-search-input { min-width: 0; width: 100%; }
+    body[data-page="app"] #view-team #team-list-container { padding-right: 0; }
+
+    /* Messages: one pane at a time on a phone. */
+    body[data-page="app"] #view-messages { min-height: 0; overflow: hidden; background: #f8fafc; }
+    body[data-page="app"] #view-messages .chat-list-pane { width: 100%; min-width: 0; border: 0; background: transparent; }
+    body[data-page="app"] #view-messages .chat-list-pane > div:first-child { padding: 12px; border-bottom: 0; }
+    body[data-page="app"] #view-messages .chat-main-pane { min-width: 0; }
+    body[data-page="app"] #chat-list-container > * { margin: 8px 12px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+
+    /* Calendar agenda on mobile, with a seven-day selector above event cards. */
+    body[data-page="app"] #view-calendar { gap: 10px; }
+    body[data-page="app"] #view-calendar > div:first-child { display: block; min-height: 0; overflow: visible; }
+    body[data-page="app"] #view-calendar > div:first-child > div:first-child { width: 100%; min-height: 0; height: auto; overflow: visible; border-radius: 16px; }
+    body[data-page="app"] #view-calendar > div:first-child > div:first-child > #cal-group-bar { padding: 10px; gap: 8px; }
+    body[data-page="app"] #view-calendar > div:first-child > div:first-child > #cal-group-bar > div:first-child { min-width: 0; gap: 8px; }
+    body[data-page="app"] #view-calendar #cal-group-bar .w-12 { width: 36px; height: 36px; }
+    body[data-page="app"] #view-calendar #header-btn-create-event { width: 42px; min-width: 42px; padding: 0; justify-content: center; font-size: 0; }
+    body[data-page="app"] #view-calendar #header-btn-create-event i { font-size: 15px; }
+    body[data-page="app"] #view-calendar > div:first-child > div:first-child > div:nth-child(2) { display: none !important; }
+    body[data-page="app"] #view-calendar > div:first-child > div:last-child { display: none !important; }
+    body[data-page="app"] #cal-mobile-week { display: block !important; margin: 0 0 10px; padding: 10px 8px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+    body[data-page="app"] #cal-mobile-week .mobile-week-nav { display: flex; align-items: center; gap: 4px; }
+    body[data-page="app"] #cal-mobile-week .mobile-week-days { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); flex: 1; gap: 4px; }
+    body[data-page="app"] #cal-mobile-week .mobile-week-arrow { width: 28px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: #64748b; }
+    body[data-page="app"] #cal-mobile-week .mobile-calendar-day { display: flex; min-width: 0; height: 48px; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 0; border-radius: 12px; background: transparent; color: #64748b; }
+    body[data-page="app"] #cal-mobile-week .mobile-calendar-day span { font-size: 10px; font-weight: 600; }
+    body[data-page="app"] #cal-mobile-week .mobile-calendar-day strong { font-size: 15px; line-height: 18px; }
+    body[data-page="app"] #cal-mobile-week .mobile-calendar-day.is-active { background: #2563eb; color: #fff; box-shadow: 0 6px 12px rgba(37,99,235,.2); }
+    body[data-page="app"] #cal-days-container,
+    body[data-page="app"] #cal-day-headers { display: none !important; }
+    body[data-page="app"] #cal-week-container { display: flex !important; min-height: 0; height: auto; overflow: visible; }
+    body[data-page="app"] #cal-week-container > div { min-height: 0; height: auto; padding: 14px; overflow: visible; border-radius: 16px; background: transparent; }
+    body[data-page="app"] #cal-week-container > div > div { max-width: none; gap: 10px; }
+    body[data-page="app"] #cal-week-container .group { padding: 14px; border-radius: 16px; background: #fff !important; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+    body[data-page="app"] #cal-week-container .group h4 { font-size: 16px; }
+    body[data-page="app"] #cal-week-container .group > div:first-child { width: 72px; }
+    body[data-page="app"] #view-calendar { overflow-y: auto !important; }
+
+    /* My team page (team.html) uses the same drawer and mobile shell. */
+    body[data-page="team"] > div.flex.flex-1.min-h-0 { min-height: 0; display: block; }
+    body[data-page="team"] #app-sidebar { position: fixed; inset: 0 auto 0 0; z-index: 80; width: min(84vw,320px); height: 100dvh; transform: translateX(-105%); visibility: hidden; transition: transform 220ms ease, visibility 220ms; border-radius: 0 22px 22px 0; }
+    body[data-page="team"] #app-sidebar.w-64 { position: fixed !important; width: min(84vw,320px) !important; }
+    body[data-page="team"].mobile-nav-open #app-sidebar { transform: translateX(0); visibility: visible; box-shadow: 0 0 0 100vmax rgba(15,23,42,.38), 0 18px 45px rgba(15,23,42,.18); }
+    body[data-page="team"] #tm-nav-close { display: inline-flex; }
+    body[data-page="team"] #tm-nav-backdrop { display: none; }
+    body[data-page="team"].mobile-nav-open #tm-nav-backdrop { display: block; position: fixed; inset: 0; z-index: 70; border: 0; background: rgba(15,23,42,.38); }
+    body[data-page="team"] > div.flex.flex-1.min-h-0 > div.flex-1 { width: 100%; min-width: 0; height: 100dvh; }
+    body[data-page="team"] .tm-topbar { justify-content: flex-start; }
+    body[data-page="team"] #tm-bell-wrap { margin-left: auto; }
+    body[data-page="team"] main { padding-bottom: env(safe-area-inset-bottom); }
+    body[data-page="team"] main > section { width: 100%; max-width: none; padding: 16px 12px 24px !important; }
+    body[data-page="team"] #tm-code-bar { display: grid; grid-template-columns: 40px minmax(0,1fr); gap: 10px; padding: 14px; border-radius: 18px; }
+    body[data-page="team"] #tm-code-bar > input,
+    body[data-page="team"] #tm-code-bar > button { grid-column: 1 / -1; width: 100%; max-width: none !important; min-height: 46px; }
+    body[data-page="team"] #tm-grid { grid-template-columns: minmax(0,1fr); gap: 12px; }
+    body[data-page="team"] .tm-card { border-radius: 18px; }
+    body[data-page="team"] .tm-row { gap: 10px; padding: 14px 12px; }
+    body[data-page="team"] .tm-input,
+    body[data-page="team"] .tm-select { min-height: 46px; }
+
+    /* Safe-area and touch sizing. */
+    body[data-page="app"] .view-section { padding-bottom: calc(24px + env(safe-area-inset-bottom)) !important; }
+    body[data-page="app"] button,
+    body[data-page="team"] button { -webkit-tap-highlight-color: transparent; }
+    body[data-page="app"] .fixed.inset-0 > div,
+    body[data-page="team"] .tm-modal > div { max-height: calc(100dvh - 24px); overflow-y: auto; }
+}
+
+@media (max-width: 380px) {
+    body[data-page="app"] .mobile-app-brand span,
+    body[data-page="team"] .mobile-app-brand span { display: none; }
+    body[data-page="app"] main > header,
+    body[data-page="team"] .tm-topbar { padding-left: 8px !important; padding-right: 8px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body[data-page="app"] #app-sidebar,
+    body[data-page="team"] #app-sidebar { transition: none !important; }
+}
+
+/* Shared visual tokens from the supplied mobile reference. */
+@media (max-width: 767px) {
+    html:not(.dark) body[data-page="app"] main,
+    html:not(.dark) body[data-page="team"] .tm-page-bg { background-color: #f8fafc !important; }
+    html:not(.dark) body[data-page="app"] #app-sidebar,
+    html:not(.dark) body[data-page="team"] #app-sidebar { background: #fff !important; color: #0f172a !important; }
+    html:not(.dark) body[data-page="app"] #app-sidebar .nav-item,
+    html:not(.dark) body[data-page="team"] #app-sidebar .nav-item { color: #475569 !important; }
+    html:not(.dark) body[data-page="app"] #app-sidebar .nav-item.bg-blue-600,
+    html:not(.dark) body[data-page="team"] #app-sidebar .nav-item.active { color: #1d4ed8 !important; background: #eff6ff !important; }
+    html:not(.dark) body[data-page="app"] #app-sidebar .nav-item.bg-blue-600 i,
+    html:not(.dark) body[data-page="team"] #app-sidebar .nav-item.active i { color: #1d4ed8 !important; }
+    html:not(.dark) body[data-page="app"] #sidebar-profile-section,
+    html:not(.dark) body[data-page="team"] #sidebar-profile-section { background: #f8fafc !important; color: #0f172a !important; border-color: #e2e8f0 !important; }
+}

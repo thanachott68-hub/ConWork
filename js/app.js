@@ -1245,6 +1245,12 @@ const App = {
             avatarEl.src = this.state.currentUser.avatar;
         }
 
+        const mobileAvatarEl = document.getElementById('mobile-user-avatar');
+        if (mobileAvatarEl && this.state.currentUser.avatar) {
+            mobileAvatarEl.src = this.state.currentUser.avatar;
+            mobileAvatarEl.alt = this.state.currentUser.name || 'Profile';
+        }
+
         // Persist currentUser to sessionStorage and localStorage
         try {
             sessionStorage.setItem('conwork_user', JSON.stringify(this.state.currentUser));
@@ -4289,7 +4295,7 @@ const App = {
             this.state.calendarDate = now.getDate();
         }
         this.state.calTab = this.state.calTab || 'personal'; // all, group, personal
-        this.state.calView = this.state.calView || 'month'; // month, week, day
+        this.state.calView = this.state.calView || ((window.matchMedia && window.matchMedia('(max-width: 767px)').matches) ? 'day' : 'month'); // month, week, day
         this.state.calGroup = this.state.calGroup || '';
         this.state.selectedDate = this.state.selectedDate || `${this.state.calendarYear}-${String(this.state.calendarMonth + 1).padStart(2, '0')}-${String(this.state.calendarDate).padStart(2, '0')}`;
 
@@ -4503,9 +4509,28 @@ const App = {
 
         this.renderMiniCalendar();
         this.renderDayEventsPanel();
+        this._renderMobileCalendarWeek();
         this.updateCalendarStats();
     },
 
+    _renderMobileCalendarWeek() {
+        const host = document.getElementById('cal-mobile-week');
+        if (!host || !this.state.selectedDate) return;
+        const parts = this.state.selectedDate.split('-').map(Number);
+        const selected = new Date(parts[0], parts[1] - 1, parts[2]);
+        const start = new Date(selected);
+        start.setDate(selected.getDate() - selected.getDay());
+        const isEn = this.settings?.language === 'en';
+        const names = isEn ? ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] : ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
+        const days = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(start);
+            d.setDate(start.getDate() + i);
+            const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            const active = value === this.state.selectedDate;
+            return `<button type="button" class="mobile-calendar-day${active ? ' is-active' : ''}" onclick="App.calendarDayClick('${value}')"><span>${names[i]}</span><strong>${d.getDate()}</strong></button>`;
+        }).join('');
+        host.innerHTML = `<div class="mobile-week-nav"><button type="button" class="mobile-week-arrow" onclick="App.prevMonth()" aria-label="${isEn ? 'Previous day' : 'วันก่อน'}"><i class="fa-solid fa-chevron-left"></i></button><div class="mobile-week-days">${days}</div><button type="button" class="mobile-week-arrow" onclick="App.nextMonth()" aria-label="${isEn ? 'Next day' : 'วันถัดไป'}"><i class="fa-solid fa-chevron-right"></i></button></div>`;
+    },
     updateCalendarStats() {
         const todayD = new Date();
         const todayStr = `${todayD.getFullYear()}-${String(todayD.getMonth() + 1).padStart(2, '0')}-${String(todayD.getDate()).padStart(2, '0')}`;

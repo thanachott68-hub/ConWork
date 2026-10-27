@@ -1,0 +1,436 @@
+<!DOCTYPE html><html class="light" lang="th"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"><meta content="mobile_tab" name="shell-type"><title>ConWork</title><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{width:100%;margin:0;padding:0;min-height:100vh;}body{overscroll-behavior-y:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}.canvas-dot-grid{background-image:radial-gradient(#CBD5E1 1px,transparent 1px);background-size:20px 20px;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { 'colors': { 'border-light': '#F1F5F9', 'on-secondary-fixed-variant': '#004e5c', 'on-tertiary-fixed-variant': '#005236', 'primary-fixed-dim': '#b4c5ff', 'status-warning': '#F59E0B', 'on-tertiary-container': '#bdffdb', 'on-error-container': '#93000a', 'on-primary-fixed': '#00174b', 'tertiary-fixed-dim': '#4edea3', 'on-background': '#131b2e', 'on-secondary-container': '#006172', 'surface-bg': '#F8FAFC', 'inverse-primary': '#b4c5ff', 'on-primary': '#ffffff', 'dot-grid': '#CBD5E1', 'surface-container-highest': '#dae2fd', 'surface-dim': '#d2d9f4', 'error': '#ba1a1a', 'on-primary-fixed-variant': '#003ea8', 'primary': '#004ac6', 'surface-variant': '#dae2fd', 'surface-container': '#eaedff', 'border-subtle': '#E2E8F0', 'surface-container-high': '#e2e7ff', 'outline': '#737686', 'secondary': '#00687a', 'inverse-surface': '#283044', 'primary-container': '#2563eb', 'on-surface-variant': '#434655', 'primary-fixed': '#dbe1ff', 'on-surface': '#131b2e', 'status-danger': '#EF4444', 'outline-variant': '#c3c6d7', 'surface-card': '#FFFFFF', 'on-error': '#ffffff', 'on-secondary': '#ffffff', 'surface-tint': '#0053db', 'surface-container-low': '#f2f3ff', 'tertiary-fixed': '#6ffbbe', 'primary-dark': '#1D4ED8', 'secondary-fixed-dim': '#4cd7f6', 'text-muted': '#64748B', 'background': '#faf8ff', 'error-container': '#ffdad6', 'on-primary-container': '#eeefff', 'on-tertiary': '#ffffff', 'surface-bright': '#faf8ff', 'tertiary-container': '#007d55', 'on-tertiary-fixed': '#002113', 'surface': '#faf8ff', 'surface-container-lowest': '#ffffff', 'tertiary': '#006242', 'secondary-container': '#57dffe', 'secondary-fixed': '#acedff', 'on-secondary-fixed': '#001f26', 'inverse-on-surface': '#eef0ff', 'accent-sky': '#38BDF8' }, 'borderRadius': { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, 'spacing': { 'margin-desktop': '2rem', 'gutter': '1rem', 'space-md': '1rem', 'space-sm': '0.5rem', 'space-xl': '2rem', 'space-lg': '1.5rem', 'margin-mobile': '1rem', 'margin': '1rem', 'gutter-mobile': '0.75rem', 'space-xs': '0.25rem' }, 'fontFamily': { 'label-lg': ['Plus Jakarta Sans'], 'label-md': ['Plus Jakarta Sans'], 'caption': ['Plus Jakarta Sans'], 'body-lg': ['Plus Jakarta Sans'], 'headline-sm': ['Plus Jakarta Sans'], 'body-sm': ['Plus Jakarta Sans'], 'headline-xl-mobile': ['Plus Jakarta Sans'], 'body-md': ['Plus Jakarta Sans'], 'headline-xl': ['Plus Jakarta Sans'], 'headline-md': ['Plus Jakarta Sans'], 'label-sm': ['Plus Jakarta Sans'], 'headline-lg': ['Plus Jakarta Sans'] }, 'fontSize': { 'label-lg': ['14px', { 'lineHeight': '20px', 'fontWeight': '600' }], 'label-md': ['12px', { 'lineHeight': '16px', 'letterSpacing': '0.02em', 'fontWeight': '600' }], 'caption': ['10px', { 'lineHeight': '14px', 'letterSpacing': '0.04em', 'fontWeight': '500' }], 'body-lg': ['16px', { 'lineHeight': '26px', 'fontWeight': '400' }], 'headline-sm': ['18px', { 'lineHeight': '24px', 'fontWeight': '600' }], 'body-sm': ['13px', { 'lineHeight': '20px', 'fontWeight': '400' }], 'headline-xl-mobile': ['26px', { 'lineHeight': '34px', 'letterSpacing': '-0.02em', 'fontWeight': '700' }], 'body-md': ['14px', { 'lineHeight': '22px', 'fontWeight': '400' }], 'headline-xl': ['32px', { 'lineHeight': '40px', 'letterSpacing': '-0.02em', 'fontWeight': '700' }], 'headline-md': ['20px', { 'lineHeight': '28px', 'letterSpacing': '-0.01em', 'fontWeight': '600' }], 'label-sm': ['11px', { 'lineHeight': '14px', 'letterSpacing': '0.03em', 'fontWeight': '500' }], 'headline-lg': ['24px', { 'lineHeight': '32px', 'letterSpacing': '-0.015em', 'fontWeight': '700' }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface-bg text-on-surface font-body-md text-body-md antialiased canvas-dot-grid relative min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface-card/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="px-margin-mobile flex flex-col justify-center gap-space-xs h-16"><div class="flex items-center justify-between"><div class="flex items-center gap-space-sm"><button aria-label="เปิดเมนูนำทาง" class="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-bg text-on-surface hover:bg-surface-container active:scale-95 transition-all" id="menu-toggle-btn" type="button"><span class="material-symbols-outlined text-[24px]">menu</span></button><div class="flex items-center gap-space-xs"><div class="w-8 h-8 rounded-xl bg-primary-container flex items-center justify-center shadow-[0_8px_16px_-4px_rgba(37,99,235,0.35)]"><span class="material-symbols-outlined text-on-primary text-[18px]">hub</span></div><span class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tight">ConWork</span></div></div><div class="flex items-center gap-space-xs"><button aria-label="การแจ้งเตือน" class="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-bg text-on-surface-variant hover:bg-surface-container relative active:scale-95 transition-all" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-status-danger ring-2 ring-surface-card"></span></button><div class="flex items-center gap-space-xs pl-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><span class="hidden sm:inline font-label-md text-label-md text-on-surface">พิมพ์ชนก</span></div></div></div></div></header><div class="fixed inset-0 z-50 bg-inverse-surface/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300" id="nav-drawer-backdrop"></div><aside class="fixed top-0 left-0 bottom-0 z-50 w-4/5 max-w-xs bg-surface-card shadow-[0_10px_25px_-5px_rgba(37,99,235,0.08)] transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col pt-safe pb-safe" id="nav-drawer"><div class="p-margin-mobile flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div><p class="font-label-lg text-label-lg text-on-surface leading-tight">พิมพ์ชนก</p><p class="font-caption text-caption text-text-muted">สมาชิกทีม ConWork</p></div></div><button aria-label="ปิดเมนู" class="w-11 h-11 flex items-center justify-center rounded-xl text-on-surface-variant hover:bg-surface-bg active:scale-95 transition-all" id="menu-close-btn" type="button"><span class="material-symbols-outlined text-[22px]">close</span></button></div><div class="px-margin-mobile py-space-xs"><p class="font-caption text-caption uppercase text-text-muted tracking-wider">เมนูหลัก (7 แท็บ)</p></div><nav class="flex-1 overflow-y-auto px-margin-mobile py-space-xs flex flex-col gap-1" data-active-classes="bg-primary-fixed/50 text-primary font-bold"><a class="flex items-center gap-space-sm px-space-md py-3 rounded-xl text-on-surface-variant hover:bg-surface-bg hover:text-on-surface transition-colors min-h-[44px]" data-path="tasks" href="#"><span class="material-symbols-outlined text-[22px]">check_circle</span><span class="font-label-lg text-label-lg">งานทั้งหมด</span></a><a class="flex items-center gap-space-sm px-space-md py-3 rounded-xl text-on-surface-variant hover:bg-surface-bg hover:text-on-surface transition-colors min-h-[44px]" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[22px]">grid_view</span><span class="font-label-lg text-label-lg">แดชบอร์ด</span></a><a class="flex items-center gap-space-sm px-space-md py-3 rounded-xl text-on-surface-variant hover:bg-surface-bg hover:text-on-surface transition-colors min-h-[44px]" data-path="reports" href="#"><span class="material-symbols-outlined text-[22px]">bar_chart</span><span class="font-label-lg text-label-lg">รายงาน</span></a><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-3 rounded-xl transition-colors min-h-[44px] bg-primary-fixed/50 text-primary font-bold" data-path="finance" href="#"><span class="material-symbols-outlined text-[22px]">account_balance_wallet</span><span class="font-label-lg text-label-lg">บัญชี</span></a><a class="flex items-center gap-space-sm px-space-md py-3 rounded-xl text-on-surface-variant hover:bg-surface-bg hover:text-on-surface transition-colors min-h-[44px]" data-path="messages" href="#"><span class="material-symbols-outlined text-[22px]">chat_bubble</span><span class="font-label-lg text-label-lg">ข้อความ</span></a><a class="flex items-center gap-space-sm px-space-md py-3 rounded-xl text-on-surface-variant hover:bg-surface-bg hover:text-on-surface transition-colors min-h-[44px]" data-path="calendar" href="#"><span class="material-symbols-outlined text-[22px]">calendar_month</span><span class="font-label-lg text-label-lg">ปฏิทิน</span></a><a class="flex items-center gap-space-sm px-space-md py-3 rounded-xl text-on-surface-variant hover:bg-surface-bg hover:text-on-surface transition-colors min-h-[44px]" data-path="team" href="#"><span class="material-symbols-outlined text-[22px]">group</span><span class="font-label-lg text-label-lg">ทีมงาน</span></a></nav><div class="p-margin-mobile flex items-center justify-between"><span class="font-caption text-caption text-text-muted">ConWork v2.4</span><span class="w-2 h-2 rounded-full bg-tertiary-container"></span></div></aside><script>const toggleBtn = document.getElementById('menu-toggle-btn'); const closeBtn = document.getElementById('menu-close-btn'); const drawer = document.getElementById('nav-drawer'); const backdrop = document.getElementById('nav-drawer-backdrop'); function openDrawer(){ drawer.classList.remove('-translate-x-full'); backdrop.classList.remove('opacity-0', 'pointer-events-none'); backdrop.classList.add('opacity-100'); } function closeDrawer(){ drawer.classList.add('-translate-x-full'); backdrop.classList.add('opacity-0', 'pointer-events-none'); backdrop.classList.remove('opacity-100'); } if(toggleBtn && closeBtn && drawer && backdrop){ toggleBtn.addEventListener('click', openDrawer); closeBtn.addEventListener('click', closeDrawer); backdrop.addEventListener('click', closeDrawer); }</script><main class="flex flex-col relative w-full px-margin-mobile pb-safe bg-surface-bg min-h-screen pt-20"><div class="flex flex-col w-full pb-10 space-y-4">
+<!-- Micro Header & Delight Greeting -->
+<div class="flex items-center justify-between pt-1">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="inline-flex w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span>
+<span class="font-caption text-caption text-text-muted">ปีงบประมาณ 2568 • ไตรมาส 1</span>
+</div>
+<h1 class="font-headline-xl-mobile text-headline-xl-mobile text-on-surface font-bold tracking-tight">การเงิน &amp; บัญชี</h1>
+</div>
+<!-- Quick export / statement pill -->
+<button class="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-surface-container text-primary hover:bg-surface-container-high transition-all active:scale-95 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+<span class="font-label-md text-label-md">รายงานสรุป</span>
+</button>
+</div>
+<!-- Financial Overview Hero Bento -->
+<div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-on-primary p-space-md shadow-[0_12px_24px_-8px_rgba(37,99,235,0.45)]">
+<!-- Subtle Ambient Graphic Blobs -->
+<div class="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-accent-sky/20 blur-2xl pointer-events-none"></div>
+<div class="absolute right-12 -bottom-10 w-28 h-28 rounded-full bg-tertiary-fixed/20 blur-xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-surface-card/15 backdrop-blur-md flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-[20px]">account_balance_wallet</span>
+</div>
+<span class="font-label-md text-label-md text-primary-fixed">งบประมาณรวมที่ได้รับจัดสรร</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md font-caption text-caption text-on-primary font-semibold">
+          63.4% ถูกใช้
+        </span>
+</div>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-sm text-headline-sm font-semibold opacity-80">฿</span>
+<span class="font-headline-xl-mobile text-headline-xl-mobile font-bold tracking-tight">450,000</span>
+<span class="font-caption text-caption text-primary-fixed ml-1 font-normal">THB</span>
+</div>
+<!-- Animated Progress Bar -->
+<div class="space-y-1 pt-1">
+<div class="w-full h-2.5 rounded-full bg-white/20 overflow-hidden p-0.5">
+<div class="h-full rounded-full bg-gradient-to-r from-secondary-container via-tertiary-fixed to-accent-sky transition-all duration-1000 shadow-sm" style="width: 63.4%;"></div>
+</div>
+<div class="flex items-center justify-between font-caption text-caption text-primary-fixed pt-0.5">
+<span class="">ความคืบหน้างบงานโครงการ</span>
+<span class="font-medium text-white">คงเหลือ 36.6%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Metric Twin Cards (Spent vs Remaining) -->
+<div class="grid grid-cols-2 gap-3">
+<!-- Spent Card -->
+<div class="rounded-2xl bg-surface-card p-3.5 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.04)] flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-caption text-caption text-text-muted">ใช้งบไปแล้ว</span>
+<div class="w-7 h-7 rounded-lg bg-error-container/60 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[16px]">arrow_outward</span>
+</div>
+</div>
+<div class="mt-2">
+<div class="flex items-baseline gap-0.5">
+<span class="font-label-sm text-label-sm text-text-muted font-bold">฿</span>
+<span class="font-headline-md text-headline-md font-bold text-on-surface">285,400</span>
+</div>
+<p class="font-caption text-caption text-text-muted mt-0.5">จาก 14 รายการเบิกจ่าย</p>
+</div>
+</div>
+<!-- Remaining Card -->
+<div class="rounded-2xl bg-surface-card p-3.5 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.04)] flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-caption text-caption text-text-muted">งบคงเหลือ</span>
+<div class="w-7 h-7 rounded-lg bg-on-tertiary-container/40 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[16px]">savings</span>
+</div>
+</div>
+<div class="mt-2">
+<div class="flex items-baseline gap-0.5">
+<span class="font-label-sm text-label-sm text-text-muted font-bold">฿</span>
+<span class="font-headline-md text-headline-md font-bold text-tertiary">164,600</span>
+</div>
+<p class="font-caption text-caption text-tertiary font-medium mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">check_circle</span> พร้อมใช้งาน
+        </p>
+</div>
+</div>
+</div>
+<!-- Primary Floating Action Trigger (Request & Record) -->
+<div class="flex items-center gap-2">
+<button class="flex-1 h-12 rounded-xl bg-primary-container text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-[0_8px_16px_-4px_rgba(37,99,235,0.35)] active:scale-[0.98] transition-all" id="btn-new-expense" type="button">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+<span class="">+ ยื่นขอเบิกงบใหม่</span>
+</button>
+<button aria-label="สแกนใบเสร็จ" class="w-12 h-12 rounded-xl bg-surface-card text-on-surface-variant flex items-center justify-center shadow-[0_2px_8px_-2px_rgba(15,23,42,0.06)] hover:bg-surface-container active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[22px]">document_scanner</span>
+</button>
+</div>
+<!-- Filter Pills (Scrollable Mobile Track) -->
+<div class="pt-1">
+<div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" id="filter-tabs">
+<button class="filter-tab active-tab px-3.5 py-1.5 rounded-full font-label-md text-label-md bg-primary-container text-on-primary shadow-sm transition-all whitespace-nowrap" data-filter="all" type="button">
+        ทั้งหมด (18)
+      </button>
+<button class="filter-tab px-3.5 py-1.5 rounded-full font-label-md text-label-md bg-surface-card text-text-muted hover:bg-surface-container-low transition-all whitespace-nowrap" data-filter="project" type="button">
+        งบโปรเจกต์
+      </button>
+<button class="filter-tab px-3.5 py-1.5 rounded-full font-label-md text-label-md bg-surface-card text-text-muted hover:bg-surface-container-low transition-all whitespace-nowrap" data-filter="disburse" type="button">
+        เบิกจ่าย
+      </button>
+<button class="filter-tab px-3.5 py-1.5 rounded-full font-label-md text-label-md bg-surface-card text-text-muted hover:bg-surface-container-low transition-all whitespace-nowrap flex items-center gap-1" data-filter="pending" type="button">
+<span class="">รออนุมัติ</span>
+<span class="w-4 h-4 rounded-full bg-status-warning text-white text-[10px] flex items-center justify-center font-bold">2</span>
+</button>
+</div>
+</div>
+<!-- Project Budget Line Items List -->
+<div class="space-y-3" id="transaction-list">
+<!-- Card 1: Project Budget Allocation (High priority project) -->
+<div class="transaction-item rounded-2xl bg-surface-card p-4 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.04)] space-y-3 transition-transform active:scale-[0.99]" data-category="project">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">developer_board</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded-md bg-surface-container text-primary font-caption text-caption font-semibold">งบของงาน (บาท)</span>
+<span class="font-caption text-caption text-text-muted">PRJ-082</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm font-semibold text-on-surface mt-0.5">ระบบเชื่อมต่อ AI Co-pilot v2.4</h2>
+</div>
+</div>
+<!-- Status Badge -->
+<span class="shrink-0 px-2.5 py-1 rounded-full bg-on-tertiary-container/30 text-tertiary font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+          อนุมัติแล้ว
+        </span>
+</div>
+<!-- Financial Metric Inline Box -->
+<div class="rounded-xl bg-surface-bg p-2.5 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-caption text-caption text-text-muted">งบประมาณจัดสรร</span>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">฿120,000</span>
+</div>
+<div class="w-[1px] h-6 bg-surface-container-high"></div>
+<div class="flex flex-col">
+<span class="font-caption text-caption text-text-muted">เบิกใช้แล้ว</span>
+<span class="font-label-lg text-label-lg text-primary font-bold">฿94,200</span>
+</div>
+<div class="w-[1px] h-6 bg-surface-container-high"></div>
+<div class="flex flex-col text-right">
+<span class="font-caption text-caption text-text-muted">คงเหลือ</span>
+<span class="font-label-lg text-label-lg text-tertiary font-bold">฿25,800</span>
+</div>
+</div>
+<!-- Submitter & Actions -->
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2">
+<img class="w-6 h-6 rounded-full object-cover" data-alt="Close up warm portrait of a smiling young Asian female product engineer wearing glasses in a modern bright workspace" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCitFtmdfNOytqbZrNFcviAE_up7CaYWC5s0pcEB6E_Y-1tYssFwu9O5-c6TTGigSBlzVawJx7goZesnDLovu313VPs-UnsT3SkcC6kyheRscHRTInCr3vwfPVTE3oCLJgK53GO41xwzjcnFjKneRYnaPT7M54cANmVzLLEZ7vgy-L-YE1BDiPJo_MATFb7dVdHECUG97BFKGhoBw7aRVqv5m4LpOQCDPj_nvVQeXM_">
+<span class="font-body-sm text-body-sm text-on-surface-variant font-medium">พิมพ์ชนก วรเศรษฐ</span>
+<span class="font-caption text-caption text-text-muted">• 12 มี.ค. 68</span>
+</div>
+<button aria-label="ดูรายละเอียด" class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Card 2: Pending Reimbursement Request (Needs approval) -->
+<div class="transaction-item rounded-2xl bg-surface-card p-4 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.04)] space-y-3 transition-transform active:scale-[0.99]" data-category="pending">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-xl bg-status-warning/15 text-status-warning flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">pending_actions</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded-md bg-status-warning/15 text-status-warning font-caption text-caption font-semibold">ขออนุมัติเบิกจ่าย</span>
+<span class="font-caption text-caption text-text-muted">REQ-1049</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm font-semibold text-on-surface mt-0.5">ค่า Cloud API &amp; เซิร์ฟเวอร์ GPU</h2>
+</div>
+</div>
+<!-- Status Badge -->
+<span class="shrink-0 px-2.5 py-1 rounded-full bg-status-warning/20 text-on-surface font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-status-warning">schedule</span>
+          รออนุมัติ
+        </span>
+</div>
+<!-- Amount highlight -->
+<div class="rounded-xl bg-surface-bg p-2.5 flex items-center justify-between">
+<div>
+<span class="font-caption text-caption text-text-muted">โปรเจกต์เป้าหมาย</span>
+<p class="font-label-md text-label-md text-on-surface font-medium truncate max-w-[170px]">Smart Logistics Engine</p>
+</div>
+<div class="text-right">
+<span class="font-caption text-caption text-text-muted">ยอดขอเบิก</span>
+<p class="font-headline-sm text-headline-sm font-bold text-on-surface">฿32,500</p>
+</div>
+</div>
+<!-- Submitter & Actions with quick approvals -->
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2">
+<img class="w-6 h-6 rounded-full object-cover" data-alt="Portrait of a young Thai software architect with casual tech style in daylight office" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSj04JCcsxx8FE2aCylN7oGK99k6SIYEDWFj6FEHlBxG1XkIka1kuLeNnanVXUaS5QX8KYx5N2_zQHDgEPJk_IGJEKWAVIATYXGDxrgiU7mPVvl7iAkfNNG2Am7G1I3dG5trjMTLaurxV2-z9SLxq9Snmf0iaoGulhZfHRlpAMTp8ik1Sb-fOno2-tdtRqVkB3I4pXtnT1P4ntHq_J0OgldINyAxtBUxfSiz4YIDjF">
+<span class="font-body-sm text-body-sm text-on-surface-variant font-medium">กิตติทัศน์ แซ่ลี้</span>
+<span class="font-caption text-caption text-text-muted">• วันนี้ 10:45</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-lg bg-primary-container text-on-primary font-caption text-caption font-semibold shadow-sm active:scale-95 transition-all" type="button">
+            ตรวจเอกสาร
+          </button>
+</div>
+</div>
+</div>
+<!-- Card 3: Disbursement - Approved Hardware & Testing -->
+<div class="transaction-item rounded-2xl bg-surface-card p-4 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.04)] space-y-3 transition-transform active:scale-[0.99]" data-category="disburse">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-xl bg-surface-container-high text-secondary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">devices</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded-md bg-secondary-container/40 text-on-secondary-container font-caption text-caption font-semibold">เบิกจ่ายแล้ว</span>
+<span class="font-caption text-caption text-text-muted">EXP-889</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm font-semibold text-on-surface mt-0.5">อุปกรณ์ทดสอบ Mobile Usability</h2>
+</div>
+</div>
+<!-- Status Badge -->
+<span class="shrink-0 px-2.5 py-1 rounded-full bg-on-tertiary-container/30 text-tertiary font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check</span>
+          อนุมัติแล้ว
+        </span>
+</div>
+<div class="rounded-xl bg-surface-bg p-2.5 flex items-center justify-between">
+<div>
+<span class="font-caption text-caption text-text-muted">โปรเจกต์</span>
+<p class="font-label-md text-label-md text-on-surface font-medium truncate max-w-[170px]">UX Redesign ConWork</p>
+</div>
+<div class="text-right">
+<span class="font-caption text-caption text-text-muted">ยอดเงิน</span>
+<p class="font-headline-sm text-headline-sm font-bold text-on-surface">฿18,900</p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-tertiary-container text-on-tertiary font-label-sm text-label-sm flex items-center justify-center font-bold">
+            ช
+          </div>
+<span class="font-body-sm text-body-sm text-on-surface-variant font-medium">ชนัญญา มโนธรรม</span>
+<span class="font-caption text-caption text-text-muted">• 8 มี.ค. 68</span>
+</div>
+<button aria-label="ดูใบเสร็จ" class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">receipt</span>
+</button>
+</div>
+</div>
+<!-- Card 4: Under Review Inspection -->
+<div class="transaction-item rounded-2xl bg-surface-card p-4 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.04)] space-y-3 transition-transform active:scale-[0.99]" data-category="pending">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-xl bg-primary-fixed text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">domain</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded-md bg-surface-container-high text-primary font-caption text-caption font-semibold">ขอจัดสรรงบงาน</span>
+<span class="font-caption text-caption text-text-muted">PRJ-091</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm font-semibold text-on-surface mt-0.5">ค่าใบอนุญาต Enterprise API</h2>
+</div>
+</div>
+<!-- Status Badge -->
+<span class="shrink-0 px-2.5 py-1 rounded-full bg-surface-container-highest text-primary font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">find_in_page</span>
+          รอตรวจสอบ
+        </span>
+</div>
+<div class="rounded-xl bg-surface-bg p-2.5 flex items-center justify-between">
+<div>
+<span class="font-caption text-caption text-text-muted">งบประมาณเสนอ</span>
+<p class="font-headline-sm text-headline-sm font-bold text-on-surface">฿45,000</p>
+</div>
+<div class="text-right">
+<span class="font-caption text-caption text-text-muted">สถานะบัญชี</span>
+<p class="font-label-md text-label-md text-primary font-medium">รอใบเสนอราคาแนบ</p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2">
+<img class="w-6 h-6 rounded-full object-cover" data-alt="Portrait of a smiling professional Thai project manager in a clean minimalist creative studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFC3y4Iv2mABuEHe2p3gmPCOljH3arst3CgKBVOy6xdwCRKqZ7ofssZBhLF69HCnkvWKUyD9Ps6pdNPf_iePR7TNe8Qw8kXZtIZeqgMcpvmMiHutpZgYYXnAtcvq6pr2OriwpDt-CRnSNJ0br32WAeD2S3qdBA2bdaQlUPSngNfa-lOxINCSL6Z1ebEVfWZixExOmVs7-DkIEJIm_Rj0Tx4JCPQQkxQKOV2yIGZWcw">
+<span class="font-body-sm text-body-sm text-on-surface-variant font-medium">ธีรภัทร ชาญวิทย์</span>
+<span class="font-caption text-caption text-text-muted">• 5 มี.ค. 68</span>
+</div>
+<button aria-label="ดูรายละเอียด" class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Interactive Modal / Slide Sheet for New Request (Hidden by default) -->
+<div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-end" id="expense-modal-backdrop">
+<div class="w-full max-h-[751px] overflow-y-auto bg-surface-card rounded-t-3xl p-5 space-y-4 shadow-xl transform translate-y-full transition-transform duration-300 ease-out" id="expense-modal">
+<!-- Drag handle -->
+<div class="w-12 h-1.5 rounded-full bg-surface-container-highest mx-auto"></div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-9 h-9 rounded-xl bg-primary-container text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">add_card</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">ยื่นขอเบิกงบประมาณ</h3>
+<p class="font-caption text-caption text-text-muted">ส่งคำขอเข้าสู่ระบบอนุมัติอัตโนมัติ</p>
+</div>
+</div>
+<button class="w-9 h-9 rounded-full bg-surface-bg flex items-center justify-center text-on-surface-variant" id="modal-close-btn" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Form Inputs -->
+<form class="space-y-3" onsubmit="event.preventDefault(); alert('ส่งคำขอเบิกงบประมาณสำเร็จ'); closeExpenseModal();">
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface">เลือกโปรเจกต์ที่รับผิดชอบ</label>
+<div class="relative">
+<select class="w-full h-12 px-3 rounded-xl bg-surface-bg text-on-surface font-body-md text-body-md appearance-none focus:outline-none focus:ring-2 focus:ring-primary-container">
+<option>ระบบเชื่อมต่อ AI Co-pilot v2.4</option>
+<option>Smart Logistics Engine</option>
+<option>UX Redesign ConWork</option>
+<option>คลาวด์เซิร์ฟเวอร์ส่วนกลาง</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-text-muted text-[20px]">expand_more</span>
+</div>
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface">ชื่อรายการค่าใช้จ่าย</label>
+<input class="w-full h-12 px-3.5 rounded-xl bg-surface-bg text-on-surface font-body-md text-body-md placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary-container" placeholder="เช่น ค่าสิทธิ์ใช้งาน Figma Enterprise" required="" type="text">
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface">จำนวนเงิน (บาท)</label>
+<input class="w-full h-12 px-3.5 rounded-xl bg-surface-bg text-on-surface font-body-md text-body-md placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary-container" placeholder="฿ 0.00" required="" type="number">
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface">หมวดหมู่งบ</label>
+<select class="w-full h-12 px-3 rounded-xl bg-surface-bg text-on-surface font-body-md text-body-md appearance-none focus:outline-none focus:ring-2 focus:ring-primary-container">
+<option>Software &amp; Tool</option>
+<option>Hardware</option>
+<option>การเดินทาง/กิจกรรม</option>
+<option>จัดซื้อจัดจ้าง</option>
+</select>
+</div>
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface">แนบใบเสร็จ / ใบเสนอราคา</label>
+<div class="w-full h-20 rounded-xl bg-surface-bg flex flex-col items-center justify-center text-text-muted cursor-pointer hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[24px] text-primary">cloud_upload</span>
+<span class="font-caption text-caption mt-1">แตะเพื่ออัปโหลดไฟล์ PDF หรือรูปภาพ</span>
+</div>
+</div>
+<div class="pt-2 flex items-center gap-2">
+<button class="flex-1 h-12 rounded-xl bg-surface-bg text-on-surface font-label-lg text-label-lg active:scale-95 transition-all" onclick="closeExpenseModal()" type="button">
+            ยกเลิก
+          </button>
+<button class="flex-1 h-12 rounded-xl bg-primary-container text-on-primary font-label-lg text-label-lg shadow-[0_8px_16px_-4px_rgba(37,99,235,0.35)] active:scale-95 transition-all" type="submit">
+            ยืนยันยื่นคำขอ
+          </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Micro-interaction JS -->
+<script>
+    // Tab filtering interaction
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    const items = document.querySelectorAll('.transaction-item');
+
+    filterTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Reset tabs
+        filterTabs.forEach(t => {
+          t.classList.remove('bg-primary-container', 'text-on-primary', 'shadow-sm');
+          t.classList.add('bg-surface-card', 'text-text-muted');
+        });
+
+        // Activate clicked
+        tab.classList.remove('bg-surface-card', 'text-text-muted');
+        tab.classList.add('bg-primary-container', 'text-on-primary', 'shadow-sm');
+
+        const filter = tab.getAttribute('data-filter');
+        items.forEach(item => {
+          if (filter === 'all' || item.getAttribute('data-category') === filter) {
+            item.style.display = 'block';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    // Modal Sheet toggle
+    const btnNewExpense = document.getElementById('btn-new-expense');
+    const modalBackdrop = document.getElementById('expense-modal-backdrop');
+    const modalContent = document.getElementById('expense-modal');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+
+    function openExpenseModal() {
+      modalBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+      modalBackdrop.classList.add('opacity-100');
+      modalContent.classList.remove('translate-y-full');
+      modalContent.classList.add('translate-y-0');
+    }
+
+    function closeExpenseModal() {
+      modalBackdrop.classList.add('opacity-0', 'pointer-events-none');
+      modalBackdrop.classList.remove('opacity-100');
+      modalContent.classList.add('translate-y-full');
+      modalContent.classList.remove('translate-y-0');
+    }
+
+    if (btnNewExpense) btnNewExpense.addEventListener('click', openExpenseModal);
+    if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeExpenseModal);
+    if (modalBackdrop) {
+      modalBackdrop.addEventListener('click', (e) => {
+        if (e.target === modalBackdrop) closeExpenseModal();
+      });
+    }
+  </script>
+</div></main>
+
+</body></html>
