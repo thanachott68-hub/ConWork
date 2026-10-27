@@ -4649,8 +4649,16 @@
         /* Mailbox page (built by js/invitePage.js): use the full width, and the box fills the height left under the header */
         #view-mailbox > .max-w-3xl { max-width: none; min-height: 100%; display: flex; flex-direction: column; }
         #view-mailbox #mb-page { flex: 1 1 auto; }
+        #cw-mprofile, #cw-mswitch, #cw-mweek, #cw-mpeople, .cw-minfo { display: none; }   /* phones only (below) */
+        @media (max-width: 400px) { #cw-mprofile span { display: none !important; } }   /* very narrow phones: picture only */
         @media (max-width: 640px) {
-            body[data-page="app"] #app-sidebar.w-20 { display: none !important; }
+            /* closed: only the logo stays, in its usual top-left place; the rest of the menu is hidden */
+            body[data-page="app"] #app-sidebar.w-20 { width: 0 !important; min-width: 0; overflow: visible !important; box-shadow: none !important; }
+            body[data-page="app"] #app-sidebar.w-20 > :not(#sidebar-logo-btn) { display: none !important; }
+            body[data-page="app"] #sidebar-logo-btn { position: fixed; top: 0; left: 0; z-index: 46; width: 4rem; height: 4rem; padding: 0 !important; justify-content: center; border: 0; background: transparent; }
+            body[data-page="app"] #sidebar-logo-btn .sidebar-text { display: none !important; }
+            body[data-page="app"] #sidebar-logo-btn .cw-logo { height: 26px !important; }
+            body[data-page="app"] main > header { padding-left: 4rem !important; }
             body[data-page="app"] #app-sidebar.w-64 {
                 position: fixed !important; top: 4.5rem !important; left: 0.5rem !important; bottom: auto !important; z-index: 45 !important;
                 width: 16rem !important; max-width: calc(100vw - 1rem); max-height: calc(100dvh - 5.5rem);
@@ -4660,6 +4668,110 @@
             body[data-page="app"] #app-sidebar.w-64 > :first-child { border-radius: 1rem 1rem 0 0; }
             body[data-page="app"] #app-sidebar.w-64 #sidebar-profile-section { border-radius: 0 0 1rem 1rem; flex-shrink: 0; }
             body[data-page="app"] #app-sidebar ~ main { margin-left: 0 !important; }
+
+            /* ===== mobile layout (stitch_mobile_webapp_layout_redesign): same texts, icons and colours ===== */
+            /* top bar: ☰ · logo + "ConWork" (page name under it) · team · bell · profile */
+            body[data-page="app"] main > header { padding-left: 0.5rem !important; padding-right: 0.5rem; height: 4rem; }
+            body[data-page="app"] main > header > div:first-child > div { display: none !important; }   /* title moves under the logo */
+            body[data-page="app"] main > header > div:first-child { flex: 1 1 auto; min-width: 11.25rem; }   /* room for the logo + name */
+            body[data-page="app"] main > header > div:last-child { gap: 0.15rem !important; margin-left: 0 !important; }
+            body[data-page="app"] #header-switch-team { display: none !important; }   /* phones: in the ☰ menu instead */
+            body[data-page="app"] #ta-finish { padding: 0.45rem !important; border-radius: 0.75rem; }
+            #cw-mswitch { display: flex !important; }
+            body[data-page="app"] #notification-container > button { padding: 0.45rem; }
+            body[data-page="app"] #sidebar-logo-btn { left: 3rem; width: auto; padding: 0 0.25rem !important; gap: 0.5rem; justify-content: flex-start; }
+            body[data-page="app"] #sidebar-logo-btn > h2.sidebar-text { display: flex !important; flex-direction: column; opacity: 1 !important; width: auto !important; font-size: 18px !important; line-height: 1.1; color: #1D4ED8 !important; }
+            body[data-page="app"] #sidebar-logo-btn > h2.sidebar-text .cw-mtitle { font-size: 11px !important; font-weight: 600; line-height: 1.25; font-family: inherit; color: #64748B; letter-spacing: 0; max-width: 34vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            #cw-mprofile { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.15rem 0.4rem 0.15rem 0.15rem; flex-shrink: 0; border-radius: 999px; background: #EFF6FF; }
+            #cw-mprofile img { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; }
+            body[data-page="app"] #sidebar-logo-btn > h2.sidebar-text { max-width: 6.25rem; }
+            body[data-page="app"] #sidebar-logo-btn > h2.sidebar-text .cw-mtitle { max-width: 6.25rem !important; }
+            #cw-mprofile span { font-size: 11px; font-weight: 700; color: #1E293B; max-width: 2.75rem; line-height: 1.15; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+            /* content: soft page, white rounded cards */
+            body[data-page="app"] .view-section.p-6 { padding: 1rem 0.875rem 6rem !important; }
+
+            /* dashboard: the 4 summary cards as a 2 × 2 grid */
+            #view-dashboard > div:nth-child(2) { display: grid !important; grid-template-columns: 1fr 1fr; gap: 0.75rem; overflow: visible; margin: 0 0 1rem; padding: 0; height: auto !important; flex-shrink: 0; }
+            #view-dashboard > div:nth-child(2) > div:nth-child(5) { grid-column: 1 / -1; }   /* the 5th card (due soon) spans the row */
+            #view-dashboard > div:nth-child(2) > div:nth-child(5) > div { flex-direction: row; align-items: center; }
+            #view-dashboard > div:nth-child(2) > div { min-width: 0 !important; padding: 1rem !important; }
+            #view-dashboard > div:nth-child(2) > div > div { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+            #view-dashboard > div:nth-child(2) > div > div > div:first-child { width: 2.75rem; height: 2.75rem; font-size: 1.25rem; }
+
+            /* projects (งานทั้งหมด): filters, search, then a full-width create button; cards one under another */
+            #btn-create-project { order: 4; width: 100%; justify-content: center; padding: 0.85rem 1rem; border-radius: 1rem; font-weight: 700; }
+            #projects-container { gap: 0.875rem; }
+
+            /* ทีมงาน: summary cards in one sideways-scrolling row, members as list cards */
+            #view-team .grid.grid-cols-2 { display: flex !important; overflow-x: auto; gap: 0.6rem; padding-bottom: 0.25rem; scroll-snap-type: x mandatory; }
+            #view-team .grid.grid-cols-2 > * { flex: 0 0 8.5rem; scroll-snap-align: start; }
+            #team-list-container .space-y-2 > * { border-radius: 1rem; padding: 0.875rem; }
+
+            /* ข้อความ: each chat is its own rounded card */
+            #chat-list-container { padding: 0.5rem; background: transparent; }
+            #chat-list-container > div { margin-bottom: 0.6rem; border-radius: 1rem; background: #FFFFFF; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06); border: 1px solid #F1F5F9; }
+            #chat-list-container > div.border-l-4 { border-left-width: 4px; }
+
+            /* ปฏิทิน: week strip (picks the day) + the day's events as cards with a colour bar; the month grid and mini calendar are hidden */
+            #view-calendar > div:first-child > div { border-radius: 1rem; }
+            #header-btn-create-event { width: 100%; justify-content: center; }
+            #view-calendar > div:first-child > div:first-child { min-height: 0 !important; }
+            #view-calendar > div:first-child > div:first-child > div.flex-1 { display: none !important; }        /* month / week grid */
+            #view-calendar > div:first-child > div:last-child > div:first-child { display: none !important; }   /* mini calendar */
+            #view-calendar > div:first-child > div:last-child > div:last-child { min-height: 0 !important; background: transparent; border: 0; box-shadow: none; padding: 0; }
+            #cw-mweek { display: grid !important; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.35rem; padding: 0.75rem; }
+            #cw-mweek button { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; padding: 0.5rem 0; border-radius: 0.875rem; background: #FFFFFF; border: 1px solid #E2E8F0; color: #334155; }
+            #cw-mweek button .d { font-size: 11px; color: #64748B; }
+            #cw-mweek button .n { font-size: 16px; font-weight: 700; }
+            #cw-mweek button .dot { width: 5px; height: 5px; border-radius: 9px; background: transparent; }
+            #cw-mweek button .dot.on { background: #EF4444; }
+            #cw-mweek button.sel { background: #2563EB; border-color: #2563EB; color: #FFFFFF; }
+            #cw-mweek button.sel .d { color: #DBEAFE; }
+            #cw-mweek button.sel .dot.on { background: #FFFFFF; }
+            #cw-mweek button.today:not(.sel) { border-color: #2563EB; color: #1D4ED8; }
+            #panel-date-label { font-size: 17px !important; margin: 0.25rem 0.25rem 0.75rem !important; }
+            #panel-events-list { overflow: visible !important; }
+            #panel-events-list > div { padding: 0.875rem 1rem !important; border-radius: 1rem !important; margin-bottom: 0.6rem; }
+            #panel-events-list > div > div:first-child { width: 6px !important; }
+            #panel-events-list h5 { font-size: 16px !important; }
+            #panel-events-list h5 + * , #panel-events-list .text-\[10px\] { font-size: 13px !important; }
+            #panel-events-list img { width: 1.75rem !important; height: 1.75rem !important; }
+            #view-calendar .cal-view-btn { display: none !important; }   /* month/week/day switch: the grid is replaced by the week strip */
+
+            /* งานทั้งหมด: project cards as roomy white cards */
+            #projects-container > div { border-radius: 1.25rem !important; padding: 1.1rem 1.1rem 1rem !important; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important; min-height: 0 !important; }
+            #projects-container > div h3 { font-size: 19px !important; line-height: 1.3; margin-top: 0.25rem; }
+            .cw-minfo { display: flex !important; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin: 0.25rem 0 0.5rem; }
+            .cw-minfo .chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.6rem; border-radius: 0.6rem; background: #EEF2FF; color: #334155; font-size: 12px; font-weight: 600; }
+            .cw-minfo .chip i { color: #2563EB; }
+            .cw-minfo .ppl { margin-left: auto; display: inline-flex; align-items: center; }
+            .cw-minfo .ppl img { width: 28px; height: 28px; border-radius: 999px; border: 2px solid #fff; margin-left: -8px; object-fit: cover; }
+            .cw-minfo .ppl b { margin-left: 4px; font-size: 12px; color: #64748B; }
+            .cw-minfo + .flex.items-center.space-x-2 { display: none !important; }   /* the people are in the new row */
+            #proj-filter-toggle-container { overflow-x: auto; flex-wrap: nowrap; max-width: 100%; }
+            #proj-filter-toggle-container button { white-space: nowrap; border-radius: 999px; }
+
+            /* ข้อความ: row of team members (online first) above the chats */
+            #cw-mpeople { display: flex !important; gap: 0.75rem; overflow-x: auto; padding: 0.5rem 0.75rem 0.25rem; }
+            #cw-mpeople button { flex: 0 0 auto; width: 3.75rem; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; background: none; border: 0; }
+            #cw-mpeople .av { position: relative; }
+            #cw-mpeople img { width: 3.25rem; height: 3.25rem; border-radius: 1rem; object-fit: cover; border: 1px solid #E2E8F0; }
+            #cw-mpeople .st { position: absolute; right: -2px; bottom: -2px; width: 12px; height: 12px; border-radius: 9px; border: 2px solid #fff; background: #CBD5E1; }
+            #cw-mpeople .st.on { background: #22C55E; }
+            #cw-mpeople .nm { font-size: 11px; color: #334155; max-width: 3.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+            /* บัญชี / รายงาน: tabs scroll sideways, cards rounded */
+            #accounting-root section, #view-work-report .wr-card, #view-work-report section { border-radius: 1.25rem; }
+
+            /* ☰ menu as a full-width sheet: profile on top, items with an arrow */
+            body[data-page="app"] #app-sidebar.w-64 { left: 0.5rem !important; right: 0.5rem; width: auto !important; max-width: none; top: 4.25rem !important; }
+            body[data-page="app"] #app-sidebar.w-64 #sidebar-profile-section { order: -1; border-radius: 1rem 1rem 0 0; border-top: 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2); }
+            body[data-page="app"] #app-sidebar.w-64 #profile-menu-dropdown { bottom: auto; top: 100%; left: 0.75rem; right: 0.75rem; width: auto; }
+            body[data-page="app"] #app-sidebar.w-64 #profile-menu-dropdown > .absolute { display: none; }   /* the little tail pointed down to the old place */
+            body[data-page="app"] #app-sidebar.w-64 > nav { padding: 0.75rem; }
+            body[data-page="app"] #app-sidebar.w-64 > nav .nav-item, #cw-mswitch { min-height: 52px; position: relative; padding-right: 2.25rem !important; }
+            body[data-page="app"] #app-sidebar.w-64 > nav > a.nav-item:not(#nav-team-main)::after, #cw-mswitch::after { content: "\203A"; position: absolute; right: 1rem; top: 50%; transform: translateY(-55%); font-size: 20px; opacity: 0.45; }
         }
     </style>
     <script>
@@ -4673,6 +4785,119 @@
                 if (it.id === 'profile-theme-btn' || /toggleLanguage/.test(it.getAttribute('onclick') || '')) return;
                 pm.classList.add('hidden'); App.toggleSidebar();
             });
+        })();
+        /* mobile top bar: page name under the logo, profile picture + name on the right (opens the ☰ menu),
+           members shown as list cards */
+        (function () {
+            var mobile = function () { return window.innerWidth <= 640; };
+            var h2 = document.querySelector('#sidebar-logo-btn > h2'), title = document.getElementById('main-header-title');
+            if (h2 && title) {
+                var sub = document.createElement('span'); sub.className = 'cw-mtitle'; h2.appendChild(sub);
+                var copy = function () { sub.textContent = title.textContent.trim(); };
+                copy(); new MutationObserver(copy).observe(title, { childList: true, characterData: true, subtree: true });
+            }
+            var right = document.getElementById('notification-container');
+            var av = document.getElementById('current-user-avatar'), nm = document.getElementById('current-user-name');
+            if (right && av && nm) {
+                var chip = document.createElement('button');
+                chip.type = 'button'; chip.id = 'cw-mprofile'; chip.className = 'md:hidden'; chip.title = 'โปรไฟล์';
+                chip.innerHTML = '<img alt=""><span data-no-i18n></span>';
+                right.parentNode.insertBefore(chip, right.nextSibling);
+                var sync = function () { chip.querySelector('img').src = av.src; chip.querySelector('span').textContent = nm.textContent.trim(); };
+                sync(); new MutationObserver(sync).observe(av, { attributes: true, attributeFilter: ['src'] });
+                new MutationObserver(sync).observe(nm, { childList: true, characterData: true, subtree: true });
+                chip.addEventListener('click', function () {
+                    var sb = document.getElementById('app-sidebar');
+                    if (sb && !sb.classList.contains('w-64')) App.toggleSidebar();
+                });
+            }
+            /* phones: switching team sits in the ☰ menu (the top-bar button is hidden there) */
+            var nav = document.querySelector('#app-sidebar > nav');
+            if (nav) {
+                var sw = document.createElement('a');
+                sw.id = 'cw-mswitch'; sw.href = 'team.html';
+                sw.className = 'flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 transition-colors font-semibold';   /* not .nav-item: that would make it switch views instead of opening team.html */
+                sw.innerHTML = '<i class="fa-solid fa-people-arrows w-5 flex-shrink-0"></i><span class="font-medium whitespace-nowrap">สลับทีม</span>';
+                nav.appendChild(sw);
+            }
+            if (mobile() && typeof App !== 'undefined' && App.state) App.state.teamViewMode = 'list';   /* App is a const in js/app.js, not window.App */
+
+            /* phones: calendar week strip (the 7 days around the chosen day); tapping a day uses App.calendarDayClick */
+            var calCtl = document.querySelector('#view-calendar > div:first-child > div:first-child > div:nth-child(2)');
+            if (calCtl && typeof App !== 'undefined' && App.renderCalendar) {
+                var strip = document.createElement('div'); strip.id = 'cw-mweek';
+                calCtl.parentNode.insertBefore(strip, calCtl.nextSibling);
+                var iso = function (d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+                var drawWeek = function () {
+                    var sel = App.state.selectedDate ? new Date(App.state.selectedDate + 'T00:00:00') : new Date();
+                    var start = new Date(sel); start.setDate(sel.getDate() - sel.getDay());
+                    var en = App.settings && App.settings.language === 'en';
+                    var names = en ? ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] : ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
+                    var months = {}, events = [];
+                    for (var i = 0; i < 7; i++) { var x = new Date(start); x.setDate(start.getDate() + i); months[x.getFullYear() + '-' + x.getMonth()] = [x.getFullYear(), x.getMonth()]; }
+                    try { Object.keys(months).forEach(function (k) { events = events.concat(App._getAllFilteredEvents(months[k][0], months[k][1], true, true, true, true, true) || []); }); } catch (e) { }
+                    var today = iso(new Date()), html = '';
+                    for (var j = 0; j < 7; j++) {
+                        var d = new Date(start); d.setDate(start.getDate() + j); var s = iso(d);
+                        var has = events.some(function (ev) { return ev.date === s; });
+                        html += '<button type="button" class="' + (s === App.state.selectedDate ? 'sel ' : '') + (s === today ? 'today' : '') + '" onclick="App.calendarDayClick(\'' + s + '\')">'
+                            + '<span class="d">' + names[d.getDay()] + '</span><span class="n">' + d.getDate() + '</span><span class="dot' + (has ? ' on' : '') + '"></span></button>';
+                    }
+                    strip.innerHTML = html;
+                };
+                var draw = App.renderCalendar;
+                App.renderCalendar = function () { var r = draw.apply(this, arguments); try { drawWeek(); } catch (e) { } return r; };
+            }
+
+            /* phones: the team's members in a row above the chats (online first); tap = chat with that person */
+            var chatList = document.getElementById('chat-list-container');
+            if (chatList && typeof App !== 'undefined' && App.renderChatList) {
+                var row = document.createElement('div'); row.id = 'cw-mpeople';
+                chatList.parentNode.insertBefore(row, chatList);
+                var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+                var drawPeople = function () {
+                    var me = String((App.state.currentUser || {}).id || '');
+                    var people = (typeof mockUsers !== 'undefined' ? mockUsers : []).filter(function (u) { return String(u.id) !== me; })
+                        .sort(function (a, b) { return (b.status === 'online') - (a.status === 'online'); });
+                    row.innerHTML = people.map(function (u) {
+                        var first = String(u.name || '').split(/\s+/)[0];
+                        return '<button type="button" data-uid="' + esc(u.id) + '"><span class="av"><img alt="" src="' + esc(u.avatar || (window.cwAvatar ? cwAvatar(u.name) : '')) + '" data-name="' + esc(u.name) + '"><span class="st' + (u.status === 'online' ? ' on' : '') + '"></span></span><span class="nm" data-no-i18n>' + esc(first) + '</span></button>';
+                    }).join('');
+                    row.style.display = people.length ? '' : 'none';
+                };
+                row.addEventListener('click', function (e) { var b = e.target.closest('[data-uid]'); if (b) App.startDirectChat(b.getAttribute('data-uid')); });
+                var drawChats = App.renderChatList;
+                App.renderChatList = function () { var r = drawChats.apply(this, arguments); try { drawPeople(); } catch (e) { } return r; };
+            }
+
+            /* phones: project cards also show tasks done / total, the due date and the people (as in the design) */
+            if (typeof App !== 'undefined' && App.renderProjects) {
+                var e2 = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+                var fmtDue = function (iso) {
+                    if (!iso) return '';
+                    var d = new Date(iso + 'T00:00:00'); if (isNaN(d)) return '';
+                    var en = App.settings && App.settings.language === 'en';
+                    return d.toLocaleDateString(en ? 'en-GB' : 'th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+                };
+                var addInfo = function () {
+                    document.querySelectorAll('#projects-container > div[onclick*="openProject"]').forEach(function (card) {
+                        if (card.querySelector('.cw-minfo')) return;
+                        var m = /openProject\('([^']+)'\)/.exec(card.getAttribute('onclick') || ''); if (!m) return;
+                        var p = (typeof mockProjects !== 'undefined' ? mockProjects : []).find(function (x) { return String(x.id) === m[1]; }); if (!p) return;
+                        var tasks = (typeof mockTasks !== 'undefined' ? mockTasks : []).filter(function (t) { return String(t.projectId) === String(p.id); });
+                        var done = tasks.filter(function (t) { return t.status === 'done'; }).length;
+                        var ppl = (p.team || []).slice(0, 3).map(function (id) { return (mockUsers || []).find(function (u) { return String(u.id) === String(id); }); }).filter(Boolean);
+                        var row = document.createElement('div'); row.className = 'cw-minfo';
+                        row.innerHTML = '<span class="chip"><i class="fa-solid fa-diagram-project"></i>' + done + '/' + tasks.length + '</span>'
+                            + (p.dueDate ? '<span class="chip"><i class="fa-regular fa-calendar"></i>' + e2(fmtDue(p.dueDate)) + '</span>' : '')
+                            + '<span class="ppl">' + ppl.map(function (u) { return '<img alt="" src="' + e2(u.avatar || (window.cwAvatar ? cwAvatar(u.name) : '')) + '" title="' + e2(u.name) + '">'; }).join('')
+                            + ((p.team || []).length > 3 ? '<b>+' + ((p.team || []).length - 3) + '</b>' : '') + '</span>';
+                        var h3 = card.querySelector('h3'); if (h3) h3.parentNode.insertBefore(row, h3.nextSibling);
+                    });
+                };
+                var drawProjects = App.renderProjects;
+                App.renderProjects = function () { var r = drawProjects.apply(this, arguments); try { if (mobile()) addInfo(); } catch (e) { } return r; };
+            }
         })();
     </script>
 </body>

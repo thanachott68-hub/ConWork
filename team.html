@@ -1851,22 +1851,42 @@
         #tm-nav-toggle { display: none; }
         @media (max-width: 640px) {
             #tm-nav-toggle { display: inline-flex; }
-            body[data-page="team"] #app-sidebar { display: none !important; }
+            /* closed: only the logo stays, in its usual top-left place; the rest of the menu is hidden */
+            body[data-page="team"]:not(.cw-nav-open) #app-sidebar { width: 0 !important; min-width: 0; overflow: visible !important; box-shadow: none !important; border: 0; }
+            body[data-page="team"]:not(.cw-nav-open) #app-sidebar > :not(:first-child) { display: none !important; }
+            body[data-page="team"] #app-sidebar > a:first-child { position: fixed; top: 0; left: 0; z-index: 46; width: 4rem; height: 4rem; padding: 0 !important; justify-content: center; border: 0; background: transparent; }
+            body[data-page="team"] #app-sidebar > a:first-child h2 { display: none !important; }
+            body[data-page="team"] #app-sidebar > a:first-child .cw-logo { height: 26px !important; }
+            body[data-page="team"] .tm-topbar { padding-left: 4rem; }
             body.cw-nav-open[data-page="team"] #app-sidebar {
                 display: flex !important; position: fixed !important; top: 4.5rem; left: 0.5rem; z-index: 45; width: 16rem !important;
                 height: auto !important; bottom: auto; max-height: calc(100dvh - 5.5rem);
                 max-width: calc(100vw - 1rem); border-radius: 1rem; overflow: hidden; box-shadow: 0 18px 50px rgba(15, 23, 42, 0.35) !important;
             }
             /* the popup shows the full menu (labels and profile), not the tablet icon rail */
-            body.cw-nav-open[data-page="team"] #app-sidebar > a:first-child { padding: 0 1.5rem; justify-content: flex-start; }
-            body.cw-nav-open[data-page="team"] #app-sidebar > a:first-child h2 { display: block; }
             body.cw-nav-open[data-page="team"] #app-sidebar .nav-item { justify-content: flex-start; padding-left: 1rem; padding-right: 1rem; }
             body.cw-nav-open[data-page="team"] #app-sidebar .nav-item > span.font-medium { display: inline; }
             body.cw-nav-open[data-page="team"] #sidebar-profile-section { justify-content: flex-start; padding-left: 1rem; padding-right: 1rem; }
             body.cw-nav-open[data-page="team"] #sidebar-profile-section > span.flex-col { display: flex; }
             body.cw-nav-open[data-page="team"] #sidebar-profile-section > i { display: inline-block; }
             body.cw-nav-open[data-page="team"] #tm-mail-badge { position: static; margin-left: auto; }
+
+            /* ===== mobile layout (stitch my_team_mobile): same texts, icons and colours ===== */
+            /* top bar: ☰ · logo + "ConWork" (page name under it) · bell · profile picture */
+            body[data-page="team"] .tm-topbar { padding-left: 0.5rem !important; padding-right: 0.5rem; gap: 0.25rem; }
+            body[data-page="team"] .tm-topbar > #tm-title, body[data-page="team"] .tm-topbar > #tm-subtitle { display: none !important; }
+            body[data-page="team"] #app-sidebar > a:first-child { left: 3rem; width: auto; padding: 0 0.25rem !important; gap: 0.5rem; justify-content: flex-start; }
+            body[data-page="team"] #app-sidebar > a:first-child h2 { display: flex !important; flex-direction: column; font-size: 18px; line-height: 1.1; color: #1D4ED8; }
+            body[data-page="team"] #app-sidebar > a:first-child h2 .cw-mtitle { font-size: 11px; font-weight: 600; line-height: 1.25; color: #64748B; max-width: 8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            #cw-mprofile { display: inline-flex !important; align-items: center; padding: 0.15rem; border-radius: 999px; background: #EFF6FF; flex-shrink: 0; }
+            #cw-mprofile img { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; }
+            /* content */
+            body[data-page="team"] #tab-team, body[data-page="team"] #tab-mailbox, body[data-page="team"] #tab-profile { padding: 1rem 0.875rem 5rem !important; }
+            body[data-page="team"] #tab-team > div:first-child > div:last-child { width: 100%; margin-left: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; align-items: stretch; }
+            body[data-page="team"] #tab-team > div:first-child > div:last-child > button { width: 100%; justify-content: center; min-height: 3.25rem; border-radius: 1rem; }
+            body[data-page="team"] #tm-grid { gap: 0.875rem; }
         }
+        #cw-mprofile { display: none; }
     </style>
     <script>
         (function () {
@@ -1880,6 +1900,22 @@
                 e.preventDefault(); e.stopPropagation(); setOpen(false);
             }, true);
             window.addEventListener('resize', function () { if (window.innerWidth > 640) setOpen(false); });
+
+            /* phones: page name under the logo; profile picture on the right opens the ☰ menu */
+            var h2 = menu.querySelector('a:first-child h2'), title = document.getElementById('tm-title');
+            if (h2 && title) {
+                var sub = document.createElement('span'); sub.className = 'cw-mtitle'; h2.appendChild(sub);
+                var copy = function () { sub.textContent = title.textContent.trim(); };
+                copy(); new MutationObserver(copy).observe(title, { childList: true, characterData: true, subtree: true });
+            }
+            var bell = document.getElementById('tm-bell-wrap'), av = document.getElementById('tm-head-avatar');
+            if (bell && av) {
+                var chip = document.createElement('button'); chip.type = 'button'; chip.id = 'cw-mprofile'; chip.title = 'Profile';
+                chip.innerHTML = '<img alt="">'; bell.parentNode.insertBefore(chip, bell.nextSibling);
+                var sync = function () { chip.querySelector('img').src = av.src; };
+                sync(); new MutationObserver(sync).observe(av, { attributes: true, attributeFilter: ['src'] });
+                chip.addEventListener('click', function (e) { e.stopPropagation(); setOpen(true); });
+            }
         })();
     </script>
 </body>
