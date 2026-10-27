@@ -1884,7 +1884,29 @@
             body[data-page="team"] #tab-team, body[data-page="team"] #tab-mailbox, body[data-page="team"] #tab-profile { padding: 1rem 0.875rem 5rem !important; }
             body[data-page="team"] #tab-team > div:first-child > div:last-child { width: 100%; margin-left: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; align-items: stretch; }
             body[data-page="team"] #tab-team > div:first-child > div:last-child > button { width: 100%; justify-content: center; min-height: 3.25rem; border-radius: 1rem; }
-            body[data-page="team"] #tm-grid { gap: 0.875rem; }
+            body[data-page="team"] #tm-grid { gap: 0.75rem; }
+            /* sizes from the mobile design (stitch): body 14px, labels 12px, headings 18–24px; cards 16px padding, 16px corners; top bar 56px */
+            body[data-page="team"] .tm-topbar { height: 3.5rem !important; }
+            body[data-page="team"] #app-sidebar > a:first-child { height: 3.5rem; }
+            body.cw-nav-open[data-page="team"] #app-sidebar { top: 3.75rem; }
+            body[data-page="team"] main .text-xs { font-size: calc(12px * var(--cw-fs, 1)) !important; line-height: calc(16px * var(--cw-fs, 1)) !important; }
+            body[data-page="team"] main .text-sm { font-size: calc(14px * var(--cw-fs, 1)) !important; line-height: calc(20px * var(--cw-fs, 1)) !important; }
+            body[data-page="team"] main .text-base { font-size: calc(15px * var(--cw-fs, 1)) !important; line-height: calc(22px * var(--cw-fs, 1)) !important; }
+            body[data-page="team"] main .text-lg { font-size: calc(18px * var(--cw-fs, 1)) !important; line-height: calc(24px * var(--cw-fs, 1)) !important; }
+            body[data-page="team"] main .text-xl { font-size: calc(20px * var(--cw-fs, 1)) !important; line-height: calc(28px * var(--cw-fs, 1)) !important; }
+            body[data-page="team"] main .text-2xl { font-size: calc(22px * var(--cw-fs, 1)) !important; line-height: calc(30px * var(--cw-fs, 1)) !important; }
+            body[data-page="team"] main { font-size: calc(14px * var(--cw-fs, 1)); }
+            body[data-page="team"] main .p-6, body[data-page="team"] main .p-5 { padding: 1rem !important; }
+            body[data-page="team"] main .rounded-2xl { border-radius: 1rem !important; }
+            body[data-page="team"] main .gap-6 { gap: 0.75rem !important; }
+            body[data-page="team"] main .mb-6 { margin-bottom: 1rem !important; }
+            body[data-page="team"] .tm-cover { height: 6.5rem !important; min-height: 0 !important; }
+            body[data-page="team"] .tm-card .p-4 { padding: 0.875rem 1rem !important; }
+            /* invite code: the code box and the join button share one row (design) */
+            body[data-page="team"] form:has(#tm-code-input) { padding: 1rem !important; }
+            body[data-page="team"] #tm-code-input { flex: 1 1 0; min-width: 0; width: auto !important; }
+            body[data-page="team"] #tm-code-input + button { flex: 0 0 auto; padding: 0.65rem 0.9rem; }
+            body[data-page="team"] #tab-team > div:first-child > p { font-size: calc(13px * var(--cw-fs, 1)) !important; }
         }
         #cw-mprofile { display: none; }
     </style>

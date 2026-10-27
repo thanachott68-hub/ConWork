@@ -4689,7 +4689,37 @@
             #cw-mprofile span { font-size: 11px; font-weight: 700; color: #1E293B; max-width: 2.75rem; line-height: 1.15; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
             /* content: soft page, white rounded cards */
-            body[data-page="app"] .view-section.p-6 { padding: 1rem 0.875rem 6rem !important; }
+            body[data-page="app"] .view-section.p-6 { padding: 1rem 1rem 6rem !important; }
+
+            /* sizes from the mobile design (stitch): body 14px, labels 12px, headings 18/20/24/26px; cards 16px padding,
+               12–16px corners, 8–12px gaps; top bar 56px. Colours, icons and fonts stay ConWork's. Text still follows เล็ก/กลาง/ใหญ่ (--cw-fs). */
+            body[data-page="app"] main > header { height: 3.5rem !important; }
+            body[data-page="app"] #sidebar-logo-btn { height: 3.5rem; }
+            body[data-page="app"] #app-sidebar.w-64 { top: 3.75rem !important; }
+            body[data-page="app"] main .text-xs { font-size: calc(12px * var(--cw-fs, 1)) !important; line-height: calc(16px * var(--cw-fs, 1)) !important; }
+            body[data-page="app"] main .text-sm { font-size: calc(14px * var(--cw-fs, 1)) !important; line-height: calc(20px * var(--cw-fs, 1)) !important; }
+            body[data-page="app"] main .text-base { font-size: calc(15px * var(--cw-fs, 1)) !important; line-height: calc(22px * var(--cw-fs, 1)) !important; }
+            body[data-page="app"] main .text-lg { font-size: calc(18px * var(--cw-fs, 1)) !important; line-height: calc(24px * var(--cw-fs, 1)) !important; }
+            body[data-page="app"] main .text-xl { font-size: calc(20px * var(--cw-fs, 1)) !important; line-height: calc(28px * var(--cw-fs, 1)) !important; }
+            body[data-page="app"] main .text-2xl { font-size: calc(22px * var(--cw-fs, 1)) !important; line-height: calc(30px * var(--cw-fs, 1)) !important; }
+            body[data-page="app"] main .text-3xl { font-size: calc(26px * var(--cw-fs, 1)) !important; line-height: calc(34px * var(--cw-fs, 1)) !important; }
+            body[data-page="app"] main { font-size: calc(14px * var(--cw-fs, 1)); }
+            body[data-page="app"] main .p-6, body[data-page="app"] main .p-5 { padding: 1rem !important; }
+            body[data-page="app"] main .px-6, body[data-page="app"] main .px-5 { padding-left: 1rem !important; padding-right: 1rem !important; }
+            body[data-page="app"] main .py-6, body[data-page="app"] main .py-5 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+            body[data-page="app"] main .gap-6, body[data-page="app"] main .gap-5 { gap: 0.75rem !important; }
+            body[data-page="app"] main .gap-4 { gap: 0.5rem !important; }
+            body[data-page="app"] main .mb-8, body[data-page="app"] main .mb-6 { margin-bottom: 1rem !important; }
+            body[data-page="app"] main .rounded-2xl, body[data-page="app"] main .rounded-3xl { border-radius: 1rem !important; }
+            body[data-page="app"] main .rounded-xl { border-radius: 0.75rem !important; }
+            body[data-page="app"] main .shadow-sm, body[data-page="app"] main .shadow { box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important; }
+            body[data-page="app"] main .w-14.h-14 { width: 2.5rem !important; height: 2.5rem !important; font-size: 1.1rem !important; }
+            body[data-page="app"] main .w-12.h-12 { width: 2.5rem !important; height: 2.5rem !important; }
+            /* dashboard greeting as a white card (design: greeting card on top) */
+            #view-dashboard > div:first-child { background: #FFFFFF; border-radius: 1rem; padding: 1rem !important; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06); border: 1px solid #F1F5F9; }
+            #view-dashboard > div:first-child h2 { font-size: calc(24px * var(--cw-fs, 1)) !important; line-height: 1.3 !important; }
+            #view-dashboard > div:first-child > div:last-child { width: 100%; box-shadow: none; }
+            html.dark #view-dashboard > div:first-child { background: #1E293B; border-color: #334155; }
 
             /* dashboard: the 4 summary cards as a 2 × 2 grid */
             #view-dashboard > div:nth-child(2) { display: grid !important; grid-template-columns: 1fr 1fr; gap: 0.75rem; overflow: visible; margin: 0 0 1rem; padding: 0; height: auto !important; flex-shrink: 0; }
