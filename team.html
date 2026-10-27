@@ -1886,7 +1886,11 @@
             body[data-page="team"] #tab-team > div:first-child > div:last-child > button { width: 100%; justify-content: center; min-height: 3.25rem; border-radius: 1rem; }
             body[data-page="team"] #tm-grid { gap: 0.75rem; }
             /* sizes from the mobile design (stitch): body 14px, labels 12px, headings 18–24px; cards 16px padding, 16px corners; top bar 56px */
-            body[data-page="team"] .tm-topbar { height: 3.5rem !important; }
+            body[data-page="team"] .tm-topbar { height: 3.5rem !important; padding-left: 0.25rem !important; }
+            /* ☰, logo and app name packed together on the left */
+            body[data-page="team"] #tm-nav-toggle { width: 2.5rem; height: 2.5rem; padding: 0; align-items: center; justify-content: center; }
+            body[data-page="team"] #app-sidebar > a:first-child { left: 3rem !important; gap: 0.35rem !important; padding: 0 !important; }
+            body[data-page="team"] #app-sidebar > a:first-child > span:first-child { padding: 2px !important; }
             body[data-page="team"] #app-sidebar > a:first-child { height: 3.5rem; }
             body.cw-nav-open[data-page="team"] #app-sidebar { top: 3.75rem; }
             body[data-page="team"] main .text-xs { font-size: calc(12px * var(--cw-fs, 1)) !important; line-height: calc(16px * var(--cw-fs, 1)) !important; }
