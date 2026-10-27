@@ -1,5 +1,5 @@
 /**
- * ConWork — Departments & permissions (หัวหน้า → รองหัวหน้า → หัวหน้าแผนก → พนักงาน)
+ * ConWork — Departments & permissions (ผู้บริหาร → รองผู้บริหาร → หัวหน้า (of a department) → พนักงาน)
  * The rules live in the database (cw_can_edit, row level security and the cw_* functions):
  * this page only shows them and sends changes; hiding a button here is a convenience, never the guard.
  * Shown at the top of "ตั้งค่าพนักงาน" (view-role-settings). Needs js/app.js.
@@ -18,7 +18,7 @@
         own: 'bg-gray-50 text-gray-600 border-gray-200'
     };
     const LEVEL_TXT = { edit: 'แก้ไขได้', edit_dept: 'แก้ไขได้ทั้งแผนก', head_only: 'เฉพาะหัวหน้าแผนก', view: 'ดูอย่างเดียว', own: 'เฉพาะของตัวเอง' };
-    const RANK_TXT = { head: 'หัวหน้า', deputy: 'รองหัวหน้า', member: 'Member' };
+    const RANK_TXT = { head: 'ผู้บริหาร', deputy: 'รองผู้บริหาร', member: 'พนักงาน' };
     /* the features the app already checks (App.hasPermission) and the module each belongs to */
     const FEATURE_MODULE = {
         'สร้างโปรเจกต์': 'projects', 'แก้ไขโปรเจกต์': 'projects', 'ลบโปรเจกต์': 'projects',
@@ -107,18 +107,18 @@
         }
         const d = R.data, can = !!d.can_manage, depts = d.departments || [], members = d.members || [];
         const nameOf = id => { const m = members.find(x => String(x.user_id) === String(id)); return m ? m.name : '—'; };
-        const reason = can ? '' : '<p class="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-3"><i class="fa-solid fa-lock mr-1"></i>ดูได้อย่างเดียว: เฉพาะหัวหน้าและรองหัวหน้าทีมที่แก้ไขแผนกและสิทธิ์ได้</p>';
+        const reason = can ? '' : '<p class="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-3"><i class="fa-solid fa-lock mr-1"></i>ดูได้อย่างเดียว: เฉพาะผู้บริหารและรองผู้บริหารที่แก้ไขแผนกและสิทธิ์ได้</p>';
 
         /* my access */
         const a = R.access || {};
-        const mine = `<div class="flex flex-wrap items-center gap-2 text-sm"><span class="text-gray-500">สิทธิ์ของฉัน:</span><span class="font-semibold text-gray-800">${esc(RANK_TXT[a.rank] || '—')}</span>${a.department ? `<span class="text-gray-400">·</span><span class="text-gray-700">แผนก ${esc(a.department.name)}${a.department.is_head ? ' (หัวหน้าแผนก)' : ''}</span>` : (a.rank === 'member' ? '<span class="text-gray-400">· ยังไม่ได้รับมอบแผนก (แก้ได้เฉพาะงานของตัวเอง)</span>' : '')}</div>`;
+        const mine = `<div class="flex flex-wrap items-center gap-2 text-sm"><span class="text-gray-500">สิทธิ์ของฉัน:</span><span class="font-semibold text-gray-800">${esc(RANK_TXT[a.rank] || '—')}</span>${a.department ? `<span class="text-gray-400">·</span><span class="text-gray-700">แผนก ${esc(a.department.name)}${a.department.is_head ? ' (หัวหน้า)' : ''}</span>` : (a.rank === 'member' ? '<span class="text-gray-400">· ยังไม่ได้รับมอบแผนก (ดูได้ทุกหมวด แก้ได้เฉพาะงานที่ได้รับมอบหมาย)</span>' : '')}</div>`;
 
         /* 1. departments */
-        const memberOpts = sel => '<option value="">— ไม่มีหัวหน้าแผนก —</option>' + members.filter(m => m.rank === 'member').map(m => `<option value="${esc(m.user_id)}"${String(sel) === String(m.user_id) ? ' selected' : ''}>${esc(m.name)}</option>`).join('');
+        const memberOpts = sel => '<option value="">— ไม่มีหัวหน้า —</option>' + members.filter(m => m.rank === 'member').map(m => `<option value="${esc(m.user_id)}"${String(sel) === String(m.user_id) ? ' selected' : ''}>${esc(m.name)}</option>`).join('');
         const deptRows = depts.length ? depts.map(x => `<div class="border border-gray-200 rounded-lg p-3 ${x.status === 'inactive' ? 'bg-gray-50 opacity-75' : ''}">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="min-w-0"><div class="font-semibold text-gray-800 truncate">${esc(x.name)} ${x.status === 'inactive' ? '<span class="text-xs font-semibold text-gray-500 bg-gray-200 rounded-full px-2 py-0.5 ml-1">ปิดใช้งาน</span>' : ''}</div>
-                <div class="text-xs text-gray-500">หัวหน้าแผนก: ${x.head_user_id ? esc(nameOf(x.head_user_id)) : '—'} · สมาชิก ${x.member_count || 0} คน${x.description ? ' · ' + esc(x.description) : ''}</div></div>
+                <div class="text-xs text-gray-500">หัวหน้า: ${x.head_user_id ? esc(nameOf(x.head_user_id)) : '—'} · สมาชิก ${x.member_count || 0} คน${x.description ? ' · ' + esc(x.description) : ''}</div></div>
               ${can ? `<div class="flex flex-wrap gap-2">${btn(`data-rb="edit" data-id="${esc(x.id)}"`, 'แก้ไข')}${btn(`data-rb="status" data-id="${esc(x.id)}"`, x.status === 'inactive' ? 'เปิดใช้งาน' : 'ปิดใช้งาน')}${btn(`data-rb="delete" data-id="${esc(x.id)}"`, 'ลบ', 'danger')}</div>` : ''}
             </div>
             <div data-rb-form="${esc(x.id)}" class="hidden mt-3 grid gap-2 sm:grid-cols-3">
@@ -142,9 +142,10 @@
         const me = String(App.state.currentUser && App.state.currentUser.id);
         const memRows = members.map(m => {
             const self = String(m.user_id) === me;
-            const rankCell = (d.is_head && !self && m.rank !== 'head')
-                ? `<select data-rb-rank="${esc(m.user_id)}" class="border border-gray-200 rounded-lg px-2 py-1 text-sm"><option value="employee"${m.rank === 'member' ? ' selected' : ''}>Member</option><option value="company_admin"${m.rank === 'deputy' ? ' selected' : ''}>รองหัวหน้า</option></select>`
-                : `<span class="text-sm font-semibold ${m.rank === 'head' ? 'text-blue-700' : m.rank === 'deputy' ? 'text-blue-600' : 'text-gray-700'}">${RANK_TXT[m.rank] || m.rank}</span>`;
+            const isDeptHead = depts.some(x => String(x.head_user_id) === String(m.user_id));
+            const rankCell = (d.is_head && !self && !m.is_creator)
+                ? `<select data-rb-rank="${esc(m.user_id)}" class="border border-gray-200 rounded-lg px-2 py-1 text-sm"><option value="employee"${m.rank === 'member' ? ' selected' : ''}>พนักงาน</option><option value="company_admin"${m.rank === 'deputy' ? ' selected' : ''}>รองผู้บริหาร</option><option value="super_admin"${m.rank === 'head' ? ' selected' : ''}>ผู้บริหาร</option></select>${isDeptHead && m.rank === 'member' ? '<div class="text-[11px] text-gray-500 mt-0.5">หัวหน้าแผนก</div>' : ''}`
+                : `<span class="text-sm font-semibold ${m.rank === 'head' ? 'text-blue-700' : m.rank === 'deputy' ? 'text-blue-600' : 'text-gray-700'}">${m.rank === 'member' && isDeptHead ? 'หัวหน้า' : (RANK_TXT[m.rank] || m.rank)}${m.is_creator ? ' · ผู้สร้างทีม' : ''}</span>`;
             const deptCell = m.rank !== 'member' ? '<span class="text-xs text-gray-400">ดูแลทุกแผนก</span>'
                 : (can && !self ? `<select data-rb-dept="${esc(m.user_id)}" class="border border-gray-200 rounded-lg px-2 py-1 text-sm max-w-[12rem]">${deptOpts(m.department_id)}</select>`
                     : `<span class="text-sm text-gray-700">${esc((depts.find(x => String(x.id) === String(m.department_id)) || {}).name || '—')}</span>`);
@@ -163,13 +164,13 @@
         };
         const nDraft = Object.values(R.draft).reduce((n, o) => n + Object.keys(o).length, 0);
         const matrix = `<div class="overflow-x-auto -mx-1"><table class="min-w-[720px] w-full"><thead><tr class="text-xs text-gray-500"><th class="text-left font-semibold pb-2 pr-3">แผนก / ตำแหน่ง</th>${MODULES.map(([, t], i) => `<th class="font-semibold pb-2 px-1">${i + 1}. ${t}</th>`).join('')}</tr></thead>
-            <tbody>${lockRow('หัวหน้า')}${lockRow('รองหัวหน้า')}${depts.map(deptRow).join('') || `<tr><td colspan="7" class="py-4 text-center text-sm text-gray-400">ยังไม่มีแผนก</td></tr>`}</tbody></table></div>
-            <ul class="mt-3 text-xs text-gray-500 list-disc pl-5 space-y-0.5"><li>ทุกคนดูข้อมูลทุกหมวดได้ สิทธิ์ในตารางคือสิทธิ์ "แก้ไข" (สร้าง/แก้/ลบ) ของแต่ละแผนก</li><li>สมาชิกทุกคนแก้งานที่ตัวเองสร้างหรือได้รับมอบหมายได้เสมอ · Member ที่ยังไม่มีแผนกแก้ได้เฉพาะงานของตัวเอง</li><li>ตั้งค่าทีม (แผนก ตำแหน่ง สิทธิ์ แพ็กเกจ) เฉพาะหัวหน้า/รองหัวหน้า · รายงาน: Export/แชร์ ตามสิทธิ์หมวดรายงาน</li></ul>
+            <tbody>${lockRow('ผู้บริหาร')}${lockRow('รองผู้บริหาร')}${depts.map(deptRow).join('') || `<tr><td colspan="7" class="py-4 text-center text-sm text-gray-400">ยังไม่มีแผนก</td></tr>`}</tbody></table></div>
+            <ul class="mt-3 text-xs text-gray-500 list-disc pl-5 space-y-0.5"><li>ทุกคนดูข้อมูลทุกหมวดได้ สิทธิ์ในตารางคือสิทธิ์ "แก้ไข" (สร้าง/แก้/ลบ) ของแต่ละแผนก</li><li>ทุกคนอัปเดตงานที่ตัวเองได้รับมอบหมายได้เสมอ · พนักงานที่ยังไม่มีแผนกดูได้ทุกหมวดแต่แก้ไม่ได้</li><li>"เฉพาะหัวหน้าแผนก" = หัวหน้าของแผนกนั้นแก้ได้คนเดียว · ตั้งค่าทีม (แผนก ตำแหน่ง สิทธิ์ แพ็กเกจ) เฉพาะผู้บริหาร/รองผู้บริหาร · รายงาน: Export/แชร์ ตามสิทธิ์หมวดรายงาน</li></ul>
             ${can ? `<div class="mt-4 flex flex-wrap items-center gap-2">${btn(`data-rb="preview"${nDraft ? '' : ' disabled'}`, `ตรวจทานและบันทึก${nDraft ? ` (${nDraft})` : ''}`, 'primary')}${nDraft ? btn('data-rb="discard"', 'ยกเลิกการเปลี่ยน') : ''}</div><div id="cw-rb-preview"></div>` : ''}`;
 
         box.innerHTML = card('แผนกและสิทธิ์', 'ตำแหน่ง → แผนก → สิทธิ์ · ตรวจสิทธิ์จริงที่ฐานข้อมูลทุกครั้ง', `${reason}${mine}`, can ? btn('data-rb="audit"', '<i class="fa-solid fa-clock-rotate-left mr-1"></i>ประวัติการเปลี่ยนแปลง') : '')
-            + card('1. แผนก', 'หัวหน้า/รองหัวหน้าเพิ่ม แก้ไข ปิดใช้งาน หรือลบแผนก', addForm + `<div class="space-y-2">${deptRows}</div>`)
-            + card('2. ตำแหน่งและแผนกของสมาชิก', 'หัวหน้าทีมแต่งตั้งรองหัวหน้าได้ · 1 คนสังกัด 1 แผนก (หัวหน้า/รองหัวหน้าไม่ต้องสังกัด)', `<div class="overflow-x-auto"><table class="w-full min-w-[520px]"><thead><tr class="text-xs text-gray-500 text-left"><th class="font-semibold pb-2">สมาชิก</th><th class="font-semibold pb-2">ตำแหน่ง</th><th class="font-semibold pb-2">แผนก</th></tr></thead><tbody>${memRows || '<tr><td colspan="3" class="py-4 text-center text-sm text-gray-400">ยังไม่มีสมาชิก</td></tr>'}</tbody></table></div>`)
+            + card('1. แผนก', 'ผู้บริหาร/รองผู้บริหารเพิ่ม แก้ไข ปิดใช้งาน หรือลบแผนก และเลือกหัวหน้าของแผนก',addForm + `<div class="space-y-2">${deptRows}</div>`)
+            + card('2. กำหนดแผนกและตำแหน่งให้สมาชิก', 'เลือกแผนกให้สมาชิกแต่ละคนในคอลัมน์ "แผนก" · ผู้บริหารแต่งตั้ง/ปลดผู้บริหารและรองผู้บริหารได้ (ผู้สร้างทีมเป็นผู้บริหารเสมอ) · ผู้บริหาร/รองผู้บริหารไม่ต้องสังกัดแผนก',`<div class="overflow-x-auto"><table class="w-full min-w-[520px]"><thead><tr class="text-xs text-gray-500 text-left"><th class="font-semibold pb-2">สมาชิก</th><th class="font-semibold pb-2">ตำแหน่ง</th><th class="font-semibold pb-2">แผนก</th></tr></thead><tbody>${memRows || '<tr><td colspan="3" class="py-4 text-center text-sm text-gray-400">ยังไม่มีสมาชิก</td></tr>'}</tbody></table></div>`)
             + card('3. ตารางสิทธิ์ (Permission Matrix)', 'แถว = แผนก/ตำแหน่ง · คอลัมน์ = หมวดงาน', matrix)
             + '<div id="cw-rb-audit"></div>';
     }
@@ -206,7 +207,8 @@
         const rsel = e.target.closest('[data-rb-rank]');
         if (rsel) {
             const uid = rsel.getAttribute('data-rb-rank');
-            const msg = rsel.value === 'company_admin' ? 'แต่งตั้งเป็นรองหัวหน้า? รองหัวหน้าแก้ไขได้ทุกหมวดและจัดการแผนก/สิทธิ์ได้เหมือนหัวหน้า' : 'ปลดออกจากรองหัวหน้า (กลับเป็น Member)?';
+            const msg = rsel.value === 'super_admin' ? 'แต่งตั้งเป็นผู้บริหาร? ผู้บริหารแก้ไขได้ทุกหมวด จัดการแผนก/สิทธิ์ และแต่งตั้ง/ปลดผู้บริหารคนอื่นได้'
+                : rsel.value === 'company_admin' ? 'ตั้งเป็นรองผู้บริหาร? รองผู้บริหารแก้ไขได้ทุกหมวดและจัดการแผนก/สิทธิ์ได้' : 'เปลี่ยนเป็นพนักงาน?';
             if (!confirm(msg)) { paint(); return; }
             act(null, () => rpc('set_member_role', { p_company: team(), p_user: uid, p_role: rsel.value }), 'เปลี่ยนตำแหน่งแล้ว');
         }
