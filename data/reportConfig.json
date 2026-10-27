@@ -1,0 +1,48 @@
+{
+  "reportSystem": {
+    "name": "ConWork Reporting System",
+    "version": "1.0.0",
+    "defaultPeriod": "this-month",
+    "defaultReportType": "progress",
+    "defaultExportFormat": "pdf",
+    "previewDelayMs": 1200,
+    "exportDelayMs": 1500
+  },
+  "periods": [
+    { "id": "today", "labelEn": "Today", "labelTh": "วันนี้" },
+    { "id": "this-week", "labelEn": "This Week", "labelTh": "สัปดาห์นี้" },
+    { "id": "this-month", "labelEn": "This Month", "labelTh": "เดือนนี้" },
+    { "id": "this-quarter", "labelEn": "This Quarter", "labelTh": "ไตรมาสนี้" },
+    { "id": "custom", "labelEn": "Custom Date Range", "labelTh": "กำหนดช่วงวันที่เอง" }
+  ],
+  "reportTypes": [
+    {
+      "id": "progress",
+      "titleEn": "Progress Report",
+      "titleTh": "รายงานความคืบหน้า",
+      "sections": ["Project progress", "Completed tasks", "Pending tasks", "Milestones"]
+    },
+    {
+      "id": "work-summary",
+      "titleEn": "Work Summary Report",
+      "titleTh": "รายงานสรุปงาน",
+      "sections": ["Activities", "Meetings", "Achievements"]
+    },
+    {
+      "id": "official",
+      "titleEn": "Official Report",
+      "titleTh": "รายงานทางการ",
+      "sections": ["Objectives", "Implementation", "Results", "Problems", "Recommendations", "Conclusion"]
+    }
+  ],
+  "exportFormats": [
+    { "id": "pdf", "label": "PDF", "mimeType": "application/pdf" },
+    { "id": "docx", "label": "Microsoft Word (.docx)", "mimeType": "application/msword" }
+  ],
+  "dataSources": {
+    "projects": "mockProjects — filtered by team membership",
+    "tasks": "mockTasks — filtered by assignee (current user)",
+    "meetings": "mockEvents — filtered by project/group in period",
+    "documents": "completed tasks count in period"
+  }
+}

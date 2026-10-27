@@ -1,0 +1,14 @@
+# ConWork: files that are not part of the website (Vercel does not upload them)
+_before-*/
+api/
+supabase/
+docs/
+data/
+scratch.js
+add_dashboard.js
+phrases.json
+conwork.css
+js/workReport_backup.js
+.env.example
+README.md
+_preview/

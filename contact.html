@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-th="ติดต่อเรา – ConWork">Contact us – ConWork</title>
+    <meta name="description" content="Contact the ConWork team and find answers in the help center.">
+    <link rel="icon" type="image/png" href="img/logo.png">
+    <link rel="apple-touch-icon" href="img/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Kanit:wght@500;600;700&family=Nunito:wght@700;800;900&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/bubble.css?v=3">
+    <link rel="stylesheet" href="css/site.css?v=4">
+    <script src="js/theme.js?v=6"></script>
+    <link rel="stylesheet" href="css/ipad.css?v=5">
+</head>
+<body>
+    <header id="site-nav" class="site-nav"></header>
+
+    <main>
+        <section class="hero">
+            <div class="wrap">
+                <span class="eyebrow" data-th="ติดต่อเรา">Contact us</span>
+                <h1 data-th-html="เราพร้อม <span class=&quot;accent&quot;>ช่วยเหลือ</span>">We're here to <span class="accent">help</span></h1>
+                <p class="lead" data-th="มีคำถาม ข้อเสนอแนะ หรือพบปัญหาในการใช้งาน ติดต่อทีม ConWork หรือดูคำตอบในศูนย์ช่วยเหลือด้านล่าง">Questions, ideas or something not working? Contact the ConWork team or find answers in the help center below.</p>
+            </div>
+        </section>
+
+        <section class="block">
+            <div class="wrap">
+                <div class="grid grid-2">
+                    <a class="card reveal" href="mailto:conwork.co@gmail.com" style="text-decoration:none;color:inherit">
+                        <span class="icon"><i class="fa-regular fa-envelope"></i></span>
+                        <h3 data-th="อีเมล">Email</h3>
+                        <p>conwork.co@gmail.com</p>
+                    </a>
+                    <div class="card reveal">
+                        <span class="icon g"><i class="fa-solid fa-location-dot"></i></span>
+                        <h3 data-th="ที่อยู่">Address</h3>
+                        <p data-th="อำเภอเมืองพิษณุโลก จังหวัดพิษณุโลก ประเทศไทย 65000">Mueang Phitsanulok, Phitsanulok 65000, Thailand</p>
+                    </div>
+                </div>
+                <div class="grid grid-3" style="margin-top:18px">
+                    <a class="card reveal" href="https://www.facebook.com/profile.php?id=61591436266944" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
+                        <span class="icon"><i class="fa-brands fa-facebook-f"></i></span>
+                        <h3>Facebook</h3>
+                        <p>ConWork</p>
+                    </a>
+                    <a class="card reveal" href="https://www.instagram.com/conwork.platform" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
+                        <span class="icon a"><i class="fa-brands fa-instagram"></i></span>
+                        <h3>Instagram</h3>
+                        <p>@conwork.platform</p>
+                    </a>
+                    <a class="card reveal" href="https://www.tiktok.com/@conwork.platform" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
+                        <span class="icon g"><i class="fa-brands fa-tiktok"></i></span>
+                        <h3>TikTok</h3>
+                        <p>@conwork.platform</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="block">
+            <div class="wrap">
+                <div class="grid grid-2">
+                    <div class="card reveal">
+                        <h2 style="margin:0 0 6px;font-size:26px" data-th="ส่งข้อความถึงเรา">Send us a message</h2>
+                        <p data-th="กดส่งแล้วจะเปิดแอปอีเมลของคุณพร้อมข้อความที่กรอกไว้">Sending opens your email app with your message filled in.</p>
+                        <form id="contact-form" style="margin-top:16px">
+                            <label class="field"><span data-th="ชื่อ">Name</span><input name="name" required maxlength="100" autocomplete="name"></label>
+                            <label class="field"><span data-th="อีเมลของคุณ">Your email</span><input name="email" type="email" required maxlength="200" autocomplete="email"></label>
+                            <label class="field"><span data-th="เรื่อง">Topic</span>
+                                <select name="topic">
+                                    <option value="Question" data-th="สอบถามการใช้งาน">Question</option>
+                                    <option value="Problem" data-th="แจ้งปัญหา">Report a problem</option>
+                                    <option value="Idea" data-th="ข้อเสนอแนะ">Idea or feedback</option>
+                                    <option value="Partnership" data-th="ความร่วมมือ">Partnership</option>
+                                </select>
+                            </label>
+                            <label class="field"><span data-th="ข้อความ">Message</span><textarea name="message" required maxlength="2000"></textarea></label>
+                            <button class="btn btn-primary" type="submit" data-th="ส่งข้อความ">Send message</button>
+                        </form>
+                    </div>
+                    <div>
+                        <h2 style="margin:0 0 12px;font-size:26px" data-th="ศูนย์ช่วยเหลือ">Help center</h2>
+                        <details class="faq reveal">
+                            <summary data-th="ConWork ใช้ฟรีไหม">Is ConWork free?</summary>
+                            <p data-th="ใช้ได้ฟรีทุกฟีเจอร์ ถ้าอยากช่วยให้เราพัฒนาต่อ สนับสนุนได้ที่หน้า สนับสนุนเรา">Yes, every feature is free. If you'd like to help us keep going, see the Donate page.</p>
+                        </details>
+                        <details class="faq reveal">
+                            <summary data-th="สร้างทีมได้อย่างไร">How do I create a team?</summary>
+                            <p data-th="สมัครหรือเข้าสู่ระบบ แล้วในหน้าทีมกด สร้างทีม ตั้งชื่อ แล้วเริ่มสร้างโปรเจกต์ได้เลย">Sign up or sign in, choose Create team on the Teams page, give it a name and start a project.</p>
+                        </details>
+                        <details class="faq reveal">
+                            <summary data-th="ชวนคนเข้าทีมอย่างไร">How do I invite people?</summary>
+                            <p data-th="เจ้าของหรือแอดมินส่งคำเชิญทางอีเมลได้ หรือแชร์รหัสทีมให้เพื่อนร่วมงานขอเข้าร่วม">Owners and admins can send email invites, or share the team code so colleagues can ask to join.</p>
+                        </details>
+                        <details class="faq reveal">
+                            <summary data-th="เข้าสู่ระบบด้วย Google ได้ไหม">Can I sign in with Google?</summary>
+                            <p data-th="ได้ กด Continue with Google ที่หน้าเข้าสู่ระบบ เราได้รับแค่ชื่อ อีเมล และรูปโปรไฟล์">Yes, choose Continue with Google on the sign-in page. We only receive your name, email and profile picture.</p>
+                        </details>
+                        <details class="faq reveal">
+                            <summary data-th="ข้อมูลของเราเก็บไว้ที่ไหน">Where is our data stored?</summary>
+                            <p data-th="การเข้าสู่ระบบดูแลโดย Supabase ข้อมูลและไฟล์เก็บที่ Neon และหน้าเว็บให้บริการผ่าน Vercel ดูรายละเอียดได้ในนโยบายความเป็นส่วนตัว">Sign-in is handled by Supabase, data and files are stored at Neon, and the site is served by Vercel. See the Privacy Policy for details.</p>
+                        </details>
+                        <details class="faq reveal">
+                            <summary data-th="ขอลบบัญชีได้อย่างไร">How do I delete my account?</summary>
+                            <p data-th="ส่งอีเมลจากอีเมลที่ใช้สมัครมาที่ conwork.co@gmail.com แล้วเราจะดำเนินการให้">Email conwork.co@gmail.com from the address you signed up with and we'll take care of it.</p>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer id="site-foot" class="site-foot"></footer>
+    <script src="js/site.js?v=1"></script>
+    <script>
+        /* the form opens the visitor's email app addressed to the team (no server needed) */
+        document.getElementById('contact-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var f = e.target;
+            var subject = '[ConWork] ' + f.topic.value + ' – ' + f.name.value.trim();
+            var body = f.message.value.trim() + '\n\n— ' + f.name.value.trim() + ' <' + f.email.value.trim() + '>';
+            location.href = 'mailto:conwork.co@gmail.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+        });
+    </script>
+</body>
+</html>
