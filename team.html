@@ -1877,7 +1877,7 @@
             body[data-page="team"] .tm-topbar > #tm-title, body[data-page="team"] .tm-topbar > #tm-subtitle { display: none !important; }
             body[data-page="team"] #app-sidebar > a:first-child { left: 3rem; width: auto; padding: 0 0.25rem !important; gap: 0.5rem; justify-content: flex-start; }
             body[data-page="team"] #app-sidebar > a:first-child h2 { display: flex !important; flex-direction: column; font-size: 18px; line-height: 1.1; color: #1D4ED8; }
-            body[data-page="team"] #app-sidebar > a:first-child h2 .cw-mtitle { font-size: 11px; font-weight: 600; line-height: 1.25; color: #64748B; max-width: 8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            body[data-page="team"] #app-sidebar > a:first-child h2 .cw-mtitle { display: block; font-size: 11px; font-weight: 600; line-height: 1.25; color: #64748B; max-width: 8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
             #cw-mprofile { display: inline-flex !important; align-items: center; padding: 0.15rem; border-radius: 999px; background: #EFF6FF; flex-shrink: 0; }
             #cw-mprofile img { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; }
             /* content */
@@ -1912,7 +1912,7 @@
             body[data-page="team"] #tm-code-input + button { flex: 0 0 auto; padding: 0.65rem 0.9rem; }
             body[data-page="team"] #tab-team > div:first-child > p { font-size: calc(13px * var(--cw-fs, 1)) !important; }
         }
-        #cw-mprofile { display: none; }
+        #cw-mprofile, .cw-mtitle { display: none; }
     </style>
     <script>
         (function () {

@@ -340,11 +340,18 @@ document.getElementById('form-auth')?.addEventListener('submit', async function(
             });
             
             if (error) {
-                errEl.innerText = "Error: " + error.message;
+                if (/not confirmed/i.test(error.message)) {
+                    // the email was never confirmed: send the link again
+                    window.conworkSupabase.client.auth.resend({ type: 'signup', email: email,
+                        options: { emailRedirectTo: location.origin + location.pathname.replace(/[^/]*$/, '') + 'login.html?mode=login' } }).catch(() => { });
+                    errEl.innerText = 'Please confirm your email first. We sent the confirmation link to ' + email + ' again.';
+                } else {
+                    errEl.innerText = "Error: " + error.message;
+                }
                 errEl.style.display = "block";
                 return;
             }
-            
+
             if (data.user) {
                 if (!existingUser) {
                     existingUser = {
@@ -396,7 +403,7 @@ async function finishSignup(errEl) {
         const { data, error } = await window.conworkSupabase.client.auth.signUp({
             email: email,
             password: tempOnboardingData.password,
-            options: { data: { full_name: name } }
+            options: { data: { full_name: name }, emailRedirectTo: location.origin + location.pathname.replace(/[^/]*$/, '') + 'login.html?mode=login' }
         });
         if (error) { done(); errEl.innerText = 'Error signing up: ' + error.message; errEl.style.display = 'block'; return; }
         if (data.user) userId = data.user.id;

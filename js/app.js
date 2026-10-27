@@ -9692,9 +9692,7 @@ const App = {
                                 </button>
                                 <!-- Dropdown Menu -->
                                 <div id="msg-menu-${m.id}" class="hidden absolute right-0 top-full mt-1 w-max min-w-[9rem] bg-white border border-gray-100 rounded-lg shadow-lg py-1 z-[60] text-left">
-                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 whitespace-nowrap" onclick="event.preventDefault(); App.replyMessage('${m.id}')"><i class="fa-solid fa-reply mr-2 w-4 text-center"></i>ตอบกลับ</a>
-                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 whitespace-nowrap" onclick="event.preventDefault(); App.editMessage('${m.id}')"><i class="fa-solid fa-pen mr-2 w-4 text-center"></i>แก้ไขข้อความ</a>
-                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 whitespace-nowrap" onclick="event.preventDefault(); App.copyMessage('${m.id}')"><i class="fa-solid fa-copy mr-2 w-4 text-center"></i>คัดลอก</a>
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 whitespace-nowrap" onclick="event.preventDefault(); App.replyMessage('${m.id}')"><i class="fa-solid fa-reply mr-2 w-4 text-center"></i>ตอบกลับ</a>                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 whitespace-nowrap" onclick="event.preventDefault(); App.copyMessage('${m.id}')"><i class="fa-solid fa-copy mr-2 w-4 text-center"></i>คัดลอก</a>
                                     <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 whitespace-nowrap" onclick="event.preventDefault(); App.forwardMessage('${m.id}')"><i class="fa-solid fa-share mr-2 w-4 text-center"></i>ส่งต่อ</a>                                </div>
                             </div>
                             <!-- Message Content -->

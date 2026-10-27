@@ -4632,8 +4632,8 @@
     <script src="js/i18n.js?v=21"></script>
     <script src="js/workReport.js?v=12"></script>
     <script src="js/dateFormat.js?v=2"></script>
-    <script src="js/app.js?v=75"></script>
-    <script src="js/login-flow.js?v=19"></script>
+    <script src="js/app.js?v=76"></script>
+    <script src="js/login-flow.js?v=20"></script>
     <script src="js/accounting.js?v=6"></script>
     <script src="js/personalInfo.js?v=2"></script>
     <script src="js/memberInfo.js?v=6"></script>
@@ -4649,7 +4649,7 @@
         /* Mailbox page (built by js/invitePage.js): use the full width, and the box fills the height left under the header */
         #view-mailbox > .max-w-3xl { max-width: none; min-height: 100%; display: flex; flex-direction: column; }
         #view-mailbox #mb-page { flex: 1 1 auto; }
-        #cw-mprofile, #cw-mswitch, #cw-mweek, #cw-mpeople, .cw-minfo { display: none; }   /* phones only (below) */
+        #cw-mprofile, #cw-mswitch, #cw-mweek, #cw-mpeople, .cw-minfo, .cw-mtitle { display: none; }   /* phones only (below) */
         @media (max-width: 400px) { #cw-mprofile span { display: none !important; } }   /* very narrow phones: picture only */
         @media (max-width: 640px) {
             /* closed: only the logo stays, in its usual top-left place; the rest of the menu is hidden */
@@ -4681,7 +4681,7 @@
             body[data-page="app"] #notification-container > button { padding: 0.45rem; }
             body[data-page="app"] #sidebar-logo-btn { left: 3rem; width: auto; padding: 0 0.25rem !important; gap: 0.5rem; justify-content: flex-start; }
             body[data-page="app"] #sidebar-logo-btn > h2.sidebar-text { display: flex !important; flex-direction: column; opacity: 1 !important; width: auto !important; font-size: 18px !important; line-height: 1.1; color: #1D4ED8 !important; }
-            body[data-page="app"] #sidebar-logo-btn > h2.sidebar-text .cw-mtitle { font-size: 11px !important; font-weight: 600; line-height: 1.25; font-family: inherit; color: #64748B; letter-spacing: 0; max-width: 34vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            body[data-page="app"] #sidebar-logo-btn > h2.sidebar-text .cw-mtitle { display: block; font-size: 11px !important; font-weight: 600; line-height: 1.25; font-family: inherit; color: #64748B; letter-spacing: 0; max-width: 34vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
             #cw-mprofile { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.15rem 0.4rem 0.15rem 0.15rem; flex-shrink: 0; border-radius: 999px; background: #EFF6FF; }
             #cw-mprofile img { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; }
             body[data-page="app"] #sidebar-logo-btn > h2.sidebar-text { max-width: 6.25rem; }
@@ -4690,6 +4690,8 @@
 
             /* content: soft page, white rounded cards */
             body[data-page="app"] .view-section.p-6 { padding: 1rem 1rem 6rem !important; }
+            /* report / team scroll inside their own box: no empty strip under it */
+            body[data-page="app"] #view-work-report.view-section.p-6, body[data-page="app"] #view-team.view-section.p-6 { padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)) !important; }
 
             /* sizes from the mobile design (stitch): body 14px, labels 12px, headings 18/20/24/26px; cards 16px padding,
                12–16px corners, 8–12px gaps; top bar 56px. Colours, icons and fonts stay ConWork's. Text still follows เล็ก/กลาง/ใหญ่ (--cw-fs). */
