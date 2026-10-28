@@ -492,6 +492,15 @@ const App = {
             };
 
             posHtml = cleanDuplicates(posHtml, '.position-item');
+            /* "ผู้ดูแลระบบ" (Admin) is not a position anyone picks: the system Admins stay hidden */
+            if (posHtml) {
+                const doc = new DOMParser().parseFromString(posHtml, 'text/html');
+                doc.body.querySelectorAll('.position-item').forEach(item => {
+                    const n = (item.querySelector('span') || {}).textContent;
+                    if (/^\s*(ผู้ดูแลระบบ|Admin)\s*$/i.test(n || '')) item.remove();
+                });
+                posHtml = doc.body.innerHTML;
+            }
             deptHtml = cleanDuplicates(deptHtml, '.dept-item');
 
             /* the six sample departments that used to come with the app: drop them when the saved list is still exactly those, untouched */
@@ -633,9 +642,9 @@ const App = {
     /* name shown for someone with the app's 'admin' rights: Admin only for the system Admin emails;
        the team's creator / head is หัวหน้า, a deputy is รองหัวหน้า */
     _adminLabel(u) {
-        if (!u) return 'หัวหน้า';
+        if (!u) return 'ผู้บริหาร';
         if (u.isSystemAdmin) return 'Admin';
-        return u.companyRole === 'company_admin' || u.companyRole === 'admin' ? 'รองหัวหน้า' : 'หัวหน้า';
+        return u.companyRole === 'company_admin' || u.companyRole === 'admin' ? 'รองผู้บริหาร' : 'ผู้บริหาร';
     },
 
     /* the team the app is open in (chosen on team.html); every team keeps its own data */
