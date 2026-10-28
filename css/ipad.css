@@ -209,3 +209,22 @@ body[data-page="app"] main > header > div:last-child > :not([hidden]) ~ :not([hi
     #landing-screen nav.nav > div:last-child { gap: 10px !important; }
     #landing-screen nav.nav a.signin { padding: 0 16px !important; }
 }
+
+/* ---------- App (app.html): the menu closed with ☰ (narrow rail), tablets and larger ---------- */
+/* only the logo stays at the top, centred and whole (the name comes back when the menu is opened again);
+   the profile menu opens beside the rail, in front of the page instead of under it */
+@media (min-width: 641px) {
+    body[data-page="app"] #app-sidebar { overflow: visible !important; }
+    body[data-page="app"] #app-sidebar > nav { overflow-x: hidden; }
+    body[data-page="app"] #app-sidebar.w-20 #sidebar-logo-btn { padding-left: 0 !important; padding-right: 0 !important; justify-content: center; }
+    body[data-page="app"] #app-sidebar.w-20 #sidebar-logo-btn > * { margin-left: 0 !important; }
+    body[data-page="app"] #app-sidebar.w-20 #sidebar-logo-btn .sidebar-text { display: none !important; }
+    body[data-page="app"] #app-sidebar.w-20 #sidebar-logo-btn > a { padding: 3px; max-width: 4rem; overflow: hidden; }
+    body[data-page="app"] #app-sidebar.w-20 #sidebar-logo-btn .cw-logo { height: 26px !important; }
+    body[data-page="app"] #app-sidebar.w-20 #profile-menu-dropdown { left: calc(100% + 0.5rem); bottom: 0.5rem; margin-bottom: 0; }
+    body[data-page="app"] #profile-menu-dropdown { z-index: 70; }
+}
+@media (min-width: 1024px) {
+    /* the page sits next to the menu here: lift the menu so its popups are not covered by the page */
+    body[data-page="app"] #app-sidebar { position: relative; z-index: 45; }
+}
