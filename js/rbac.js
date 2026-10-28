@@ -62,6 +62,14 @@
         return false;
     };
     App.cwAccess = () => R.access;
+    /* บัญชี & งบ: a department ticked for it gets the same editing screens as the team's leaders (the database checks the same rule) */
+    if (typeof Accounting !== 'undefined' && Accounting.isAdmin) {
+        const origAccAdmin = Accounting.isAdmin.bind(Accounting);
+        Accounting.isAdmin = function () {
+            const m = R.access && R.access.modules && R.access.modules.accounting;
+            return origAccAdmin() || !!(m && m.can_edit);
+        };
+    }
 
     /* ---------- page ---------- */
     /* the right column of ตั้งค่าพนักงาน; its old table was kept in this browser only and never checked */
@@ -333,6 +341,29 @@
         } catch (e) { box.innerHTML = wrap(`<p class="text-sm text-red-600">โหลดไม่สำเร็จ: ${esc(errText(e))}</p>`); }
     }
 
+    /* the แผนก picked in "แก้ไขพนักงาน" is the same department as in ตั้งค่าพนักงาน */
+    async function linkMemberDept(uid, deptName) {
+        if (!live() || !uid) return;
+        if (!R.data) try { R.data = await rpc('cw_rbac_overview', { p_company: team() }); } catch (e) { return; }
+        if (!R.data.can_manage) return;
+        const m = (R.data.members || []).find(x => String(x.user_id) === String(uid));
+        if (!m || m.rank !== 'member') return;
+        const dept = (R.data.departments || []).find(x => x.name.trim() === String(deptName || '').trim());
+        const want = dept ? dept.id : null;
+        if (String(want || '') === String(m.department_id || '')) return;
+        try { await rpc('cw_assign_member', { p_company: team(), p_user: uid, p_department: want }); R.data = await rpc('cw_rbac_overview', { p_company: team() }); paintDepartments(); }
+        catch (e) { toast('บันทึกแผนกไม่สำเร็จ: ' + errText(e), false); }
+    }
+    if (App.submitAddMemberForm) {
+        const origSubmitMember = App.submitAddMemberForm.bind(App);
+        App.submitAddMemberForm = function () {
+            const uid = App.state.editingMemberId, dept = (document.getElementById('am-dept') || {}).value;
+            const r = origSubmitMember.apply(App, arguments);
+            if (uid) Promise.resolve(r).then(() => linkMemberDept(uid, dept)).then(() => App._loadData && App._loadData());
+            return r;
+        };
+    }
+
     /* open with the page; refresh what I may do whenever the team's data is loaded */
     const origSwitch = App.switchView.bind(App);
     App.switchView = function (view) {
@@ -347,6 +378,9 @@
         /* other pages read the department names from the แผนก box: keep it the real list */
         if (live()) { try { R.data = await rpc('cw_rbac_overview', { p_company: team() }); paintDepartments(); } catch (e) { } }
         if (App.applyGlobalPermissions) try { App.applyGlobalPermissions(); } catch (e) { }
+        /* the accounting page may have opened before the rights arrived */
+        const acc = document.getElementById('view-accounting');
+        if (acc && !acc.classList.contains('hidden') && typeof Accounting !== 'undefined' && Accounting.init) try { Accounting.init(); } catch (e) { }
         return r;
     };
     window.CwRbac = { render, loadAccess };

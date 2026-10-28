@@ -759,10 +759,19 @@ const App = {
                         }));
 
                         // --- FETCH PROFILES (mockUsers) ---
-                        const { data: teamMembersData } = await window.conworkSupabase.client
+                        let { data: teamMembersData, error: tmErr } = await window.conworkSupabase.client
                             .from('company_members')
-                            .select('user_id, company_role, department')
+                            .select('user_id, company_role, department, department_id')
                             .in('company_id', companyIds);
+                        if (tmErr) ({ data: teamMembersData } = await window.conworkSupabase.client
+                            .from('company_members').select('user_id, company_role, department').in('company_id', companyIds));
+                        /* the department set in ตั้งค่าพนักงาน (cw_departments) wins over the old free-text one */
+                        try {
+                            const { data: deptRows } = await window.conworkSupabase.client.from('cw_departments').select('id, name').in('company_id', companyIds);
+                            const deptName = new Map((deptRows || []).map(d => [String(d.id), d.name]));
+                            /* nobody has a department until one is given in ตั้งค่าพนักงาน */
+                            if (!tmErr) (teamMembersData || []).forEach(m => { m.department = (m.department_id && deptName.get(String(m.department_id))) || ''; });
+                        } catch (e) { }
                         
                         if (teamMembersData && teamMembersData.length > 0) {
                             const userIds = [...new Set(teamMembersData.map(m => m.user_id))];
@@ -788,8 +797,8 @@ const App = {
                                 const isCompanyCreator = (companiesData || []).some(c => String(c.created_by) === String(uid));
                                 const isFirstUserInCompany = teamMembersData.length > 0 && String(teamMembersData[0].user_id) === String(uid);
                                 
-                                const defaultDept = (isCompanyCreator || isFirstUserInCompany) ? 'บริหาร' : 'พนักงานทั่วไป';
-                                const mDept = memberObj?.department || p?.department || defaultDept;
+                                /* no made-up department: empty until the person is given one */
+                                const mDept = memberObj?.department || '';
                                 
                                 const isCurrentUser = this.state.currentUser && String(uid) === String(this.state.currentUser.id);
                                 const defaultName = isCurrentUser ? (this.state.currentUser.name || this.state.currentUser.username) : `พนักงาน (${uid.substring(0, 5)})`;
@@ -10893,7 +10902,7 @@ const App = {
         const deptList = document.getElementById('am-dept');
         const deptContainer = document.getElementById('dept-list-container');
         if (deptList && deptContainer) {
-            deptList.innerHTML = '<option value="" disabled selected>เลือกแผนก</option>';
+            deptList.innerHTML = '<option value="" selected>— ยังไม่มีแผนก —</option>';
             deptContainer.querySelectorAll('.dept-item span:not(.text-xs)').forEach(span => {
                 const name = span.textContent.trim();
                 const option = document.createElement('option');
@@ -11263,7 +11272,8 @@ const App = {
         const roleSelect = document.getElementById('am-role');
         const role = roleSelect ? roleSelect.value : '';
 
-        if (!email || !dept || !role) {
+        /* the department may stay empty: it is given later in ตั้งค่าพนักงาน */
+        if (!email || !role) {
             if (typeof this._showToast === 'function') {
                 this._showToast('กรุณากรอกข้อมูลให้ครบถ้วน', 'error');
             } else {
@@ -11607,7 +11617,8 @@ const App = {
 
         // 4. Work Info
         document.getElementById('up-work-position').textContent = jobTitle;
-        const centralStr = isEn ? 'Central' : 'ส่วนกลาง';
+        /* no department yet: it waits to be given in ตั้งค่าพนักงาน */
+        const centralStr = isEn ? 'No department yet' : 'ยังไม่มีแผนก';
         document.getElementById('up-work-dept').textContent = user.department || centralStr;
 
         // --- Company Info Logic ---
@@ -11788,7 +11799,7 @@ const App = {
             } else if (user.role === 'reviewer1') {
                 jobTitle = 'ผู้จัดการแผนก ' + (user.department || '');
             } else if (user.role === 'admin') {
-                jobTitle = 'ผู้ดูแลระบบ';
+                jobTitle = App._adminLabel(user);
             } else {
                 jobTitle = 'พนักงานประจำ ' + (user.department || '');
             }

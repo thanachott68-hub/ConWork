@@ -362,8 +362,7 @@ class ConWorkSupabaseService {
             .upsert([{
                 company_id: company.id,
                 user_id: user.id,
-                company_role: 'super_admin',
-                department: 'Management'
+                company_role: 'super_admin'
             }], { onConflict: 'company_id,user_id' });
 
         if (memError && memError.code !== '23505') throw memError;

@@ -124,8 +124,8 @@ const ApiService = {
                         email: user.email,
                         username: user.email.split('@')[0],
                         name: user.user_metadata?.full_name || user.email.split('@')[0],
-                        role: 'worker', 
-                        department: 'พนักงานทั่วไป',
+                        role: 'worker',
+                        department: '',
                         avatar: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.user_metadata?.full_name || 'User') + '&background=random'
                     };
                 }
@@ -156,7 +156,7 @@ const ApiService = {
                         username: user.email.split('@')[0],
                         name: user.user_metadata?.full_name || name,
                         role: role || 'worker',
-                        department: 'พนักงานทั่วไป',
+                        department: '',
                         avatar: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=random'
                     };
                 }

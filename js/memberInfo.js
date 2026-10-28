@@ -22,11 +22,20 @@
     function loadMembers(teamId) {
         var sb = client();
         if (sb && teamId) {
-            return sb.from('company_members').select('user_id, company_role, department, joined_at, profiles ( full_name, email, avatar_url )').eq('company_id', teamId).then(function (r) {
+            var cols = 'user_id, company_role, department, joined_at, profiles ( full_name, email, avatar_url )';
+            /* the department set in ตั้งค่าพนักงาน (department_id → cw_departments); databases without it keep the old text */
+            return Promise.all([
+                sb.from('company_members').select(cols + ', department_id').eq('company_id', teamId).then(function (r) {
+                    return r.error ? sb.from('company_members').select(cols).eq('company_id', teamId) : r;
+                }),
+                sb.from('cw_departments').select('id, name').eq('company_id', teamId).then(function (r) { return r.error ? [] : (r.data || []); })
+            ]).then(function (res) {
+                var r = res[0], depts = res[1];
                 if (r.error) throw r.error;
+                var deptName = function (id) { var d = depts.find(function (x) { return String(x.id) === String(id); }); return d ? d.name : ''; };
                 return (r.data || []).map(function (m) {
                     var p = m.profiles || {};
-                    return { id: String(m.user_id), name: p.full_name || p.email || 'สมาชิก', email: p.email || '', avatar: p.avatar_url, role: norm(m.company_role), dept: m.department || '', joined: m.joined_at };
+                    return { id: String(m.user_id), name: p.full_name || p.email || 'สมาชิก', email: p.email || '', avatar: p.avatar_url, role: norm(m.company_role), dept: deptName(m.department_id), joined: m.joined_at };
                 });
             });
         }

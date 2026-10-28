@@ -833,7 +833,7 @@ function goToDashboard(passedWorkspaceId = null, passedRole = null) {
             username: currentUser.email.split('@')[0],
             email: currentUser.email,
             role: role,
-            department: role === 'admin' ? 'ผู้บริหาร' : 'พนักงานทั่วไป',
+            department: '',
             status: 'online',
             avatar: currentUser.avatar || "https://ui-avatars.com/api/?name=" + encodeURIComponent(currentUser.first_name || currentUser.email) + "&background=random",
             workspaceId: workspaceId,
