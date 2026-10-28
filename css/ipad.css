@@ -228,3 +228,10 @@ body[data-page="app"] main > header > div:last-child > :not([hidden]) ~ :not([hi
     /* the page sits next to the menu here: lift the menu so its popups are not covered by the page */
     body[data-page="app"] #app-sidebar { position: relative; z-index: 45; }
 }
+
+/* the profile menu beside the closed menu rail: its little arrow points left, at the profile picture */
+@media (min-width: 641px) {
+    body[data-page="app"] #app-sidebar.w-20 #profile-menu-dropdown > div:last-child {
+        left: -0.5rem; bottom: 1.1rem; border-right-width: 0; border-left: 1px solid #e5e7eb;
+    }
+}
