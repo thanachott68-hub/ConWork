@@ -378,6 +378,8 @@ const Accounting = {
             [this.L('เลขที่เอกสาร', 'Document no.'), e.doc_no],
             [this.L('โปรเจกต์', 'Project'), e.project_id ? this._projectName(e.project_id) : ''],
             [this.L('ภาษีมูลค่าเพิ่ม', 'VAT'), this._num(e.vat_amount) ? this._money(e.vat_amount) : ''],
+            [this.L('ภาษีหัก ณ ที่จ่าย', 'Withholding tax'), this._num(e.wht_amount) ? this._money(e.wht_amount) : ''],
+            [e.kind === 'income' ? this.L('รับเงินจริง', 'Amount received') : this.L('จ่ายเงินจริง', 'Amount paid'), this._num(e.wht_amount) ? this._money(this._num(e.amount) - this._num(e.wht_amount)) : ''],
             [this.L('ผู้บันทึก', 'Recorded by'), this._personName(e.created_by)],
             [this.L('หมายเหตุการตรวจ', 'Review note'), e.review_note]
         ].filter(r => r[1]);
@@ -594,17 +596,19 @@ const Accounting = {
                 accs.map(a => `<div class="flex items-center justify-between gap-3 py-1.5 border-b border-gray-50 text-sm ${a.is_active === false ? 'opacity-50' : ''}">
                     <span><span class="tabular-nums text-gray-400 mr-2">${this._esc(a.code)}</span>${this._esc(this._accName(a))}</span>
                     <span class="flex items-center gap-2 text-xs text-gray-400">${a.normal_side === 'debit' ? this.L('ด้านเดบิต', 'Debit side') : this.L('ด้านเครดิต', 'Credit side')}
-                    ${admin && !a.is_system ? `<button type="button" onclick="Accounting.toggleAccount('${a.id}', ${a.is_active === false})" class="px-2 py-0.5 rounded border border-gray-200">${a.is_active === false ? this.L('เปิดใช้', 'Switch on') : this.L('ปิดใช้', 'Switch off')}</button>` : ''}</span>
+                    ${admin ? `<button type="button" onclick="Accounting.openAccountEdit('${a.id}')" class="px-2 py-0.5 rounded border border-gray-200">${this.L('แก้ไข', 'Edit')}</button>` : ''}
+                    ${admin && !a.role ? `<button type="button" onclick="Accounting.toggleAccount('${a.id}', ${a.is_active === false})" class="px-2 py-0.5 rounded border border-gray-200">${a.is_active === false ? this.L('เปิดใช้', 'Switch on') : this.L('ปิดใช้', 'Switch off')}</button>` : ''}</span>
                 </div>`).join('') + '</div>';
         }).join('');
         const form = admin ? `<form onsubmit="event.preventDefault(); Accounting.addAccount(this)" class="grid sm:grid-cols-5 gap-2 mt-2 p-3 rounded-xl bg-gray-50">
-            <input name="code" required pattern="[0-9]{3,6}" placeholder="${this.L('รหัส เช่น 5300', 'Code e.g. 5300')}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <input name="code" required maxlength="20" pattern="[0-9A-Za-z][0-9A-Za-z.\-]{0,19}" placeholder="${this.L('รหัส เช่น 5300', 'Code e.g. 5300')}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
             <input name="name_th" required maxlength="120" placeholder="${this.L('ชื่อบัญชี (ไทย)', 'Name (Thai)')}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm sm:col-span-1">
             <input name="name_en" maxlength="120" placeholder="${this.L('ชื่อบัญชี (อังกฤษ)', 'Name (English)')}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
             <select name="type" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">${['asset', 'liability', 'equity', 'income', 'expense'].map(t => `<option value="${t}" ${t === 'expense' ? 'selected' : ''}>${this._typeLabel(t)}</option>`).join('')}</select>
             <button class="rounded-lg bg-blue-600 text-white text-sm font-semibold px-3 py-2">${this.L('เพิ่มบัญชี', 'Add account')}</button>
         </form>` : '';
-        return this._card(this.L('ผังบัญชี', 'Chart of accounts'), groups + form);
+        const note = `<p class="text-xs text-gray-500 mb-3">${this.L('ตั้งรหัสและชื่อบัญชีได้ตามแบบของบริษัท · รายการที่บันทึกแล้ว รายงาน และ Dashboard ผูกกับบัญชีเอง ไม่ได้ผูกกับเลข เปลี่ยนเลข/ชื่อแล้วข้อมูลยังอยู่ครบ · บัญชีที่ระบบใช้บันทึกอัตโนมัติ (เงินสด ธนาคาร ลูกหนี้ เจ้าหนี้ VAT ภาษีหัก ณ ที่จ่าย กำไรสะสม) แก้เลข/ชื่อได้แต่ปิดไม่ได้', 'Set codes and names your own way · entries, reports and the dashboard follow the account itself, not its number, so nothing is lost when you renumber · accounts the system posts to automatically can be renamed but not switched off')}</p>`;
+        return this._card(this.L('ผังบัญชี', 'Chart of accounts'), note + groups + form);
     },
 
     /* ---------- after render: fetch what the tab needs ---------- */
@@ -819,6 +823,12 @@ const Accounting = {
                 <option value="none">${this.L('ไม่มี VAT', 'No VAT')}</option>
                 <option value="included">${this.L('รวม VAT 7% แล้ว', 'Includes 7% VAT')}</option>
                 <option value="excluded">${this.L('ยังไม่รวม VAT 7% (บวกเพิ่ม)', 'Plus 7% VAT')}</option></select>`)}
+            ${field(isIncome ? this.L('ภาษีหัก ณ ที่จ่าย (ลูกค้าหักเรา)', 'Withholding tax (deducted by the customer)') : this.L('ภาษีหัก ณ ที่จ่าย (เราหักผู้ขาย)', 'Withholding tax (we deduct)'), `<div class="flex gap-2">
+                <select name="wht" class="${input}" onchange="Accounting._whtModeChanged()">
+                <option value="0">${this.L('ไม่มี', 'None')}</option>
+                ${[1, 2, 3, 5].map(r => `<option value="${r}">${r}%</option>`).join('')}
+                <option value="custom">${this.L('ระบุจำนวนเงินเอง', 'Enter an amount')}</option></select>
+                <input type="number" name="wht_amount" min="0" step="0.01" inputmode="decimal" placeholder="${this.L('บาท', 'THB')}" class="${input} hidden" oninput="Accounting._entryPreview()"></div>`)}
             ${field(isIncome ? this.L('ลูกค้า', 'Customer') : this.L('ผู้ขาย / ร้านค้า', 'Vendor'), `<input name="party" maxlength="200" class="${input}">`)}
             ${field(this.L('เลขที่ใบกำกับภาษี / ใบเสร็จ', 'Tax invoice / receipt no.'), `<input name="doc_no" maxlength="100" class="${input}">`)}
             ${field(this.L('โปรเจกต์ (เฉพาะที่เปิดใช้งบ)', 'Project (budget on only)'), `<select name="project" class="${input}"><option value="">${this.L('— ไม่ระบุ —', '— None —')}</option>${projects.map(p => `<option value="${this._esc(p.id)}">${this._esc(p.name)}</option>`).join('')}</select>`)}
@@ -839,31 +849,56 @@ const Accounting = {
         if (mode === 'excluded') { const vat = this._r2(a * this.VAT_RATE); return { net: a, vat, total: this._r2(a + vat) }; }
         return { net: a, vat: 0, total: a };
     },
+    /* withholding tax: a rate of the amount before VAT, or an amount typed in */
+    _whtAmount(f, x) {
+        if (!f.wht || f.wht.value === '0') return 0;
+        if (f.wht.value === 'custom') return Math.max(0, this._r2(parseFloat(f.wht_amount.value) || 0));
+        return this._r2(x.net * Number(f.wht.value) / 100);
+    },
+    _whtModeChanged() {
+        const f = document.getElementById('acc-entry-form'); if (!f) return;
+        f.wht_amount.classList.toggle('hidden', f.wht.value !== 'custom');
+        this._entryPreview();
+    },
     _entryPreview() {
         const f = document.getElementById('acc-entry-form'), box = document.getElementById('acc-entry-preview');
         if (!f || !box) return;
         const amt = parseFloat(f.amount.value);
-        if (!(amt > 0) || f.vat.value === 'none') { box.classList.add('hidden'); return; }
-        const x = this._vatSplit(amt, f.vat.value);
+        const x = amt > 0 ? this._vatSplit(amt, f.vat.value) : null;
+        const wht = x ? this._whtAmount(f, x) : 0;
+        if (!x || (f.vat.value === 'none' && !wht)) { box.classList.add('hidden'); return; }
+        const income = f.closest('form').getAttribute('onsubmit').includes("'income'");
+        const parts = [this.L(`ก่อน VAT ${this._money(x.net)}`, `Before VAT ${this._money(x.net)}`)];
+        if (x.vat) parts.push(`VAT 7% ${this._money(x.vat)}`);
+        parts.push(this.L(`รวม ${this._money(x.total)}`, `Total ${this._money(x.total)}`));
+        if (wht) parts.push(this.L(`หัก ณ ที่จ่าย ${this._money(wht)}`, `Withholding ${this._money(wht)}`),
+            income ? this.L(`รับจริง ${this._money(x.total - wht)}`, `Received ${this._money(x.total - wht)}`) : this.L(`จ่ายจริง ${this._money(x.total - wht)}`, `Paid ${this._money(x.total - wht)}`));
         box.classList.remove('hidden');
-        box.textContent = this.L(`ก่อน VAT ${this._money(x.net)} · VAT 7% ${this._money(x.vat)} · รวม ${this._money(x.total)}`, `Before VAT ${this._money(x.net)} · VAT 7% ${this._money(x.vat)} · Total ${this._money(x.total)}`);
+        box.textContent = parts.join(' · ');
     },
 
     _buildSimpleLines(kind, f) {
         const x = this._vatSplit(parseFloat(f.amount.value), f.vat.value);
         const pay = this._accByRole(f.pay.value);
         const vatAcc = this._accByRole(kind === 'income' ? 'vat_output' : 'vat_input');
-        if (!pay || (x.vat && !vatAcc)) throw new Error(this.L('ไม่พบบัญชีที่ต้องใช้ในผังบัญชี', 'A required account is missing from the chart'));
+        /* withholding: the customer keeps it (we can claim it back) / we keep it (we pay it to the Revenue Department) */
+        const wht = this._whtAmount(f, x);
+        const whtAcc = this._accByRole(kind === 'income' ? 'wht_receivable' : 'wht_payable');
+        if (!pay || (x.vat && !vatAcc) || (wht && !whtAcc)) throw new Error(this.L('ไม่พบบัญชีที่ต้องใช้ในผังบัญชี', 'A required account is missing from the chart'));
+        if (wht >= x.total) throw new Error(this.L('ภาษีหัก ณ ที่จ่ายต้องน้อยกว่ายอดรวม', 'Withholding tax must be less than the total'));
         const lines = [];
         if (kind === 'income') {
-            lines.push({ account_id: pay.id, debit: x.total, credit: 0 });
+            lines.push({ account_id: pay.id, debit: this._r2(x.total - wht), credit: 0 });
+            if (wht) lines.push({ account_id: whtAcc.id, debit: wht, credit: 0, memo: this.L('ภาษีหัก ณ ที่จ่าย', 'Withholding tax') });
             lines.push({ account_id: f.account.value, debit: 0, credit: x.net });
             if (x.vat) lines.push({ account_id: vatAcc.id, debit: 0, credit: x.vat, memo: 'VAT 7%' });
         } else {
             lines.push({ account_id: f.account.value, debit: x.net, credit: 0 });
             if (x.vat) lines.push({ account_id: vatAcc.id, debit: x.vat, credit: 0, memo: 'VAT 7%' });
-            lines.push({ account_id: pay.id, debit: 0, credit: x.total });
+            lines.push({ account_id: pay.id, debit: 0, credit: this._r2(x.total - wht) });
+            if (wht) lines.push({ account_id: whtAcc.id, debit: 0, credit: wht, memo: this.L('ภาษีหัก ณ ที่จ่าย', 'Withholding tax') });
         }
+        x.wht = wht;
         return { lines, x };
     },
 
@@ -894,7 +929,7 @@ const Accounting = {
             const att = await this._uploadAttachment(file);
             const entry = {
                 kind, entry_date: f.date.value, description: f.description.value.trim(), party: f.party.value.trim(), doc_no: f.doc_no.value.trim(),
-                project_id: f.project.value || null, amount: x.total, vat_amount: x.vat,
+                project_id: f.project.value || null, amount: x.total, vat_amount: x.vat, wht_amount: x.wht || 0,
                 attachment_path: att ? att.path : null, attachment_name: att ? att.name : null
             };
             await this._post(entry, lines);
@@ -1035,6 +1070,34 @@ const Accounting = {
         const { error } = await this._sb().rpc('add_account', { p_company: this.companyId(), p_code: form.code.value.trim(), p_name_th: form.name_th.value.trim(), p_name_en: form.name_en.value.trim(), p_type: form.type.value });
         if (error) return this._toast(this._errText(error), this._errText(error), 'error');
         this._toast('เพิ่มบัญชีแล้ว', 'Account added');
+        await this.refresh();
+    },
+    /* rename / renumber an account; the type can change only while nothing is recorded on it */
+    openAccountEdit(id) {
+        const a = this._acc(id); if (!a) return;
+        const input = 'w-full border border-gray-200 rounded-xl px-3 py-2 text-sm';
+        const used = this.state.entries && this.state.entries.some(e => (e.journal_lines || []).some(l => String(l.account_id) === String(a.id)));
+        const lockType = !!a.role || used;
+        const body = `<form id="acc-account-form" class="grid sm:grid-cols-2 gap-3" onsubmit="event.preventDefault(); Accounting.saveAccountEdit('${a.id}')">
+            <label class="block"><span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('รหัสบัญชี', 'Account code')}</span><input name="code" required maxlength="20" value="${this._esc(a.code)}" class="${input}"></label>
+            <label class="block"><span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('หมวด', 'Type')}</span><select name="type" class="${input}" ${lockType ? 'disabled' : ''}>${['asset', 'liability', 'equity', 'income', 'expense'].map(t => `<option value="${t}" ${t === a.type ? 'selected' : ''}>${this._typeLabel(t)}</option>`).join('')}</select>
+                ${lockType ? `<span class="block text-[11px] text-gray-400 mt-1">${a.role ? this.L('บัญชีที่ระบบใช้ เปลี่ยนหมวดไม่ได้', 'Used by the system: type is fixed') : this.L('มีรายการบันทึกแล้ว เปลี่ยนหมวดไม่ได้', 'Has entries: type is fixed')}</span>` : ''}</label>
+            <label class="block sm:col-span-2"><span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('ชื่อบัญชี (ไทย)', 'Name (Thai)')}</span><input name="name_th" required maxlength="120" value="${this._esc(a.name_th || '')}" class="${input}"></label>
+            <label class="block sm:col-span-2"><span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('ชื่อบัญชี (อังกฤษ)', 'Name (English)')}</span><input name="name_en" maxlength="120" value="${this._esc(a.name_en || '')}" class="${input}"></label>
+            <p id="acc-account-error" class="sm:col-span-2 text-sm text-red-600 hidden"></p>
+            <div class="sm:col-span-2 flex justify-end gap-2 pt-1">
+                <button type="button" onclick="Accounting._closeModal()" class="px-4 py-2 rounded-xl border border-gray-200 text-sm">${this.L('ยกเลิก', 'Cancel')}</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold">${this.L('บันทึก', 'Save')}</button>
+            </div></form>`;
+        this._modal(this.L('แก้ไขบัญชี', 'Edit account'), body);
+    },
+    async saveAccountEdit(id) {
+        const f = document.getElementById('acc-account-form'), err = document.getElementById('acc-account-error'); if (!f) return;
+        err.classList.add('hidden');
+        const { error } = await this._sb().rpc('update_account', { p_account: id, p_code: f.code.value.trim(), p_name_th: f.name_th.value.trim(), p_name_en: f.name_en.value.trim(), p_type: f.type.disabled ? null : f.type.value });
+        if (error) { err.textContent = this._errText(error); err.classList.remove('hidden'); return; }
+        this._closeModal();
+        this._toast('บันทึกบัญชีแล้ว', 'Account saved');
         await this.refresh();
     },
     async toggleAccount(id, active) {
