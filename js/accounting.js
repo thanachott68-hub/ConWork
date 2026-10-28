@@ -601,13 +601,13 @@ const Accounting = {
                 </div>`).join('') + '</div>';
         }).join('');
         const form = admin ? `<form onsubmit="event.preventDefault(); Accounting.addAccount(this)" class="grid sm:grid-cols-5 gap-2 mt-2 p-3 rounded-xl bg-gray-50">
-            <input name="code" required maxlength="20" pattern="[0-9A-Za-z][0-9A-Za-z.\-]{0,19}" placeholder="${this.L('รหัส เช่น 5300', 'Code e.g. 5300')}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <input name="code" required maxlength="5" pattern="[0-9]{5}" inputmode="numeric" title="${this.L('ตัวเลข 5 หลัก เช่น 52010', '5 digits, e.g. 52010')}" placeholder="${this.L('รหัส 5 หลัก เช่น 52010', '5-digit code e.g. 52010')}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
             <input name="name_th" required maxlength="120" placeholder="${this.L('ชื่อบัญชี (ไทย)', 'Name (Thai)')}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm sm:col-span-1">
             <input name="name_en" maxlength="120" placeholder="${this.L('ชื่อบัญชี (อังกฤษ)', 'Name (English)')}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
             <select name="type" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">${['asset', 'liability', 'equity', 'income', 'expense'].map(t => `<option value="${t}" ${t === 'expense' ? 'selected' : ''}>${this._typeLabel(t)}</option>`).join('')}</select>
             <button class="rounded-lg bg-blue-600 text-white text-sm font-semibold px-3 py-2">${this.L('เพิ่มบัญชี', 'Add account')}</button>
         </form>` : '';
-        const note = `<p class="text-xs text-gray-500 mb-3">${this.L('ตั้งรหัสและชื่อบัญชีได้ตามแบบของบริษัท · รายการที่บันทึกแล้ว รายงาน และ Dashboard ผูกกับบัญชีเอง ไม่ได้ผูกกับเลข เปลี่ยนเลข/ชื่อแล้วข้อมูลยังอยู่ครบ · บัญชีที่ระบบใช้บันทึกอัตโนมัติ (เงินสด ธนาคาร ลูกหนี้ เจ้าหนี้ VAT ภาษีหัก ณ ที่จ่าย กำไรสะสม) แก้เลข/ชื่อได้แต่ปิดไม่ได้', 'Set codes and names your own way · entries, reports and the dashboard follow the account itself, not its number, so nothing is lost when you renumber · accounts the system posts to automatically can be renamed but not switched off')}</p>`;
+        const note = `<p class="text-xs text-gray-500 mb-3">${this.L('รหัสบัญชีเป็นตัวเลข 5 หลัก (เช่น 11001) ตั้งรหัสและชื่อได้ตามแบบของบริษัท ·รายการที่บันทึกแล้ว รายงาน และ Dashboard ผูกกับบัญชีเอง ไม่ได้ผูกกับเลข เปลี่ยนเลข/ชื่อแล้วข้อมูลยังอยู่ครบ · บัญชีที่ระบบใช้บันทึกอัตโนมัติ (เงินสด ธนาคาร ลูกหนี้ เจ้าหนี้ VAT ภาษีหัก ณ ที่จ่าย กำไรสะสม) แก้เลข/ชื่อได้แต่ปิดไม่ได้', 'Set codes and names your own way · entries, reports and the dashboard follow the account itself, not its number, so nothing is lost when you renumber · accounts the system posts to automatically can be renamed but not switched off')}</p>`;
         return this._card(this.L('ผังบัญชี', 'Chart of accounts'), note + groups + form);
     },
 
@@ -1079,7 +1079,7 @@ const Accounting = {
         const used = this.state.entries && this.state.entries.some(e => (e.journal_lines || []).some(l => String(l.account_id) === String(a.id)));
         const lockType = !!a.role || used;
         const body = `<form id="acc-account-form" class="grid sm:grid-cols-2 gap-3" onsubmit="event.preventDefault(); Accounting.saveAccountEdit('${a.id}')">
-            <label class="block"><span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('รหัสบัญชี', 'Account code')}</span><input name="code" required maxlength="20" value="${this._esc(a.code)}" class="${input}"></label>
+            <label class="block"><span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('รหัสบัญชี', 'Account code')}</span><input name="code" required maxlength="5" pattern="[0-9]{5}" inputmode="numeric" title="${this.L('ตัวเลข 5 หลัก เช่น 11001', '5 digits, e.g. 11001')}" value="${this._esc(a.code)}" class="${input}"></label>
             <label class="block"><span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('หมวด', 'Type')}</span><select name="type" class="${input}" ${lockType ? 'disabled' : ''}>${['asset', 'liability', 'equity', 'income', 'expense'].map(t => `<option value="${t}" ${t === a.type ? 'selected' : ''}>${this._typeLabel(t)}</option>`).join('')}</select>
                 ${lockType ? `<span class="block text-[11px] text-gray-400 mt-1">${a.role ? this.L('บัญชีที่ระบบใช้ เปลี่ยนหมวดไม่ได้', 'Used by the system: type is fixed') : this.L('มีรายการบันทึกแล้ว เปลี่ยนหมวดไม่ได้', 'Has entries: type is fixed')}</span>` : ''}</label>
             <label class="block sm:col-span-2"><span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('ชื่อบัญชี (ไทย)', 'Name (Thai)')}</span><input name="name_th" required maxlength="120" value="${this._esc(a.name_th || '')}" class="${input}"></label>
