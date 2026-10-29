@@ -25,6 +25,9 @@ const Accounting = {
         periodsYear: new Date().getFullYear()
     },
     MAX_FILE: 10 * 1024 * 1024,
+    /* account code: 5 digits (11010) or main account + 2-digit sub-account (11010-01); the database checks the same rule */
+    CODE_PATTERN: '[0-9]{5}(-[0-9]{2})?',
+    _isSubCode(code) { return /^[0-9]{5}-[0-9]{2}$/.test(String(code || '')); },
     VAT_RATE: 0.07,
 
     /* ---------- helpers ---------- */
@@ -87,7 +90,8 @@ const Accounting = {
             [/either a debit or a credit/i, 'แต่ละบรรทัดต้องมีเดบิตหรือเครดิตอย่างใดอย่างหนึ่ง', 'Each line needs either a debit or a credit'],
             [/Built-in accounts/i, 'บัญชีมาตรฐานปิดการใช้งานไม่ได้', 'Built-in accounts cannot be switched off'],
             [/duplicate key|already exists/i, 'รหัสบัญชีนี้มีอยู่แล้ว', 'This account code already exists'],
-            [/3-6 digits/i, 'รหัสบัญชีต้องเป็นตัวเลข 3–6 หลัก', 'Account code must be 3–6 digits'],
+            [/3-6 digits|5 หลัก|account code format/i, 'รหัสบัญชีต้องเป็นตัวเลข 5 หลัก (เช่น 11010) หรือมีบัญชีย่อย 2 หลัก (เช่น 11010-01)', 'Account code must be 5 digits (e.g. 11010) or with a 2-digit sub-account (e.g. 11010-01)'],
+            [/main account .* not found|ไม่พบบัญชีหลัก/i, 'ต้องมีบัญชีหลัก 5 หลักก่อน จึงจะเพิ่มบัญชีย่อยได้', 'Create the 5-digit main account before its sub-account'],
             [/not waiting/i, 'รายการนี้ไม่ได้รออนุมัติแล้ว', 'This entry is no longer waiting for approval']
         ];
         const hit = map.find(([re]) => re.test(m));
@@ -593,7 +597,7 @@ const Accounting = {
             const accs = this.state.accounts.filter(a => a.type === t);
             if (!accs.length) return '';
             return `<div class="mb-4"><h4 class="text-sm font-bold text-gray-700 mb-1">${this._typeLabel(t)}</h4>` +
-                accs.map(a => `<div class="flex items-center justify-between gap-3 py-1.5 border-b border-gray-50 text-sm ${a.is_active === false ? 'opacity-50' : ''}">
+                accs.map(a => `<div class="flex items-center justify-between gap-3 py-1.5 border-b border-gray-50 text-sm ${a.is_active === false ? 'opacity-50' : ''} ${this._isSubCode(a.code) ? 'pl-6' : ''}">
                     <span><span class="tabular-nums text-gray-400 mr-2">${this._esc(a.code)}</span>${this._esc(this._accName(a))}</span>
                     <span class="flex items-center gap-2 text-xs text-gray-400">${a.normal_side === 'debit' ? this.L('ด้านเดบิต', 'Debit side') : this.L('ด้านเครดิต', 'Credit side')}
                     ${admin ? `<button type="button" onclick="Accounting.openAccountEdit('${a.id}')" class="px-2 py-0.5 rounded border border-gray-200">${this.L('แก้ไข', 'Edit')}</button>` : ''}
@@ -601,13 +605,13 @@ const Accounting = {
                 </div>`).join('') + '</div>';
         }).join('');
         const form = admin ? `<form onsubmit="event.preventDefault(); Accounting.addAccount(this)" class="grid sm:grid-cols-5 gap-2 mt-2 p-3 rounded-xl bg-gray-50">
-            <input name="code" required maxlength="5" pattern="[0-9]{5}" inputmode="numeric" title="${this.L('ตัวเลข 5 หลัก เช่น 52010', '5 digits, e.g. 52010')}" placeholder="${this.L('รหัส 5 หลัก เช่น 52010', '5-digit code e.g. 52010')}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <input name="code" required maxlength="8" pattern="${this.CODE_PATTERN}" title="${this.L('ตัวเลข 5 หลัก เช่น 52100 หรือบัญชีย่อย เช่น 52010-01', '5 digits e.g. 52100, or a sub-account e.g. 52010-01')}" placeholder="${this.L('เช่น 52100 หรือ 52010-01', 'e.g. 52100 or 52010-01')}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
             <input name="name_th" required maxlength="120" placeholder="${this.L('ชื่อบัญชี (ไทย)', 'Name (Thai)')}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm sm:col-span-1">
             <input name="name_en" maxlength="120" placeholder="${this.L('ชื่อบัญชี (อังกฤษ)', 'Name (English)')}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
             <select name="type" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">${['asset', 'liability', 'equity', 'income', 'expense'].map(t => `<option value="${t}" ${t === 'expense' ? 'selected' : ''}>${this._typeLabel(t)}</option>`).join('')}</select>
             <button class="rounded-lg bg-blue-600 text-white text-sm font-semibold px-3 py-2">${this.L('เพิ่มบัญชี', 'Add account')}</button>
         </form>` : '';
-        const note = `<p class="text-xs text-gray-500 mb-3">${this.L('รหัสบัญชีเป็นตัวเลข 5 หลัก (เช่น 11001) ตั้งรหัสและชื่อได้ตามแบบของบริษัท ·รายการที่บันทึกแล้ว รายงาน และ Dashboard ผูกกับบัญชีเอง ไม่ได้ผูกกับเลข เปลี่ยนเลข/ชื่อแล้วข้อมูลยังอยู่ครบ · บัญชีที่ระบบใช้บันทึกอัตโนมัติ (เงินสด ธนาคาร ลูกหนี้ เจ้าหนี้ VAT ภาษีหัก ณ ที่จ่าย กำไรสะสม) แก้เลข/ชื่อได้แต่ปิดไม่ได้', 'Set codes and names your own way · entries, reports and the dashboard follow the account itself, not its number, so nothing is lost when you renumber · accounts the system posts to automatically can be renamed but not switched off')}</p>`;
+        const note = `<p class="text-xs text-gray-500 mb-3">${this.L('รหัสบัญชีเป็นตัวเลข 5 หลัก (เช่น 11010) และเพิ่มบัญชีย่อย 2 หลักต่อท้ายได้ (เช่น 11010-01) ตั้งรหัสและชื่อได้ตามแบบของบริษัท ·รายการที่บันทึกแล้ว รายงาน และ Dashboard ผูกกับบัญชีเอง ไม่ได้ผูกกับเลข เปลี่ยนเลข/ชื่อแล้วข้อมูลยังอยู่ครบ · บัญชีที่ระบบใช้บันทึกอัตโนมัติ (เงินสด ธนาคาร ลูกหนี้ เจ้าหนี้ VAT ภาษีหัก ณ ที่จ่าย กำไรสะสม) แก้เลข/ชื่อได้แต่ปิดไม่ได้', 'Codes are 5 digits (e.g. 11010), with an optional 2-digit sub-account (e.g. 11010-01) · set codes and names your own way · entries, reports and the dashboard follow the account itself, not its number, so nothing is lost when you renumber · accounts the system posts to automatically can be renamed but not switched off')}</p>`;
         return this._card(this.L('ผังบัญชี', 'Chart of accounts'), note + groups + form);
     },
 
@@ -796,8 +800,8 @@ const Accounting = {
     },
     _closeModal() { const m = document.getElementById('acc-modal'); if (m) m.remove(); },
 
-    _accountOptions(types, selectedId) {
-        return this.state.accounts.filter(a => types.includes(a.type) && a.is_active !== false)
+    _accountOptions(types, selectedId, categoriesOnly) {
+        return this.state.accounts.filter(a => types.includes(a.type) && a.is_active !== false && !(categoriesOnly && a.role))
             .map(a => `<option value="${a.id}" ${String(a.id) === String(selectedId) ? 'selected' : ''}>${this._esc(a.code + ' ' + this._accName(a))}</option>`).join('');
     },
 
@@ -817,18 +821,24 @@ const Accounting = {
             ${field(this.L('วันที่', 'Date'), `<input type="date" name="date" required value="${this._today()}" class="${input}">`)}
             ${field(this.L('จำนวนเงิน (บาท)', 'Amount (THB)'), `<input type="number" name="amount" required min="0.01" step="0.01" inputmode="decimal" class="${input}" oninput="Accounting._entryPreview()">`)}
             ${field(this.L('รายละเอียด', 'Description'), `<input name="description" required maxlength="500" class="${input}" placeholder="${isIncome ? this.L('เช่น ค่าบริการออกแบบเว็บไซต์', 'e.g. Website design service') : this.L('เช่น ค่าวัสดุสำนักงาน', 'e.g. Office supplies')}">`, 'sm:col-span-2')}
-            ${field(isIncome ? this.L('หมวดรายได้', 'Income category') : this.L('หมวดค่าใช้จ่าย', 'Expense category'), `<select name="account" class="${input}">${this._accountOptions(catTypes, firstCat && firstCat.id)}</select>`)}
+            ${field(isIncome ? this.L('หมวดรายได้', 'Income category') : this.L('หมวดค่าใช้จ่าย', 'Expense category'), `<select name="account" class="${input}" onchange="Accounting._categoryChanged()">${this._accountOptions(catTypes, firstCat && firstCat.id, true)}</select>`)}
             ${field(isIncome ? this.L('รับเงินเข้าทาง', 'Received into') : this.L('จ่ายเงินจาก', 'Paid from'), `<select name="pay" class="${input}">${payRoles.filter(([r]) => this._accByRole(r)).map(([r, th, en]) => `<option value="${r}">${this.L(th, en)}</option>`).join('')}</select>`)}
             ${field(this.L('ภาษีมูลค่าเพิ่ม', 'VAT'), `<select name="vat" class="${input}" onchange="Accounting._entryPreview()">
                 <option value="none">${this.L('ไม่มี VAT', 'No VAT')}</option>
                 <option value="included">${this.L('รวม VAT 7% แล้ว', 'Includes 7% VAT')}</option>
                 <option value="excluded">${this.L('ยังไม่รวม VAT 7% (บวกเพิ่ม)', 'Plus 7% VAT')}</option></select>`)}
-            ${field(isIncome ? this.L('ภาษีหัก ณ ที่จ่าย (ลูกค้าหักเรา)', 'Withholding tax (deducted by the customer)') : this.L('ภาษีหัก ณ ที่จ่าย (เราหักผู้ขาย)', 'Withholding tax (we deduct)'), `<div class="flex gap-2">
+            ${isIncome ? '' : `<div id="acc-wht-wrap" class="sm:col-span-2 ${firstCat && this._isSalary(firstCat.id) ? '' : 'hidden'}">
+                <button type="button" id="acc-wht-add" onclick="Accounting._showWht(true)" class="px-3 py-2 rounded-xl border border-dashed border-blue-300 text-blue-700 text-sm font-semibold"><i class="fa-solid fa-plus mr-1"></i>${this.L('เพิ่มภาษีหัก ณ ที่จ่าย (ภ.ง.ด.1)', 'Add withholding tax (PND 1)')}</button>
+                <div id="acc-wht-box" class="hidden rounded-xl border border-gray-200 p-3">
+                <div class="flex items-center justify-between mb-1"><span class="text-xs font-semibold text-gray-600">${this.L('ภาษีหัก ณ ที่จ่าย เงินเดือน (ภ.ง.ด.1)', 'Withholding tax on salary (PND 1)')}</span>
+                    <button type="button" onclick="Accounting._showWht(false)" class="text-gray-400 hover:text-red-600 text-xs" aria-label="${this.L('เอาออก', 'Remove')}"><i class="fa-solid fa-xmark"></i></button></div>`}
+            ${field(isIncome ? this.L('ภาษีหัก ณ ที่จ่าย (ลูกค้าหักเรา)', 'Withholding tax (deducted by the customer)') : '', `<div class="flex gap-2">
                 <select name="wht" class="${input}" onchange="Accounting._whtModeChanged()">
                 <option value="0">${this.L('ไม่มี', 'None')}</option>
                 ${[1, 2, 3, 5].map(r => `<option value="${r}">${r}%</option>`).join('')}
                 <option value="custom">${this.L('ระบุจำนวนเงินเอง', 'Enter an amount')}</option></select>
                 <input type="number" name="wht_amount" min="0" step="0.01" inputmode="decimal" placeholder="${this.L('บาท', 'THB')}" class="${input} hidden" oninput="Accounting._entryPreview()"></div>`)}
+            ${isIncome ? '' : '</div></div>'}
             ${field(isIncome ? this.L('ลูกค้า', 'Customer') : this.L('ผู้ขาย / ร้านค้า', 'Vendor'), `<input name="party" maxlength="200" class="${input}">`)}
             ${field(this.L('เลขที่ใบกำกับภาษี / ใบเสร็จ', 'Tax invoice / receipt no.'), `<input name="doc_no" maxlength="100" class="${input}">`)}
             ${field(this.L('โปรเจกต์ (เฉพาะที่เปิดใช้งบ)', 'Project (budget on only)'), `<select name="project" class="${input}"><option value="">${this.L('— ไม่ระบุ —', '— None —')}</option>${projects.map(p => `<option value="${this._esc(p.id)}">${this._esc(p.name)}</option>`).join('')}</select>`)}
@@ -854,6 +864,26 @@ const Accounting = {
         if (!f.wht || f.wht.value === '0') return 0;
         if (f.wht.value === 'custom') return Math.max(0, this._r2(parseFloat(f.wht_amount.value) || 0));
         return this._r2(x.net * Number(f.wht.value) / 100);
+    },
+    /* withholding on expenses is for salaries only (ภ.ง.ด.1) */
+    _isSalary(id) {
+        const a = this._acc(id);
+        return !!a && a.type === 'expense' && /เงินเดือน|ค่าจ้าง|salar|wage/i.test(`${a.name_th || ''} ${a.name_en || ''}`);
+    },
+    _showWht(on) {
+        const f = document.getElementById('acc-entry-form'); if (!f) return;
+        const box = document.getElementById('acc-wht-box'), add = document.getElementById('acc-wht-add');
+        if (box) box.classList.toggle('hidden', !on);
+        if (add) add.classList.toggle('hidden', !!on);
+        if (!on) { f.wht.value = '0'; f.wht_amount.value = ''; f.wht_amount.classList.add('hidden'); }
+        this._entryPreview();
+    },
+    _categoryChanged() {
+        const f = document.getElementById('acc-entry-form'), wrap = document.getElementById('acc-wht-wrap');
+        if (!f || !wrap) return;
+        const salary = this._isSalary(f.account.value);
+        wrap.classList.toggle('hidden', !salary);
+        if (!salary) this._showWht(false);
     },
     _whtModeChanged() {
         const f = document.getElementById('acc-entry-form'); if (!f) return;
@@ -1079,7 +1109,7 @@ const Accounting = {
         const used = this.state.entries && this.state.entries.some(e => (e.journal_lines || []).some(l => String(l.account_id) === String(a.id)));
         const lockType = !!a.role || used;
         const body = `<form id="acc-account-form" class="grid sm:grid-cols-2 gap-3" onsubmit="event.preventDefault(); Accounting.saveAccountEdit('${a.id}')">
-            <label class="block"><span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('รหัสบัญชี', 'Account code')}</span><input name="code" required maxlength="5" pattern="[0-9]{5}" inputmode="numeric" title="${this.L('ตัวเลข 5 หลัก เช่น 11001', '5 digits, e.g. 11001')}" value="${this._esc(a.code)}" class="${input}"></label>
+            <label class="block"><span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('รหัสบัญชี', 'Account code')}</span><input name="code" required maxlength="8" pattern="${this.CODE_PATTERN}" title="${this.L('ตัวเลข 5 หลัก เช่น 11010 หรือบัญชีย่อย เช่น 11010-01', '5 digits e.g. 11010, or a sub-account e.g. 11010-01')}" value="${this._esc(a.code)}" class="${input}"></label>
             <label class="block"><span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('หมวด', 'Type')}</span><select name="type" class="${input}" ${lockType ? 'disabled' : ''}>${['asset', 'liability', 'equity', 'income', 'expense'].map(t => `<option value="${t}" ${t === a.type ? 'selected' : ''}>${this._typeLabel(t)}</option>`).join('')}</select>
                 ${lockType ? `<span class="block text-[11px] text-gray-400 mt-1">${a.role ? this.L('บัญชีที่ระบบใช้ เปลี่ยนหมวดไม่ได้', 'Used by the system: type is fixed') : this.L('มีรายการบันทึกแล้ว เปลี่ยนหมวดไม่ได้', 'Has entries: type is fixed')}</span>` : ''}</label>
             <label class="block sm:col-span-2"><span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('ชื่อบัญชี (ไทย)', 'Name (Thai)')}</span><input name="name_th" required maxlength="120" value="${this._esc(a.name_th || '')}" class="${input}"></label>
