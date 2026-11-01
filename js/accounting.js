@@ -382,7 +382,7 @@ const Accounting = {
             [this.L('เลขที่เอกสาร', 'Document no.'), e.doc_no],
             [this.L('โปรเจกต์', 'Project'), e.project_id ? this._projectName(e.project_id) : ''],
             [this.L('ภาษีมูลค่าเพิ่ม', 'VAT'), this._num(e.vat_amount) ? this._money(e.vat_amount) : ''],
-            [this.L('ภาษีหัก ณ ที่จ่าย', 'Withholding tax'), this._num(e.wht_amount) ? this._money(e.wht_amount) : ''],
+            [this.L('ภาษีหัก ณ ที่จ่าย', 'Withholding tax'), this._num(e.wht_amount) ? this._money(e.wht_amount) + (e.wht_form ? ` · ${this._pndLabel(e.wht_form)}` : '') : ''],
             [e.kind === 'income' ? this.L('รับเงินจริง', 'Amount received') : this.L('จ่ายเงินจริง', 'Amount paid'), this._num(e.wht_amount) ? this._money(this._num(e.amount) - this._num(e.wht_amount)) : ''],
             [this.L('ผู้บันทึก', 'Recorded by'), this._personName(e.created_by)],
             [this.L('หมายเหตุการตรวจ', 'Review note'), e.review_note]
@@ -828,10 +828,13 @@ const Accounting = {
                 <option value="included">${this.L('รวม VAT 7% แล้ว', 'Includes 7% VAT')}</option>
                 <option value="excluded">${this.L('ยังไม่รวม VAT 7% (บวกเพิ่ม)', 'Plus 7% VAT')}</option></select>`)}
             ${isIncome ? '' : `<div id="acc-wht-wrap" class="sm:col-span-2 ${firstCat && this._isSalary(firstCat.id) ? '' : 'hidden'}">
-                <button type="button" id="acc-wht-add" onclick="Accounting._showWht(true)" class="px-3 py-2 rounded-xl border border-dashed border-blue-300 text-blue-700 text-sm font-semibold"><i class="fa-solid fa-plus mr-1"></i>${this.L('เพิ่มภาษีหัก ณ ที่จ่าย (ภ.ง.ด.1)', 'Add withholding tax (PND 1)')}</button>
+                <button type="button" id="acc-wht-add" onclick="Accounting._showWht(true)" class="px-3 py-2 rounded-xl border border-dashed border-blue-300 text-blue-700 text-sm font-semibold"><i class="fa-solid fa-plus mr-1"></i>${this.L('เพิ่มภาษีหัก ณ ที่จ่าย (ภ.ง.ด.)', 'Add withholding tax (PND)')}</button>
                 <div id="acc-wht-box" class="hidden rounded-xl border border-gray-200 p-3">
-                <div class="flex items-center justify-between mb-1"><span class="text-xs font-semibold text-gray-600">${this.L('ภาษีหัก ณ ที่จ่าย เงินเดือน (ภ.ง.ด.1)', 'Withholding tax on salary (PND 1)')}</span>
-                    <button type="button" onclick="Accounting._showWht(false)" class="text-gray-400 hover:text-red-600 text-xs" aria-label="${this.L('เอาออก', 'Remove')}"><i class="fa-solid fa-xmark"></i></button></div>`}
+                <div class="flex items-center justify-between mb-1"><span class="text-xs font-semibold text-gray-600">${this.L('ภาษีหัก ณ ที่จ่าย เงินเดือน', 'Withholding tax on salary')}</span>
+                    <button type="button" onclick="Accounting._showWht(false)" class="text-gray-400 hover:text-red-600 text-xs" aria-label="${this.L('เอาออก', 'Remove')}"><i class="fa-solid fa-xmark"></i></button></div>
+                <label class="block mb-2"><span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('แบบ ภ.ง.ด.', 'PND form')}</span>
+                    <select name="wht_form" class="${input}">${this.PND_FORMS.map(([v, th, en]) => `<option value="${v}">${this.L(th, en)}</option>`).join('')}</select></label>
+                <span class="block text-xs font-semibold text-gray-600 mb-1">${this.L('อัตรา / จำนวนเงิน', 'Rate / amount')}</span>`}
             ${field(isIncome ? this.L('ภาษีหัก ณ ที่จ่าย (ลูกค้าหักเรา)', 'Withholding tax (deducted by the customer)') : '', `<div class="flex gap-2">
                 <select name="wht" class="${input}" onchange="Accounting._whtModeChanged()">
                 <option value="0">${this.L('ไม่มี', 'None')}</option>
@@ -866,6 +869,16 @@ const Accounting = {
         return this._r2(x.net * Number(f.wht.value) / 100);
     },
     /* withholding on expenses is for salaries only (ภ.ง.ด.1) */
+    /* แบบ ภ.ง.ด. the withholding is filed on */
+    PND_FORMS: [
+        ['PND1', 'ภ.ง.ด.1 (เงินเดือน ค่าจ้าง รายเดือน)', 'PND 1 (monthly salaries and wages)'],
+        ['PND1K', 'ภ.ง.ด.1ก (สรุปเงินเดือนทั้งปี)', 'PND 1K (annual salary summary)'],
+        ['PND2', 'ภ.ง.ด.2 (ดอกเบี้ย เงินปันผล)', 'PND 2 (interest, dividends)'],
+        ['PND3', 'ภ.ง.ด.3 (จ่ายบุคคลธรรมดา)', 'PND 3 (payments to individuals)'],
+        ['PND53', 'ภ.ง.ด.53 (จ่ายนิติบุคคล)', 'PND 53 (payments to companies)'],
+        ['PND54', 'ภ.ง.ด.54 (จ่ายไปต่างประเทศ)', 'PND 54 (payments abroad)']
+    ],
+    _pndLabel(v) { const f = this.PND_FORMS.find(x => x[0] === v); return f ? this.L(f[1].split(' (')[0], f[2].split(' (')[0]) : ''; },
     _isSalary(id) {
         const a = this._acc(id);
         return !!a && a.type === 'expense' && /เงินเดือน|ค่าจ้าง|salar|wage/i.test(`${a.name_th || ''} ${a.name_en || ''}`);
@@ -960,6 +973,7 @@ const Accounting = {
             const entry = {
                 kind, entry_date: f.date.value, description: f.description.value.trim(), party: f.party.value.trim(), doc_no: f.doc_no.value.trim(),
                 project_id: f.project.value || null, amount: x.total, vat_amount: x.vat, wht_amount: x.wht || 0,
+                wht_form: x.wht && f.wht_form ? f.wht_form.value : null,
                 attachment_path: att ? att.path : null, attachment_name: att ? att.name : null
             };
             await this._post(entry, lines);
