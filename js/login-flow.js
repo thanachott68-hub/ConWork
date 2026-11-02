@@ -300,6 +300,7 @@ document.getElementById('form-auth')?.addEventListener('submit', async function(
     const errEl = document.getElementById('auth-error');
 
     errEl.style.display = 'none';
+    errEl.style.color = '';   // the "check your email" note is blue; errors are red again
 
     const users = getUsers();
     let existingUser = users.find(u => u.email === email);
@@ -344,7 +345,7 @@ document.getElementById('form-auth')?.addEventListener('submit', async function(
                     // the email was never confirmed: send the link again
                     window.conworkSupabase.client.auth.resend({ type: 'signup', email: email,
                         options: { emailRedirectTo: location.origin + location.pathname.replace(/[^/]*$/, '') + 'login.html?mode=login' } }).catch(() => { });
-                    errEl.innerText = 'Please confirm your email first. We sent the confirmation link to ' + email + ' again.';
+                    errEl.innerText = 'Email not confirmed yet. Link sent again — check Junk / Spam too.';
                 } else {
                     errEl.innerText = "Error: " + error.message;
                 }
@@ -393,6 +394,43 @@ document.getElementById('form-auth')?.addEventListener('submit', async function(
 /* Until the personal information is filled in, people are shown by the first two letters of their email */
 function shortName(email) { return String(email || '').trim().slice(0, 2) || 'U'; }
 
+/* After sign-up with "Confirm email" on: show where the link went, and sign in by itself as soon as it is clicked
+   (on this device or another one). onAuthStateChange below then routes the person like any sign-in. */
+let confirmWaitTimer = null;
+function waitForEmailConfirmation(email, password) {
+    const errEl = document.getElementById('auth-error');
+    const emailInput = document.getElementById('auth-email');
+    if (emailInput) emailInput.value = email;
+    if (errEl) {
+        errEl.innerHTML = 'We sent a link to <b></b>'
+            + '<br><span style="color:#b45309">Not there? Check <b>Junk / Spam</b>.</span>'
+            + ' <a href="#" id="auth-resend-link" class="underline font-semibold">Resend</a>';
+        errEl.querySelector('b').textContent = email;
+        errEl.style.display = 'block';
+        errEl.style.color = '#1d4ed8';
+        const resend = document.getElementById('auth-resend-link');
+        if (resend) resend.onclick = function (ev) {
+            ev.preventDefault();
+            window.conworkSupabase.client.auth.resend({ type: 'signup', email: email,
+                options: { emailRedirectTo: location.origin + location.pathname.replace(/[^/]*$/, '') + 'login.html?mode=login' } })
+                .then(({ error }) => { resend.textContent = error ? 'Could not send' : 'Sent ✓'; });
+        };
+    }
+    if (!password) return;
+    clearInterval(confirmWaitTimer);
+    const started = Date.now();
+    confirmWaitTimer = setInterval(async () => {
+        if (Date.now() - started > 30 * 60 * 1000) { clearInterval(confirmWaitTimer); return; }   // give up after 30 minutes
+        try {
+            const { data, error } = await window.conworkSupabase.client.auth.signInWithPassword({ email: email, password: password });
+            if (!error && data && data.session) {
+                clearInterval(confirmWaitTimer);
+                if (errEl) { errEl.style.display = 'none'; errEl.style.color = ''; }
+            }
+        } catch (e) { }
+    }, 10000);   // every 10 seconds: stays under the sign-in rate limit
+}
+
 async function finishSignup(errEl) {
     const btn = document.getElementById('btn-auth-continue');
     if (btn) { btn.disabled = true; btn.innerText = 'Creating account…'; }
@@ -408,10 +446,12 @@ async function finishSignup(errEl) {
         if (error) { done(); errEl.innerText = 'Error signing up: ' + error.message; errEl.style.display = 'block'; return; }
         if (data.user) userId = data.user.id;
         if (!data.session) {
-            // "Confirm email" is on in Supabase: they must click the link in the email first
+            // "Confirm email" is on in Supabase: they must click the link in the email first.
+            // The link is often opened on the phone or in the mail app's own browser, so this page
+            // keeps trying to sign in and carries on by itself once the email is confirmed.
             done();
-            alert('We sent a confirmation link to ' + email + '. Please open it, then sign in.');
             showLoginScreen('login');
+            waitForEmailConfirmation(email, tempOnboardingData.password);
             return;
         }
     }
@@ -938,7 +978,7 @@ async function forgotPassword() {
                 redirectTo: window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'login.html'
             });
             if (error) throw error;
-            alert("A password reset link has been sent to your email. Please check your inbox.");
+            alert("Reset link sent. Check your inbox (or Junk / Spam).");
         } catch (error) {
             console.error("Reset password error:", error.message);
             alert("Error sending reset link: " + error.message);
