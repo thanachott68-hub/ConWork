@@ -1,0 +1,197 @@
+/* ConWork team.html: phone layout from the "team.html · Mobile" frames (js/team-mobile.js adds the parts).
+   Phones only (≤640px). Loaded last in team.html. */
+
+#tmm-back, #tmm-head, #tmm-out, #tmm-bnav, #tmm-teams-head, #tmm-hint, #tmm-seg, #tmm-mb-chips, #tmm-mb-empty { display: none; }
+
+@media (max-width: 640px) {
+    body[data-page="team"] {
+        --tmm-bg: #F1F5F9; --tmm-card: #FFFFFF; --tmm-soft: #F8FAFC; --tmm-sunken: #F1F5F9;
+        --tmm-ink: #0F172A; --tmm-muted: #475569; --tmm-subtle: #94A3B8; --tmm-line: #E2E8F0;
+        --tmm-blue: #2563EB; --tmm-blue-soft: #DBEAFE; --tmm-tint: #EFF6FF; --tmm-red: #EF4444; --tmm-red-soft: #FEE2E2;
+        --tmm-bar: rgba(255, 255, 255, 0.92); --tmm-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 4px 14px rgba(15, 23, 42, .05);
+        --tmm-nav-h: 4.5rem;
+    }
+    html.dark body[data-page="team"] {
+        --tmm-bg: #0B1120; --tmm-card: #1E293B; --tmm-soft: #172033; --tmm-sunken: #0F172A;
+        --tmm-ink: #F1F5F9; --tmm-muted: #CBD5E1; --tmm-subtle: #94A3B8; --tmm-line: #334155;
+        --tmm-blue: #60A5FA; --tmm-blue-soft: rgba(59, 130, 246, .2); --tmm-tint: rgba(59, 130, 246, .12); --tmm-red-soft: rgba(239, 68, 68, .16);
+        --tmm-bar: rgba(15, 23, 42, 0.92); --tmm-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+    }
+    body[data-page="team"] .tm-page-bg { background: var(--tmm-bg) !important; }
+
+    /* ---------- no ☰ menu: the side bar (and its logo) is replaced by the top bar + bottom navbar ---------- */
+    body[data-page="team"] #app-sidebar,
+    body[data-page="team"] #tm-nav-toggle,
+    body[data-page="team"] #cw-mprofile { display: none !important; }
+
+    /* ---------- top bar ---------- */
+    body[data-page="team"] .tm-topbar {
+        height: 3.75rem !important; padding: 0 1rem !important; gap: 0.6rem !important;
+        background: var(--tmm-card) !important; border-bottom: 1px solid var(--tmm-line) !important; box-shadow: none !important;
+    }
+    body[data-page="team"] .tm-topbar > #tm-title, body[data-page="team"] .tm-topbar > #tm-subtitle { display: none !important; }
+    #tmm-back {
+        display: inline-flex; align-items: center; gap: 0.15rem; height: 2.15rem; padding: 0 0.65rem 0 0.3rem; flex: none;
+        border-radius: 0.7rem; background: var(--tmm-soft); border: 1px solid var(--tmm-line); color: var(--tmm-blue);
+        font: 600 13px "Kanit", sans-serif; text-decoration: none; white-space: nowrap;
+    }
+    #tmm-back i { font-size: 0.75rem; width: 1rem; text-align: center; }
+    #tmm-head { display: block; flex: 1 1 auto; min-width: 0; line-height: 1.2; }
+    #tmm-head b { display: block; font: 800 18px/1.25 "Nunito", "Kanit", sans-serif; letter-spacing: -0.01em; color: var(--tmm-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #tmm-head small { display: block; font-size: 11.5px; color: var(--tmm-subtle); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+    #tmm-head small:empty { display: none; }
+    body[data-page="team"] #tm-bell-wrap { margin-left: 0 !important; flex: none; }
+    body[data-page="team"] #tm-bell, body[data-tmm-tab="profile"] #tmm-out {
+        display: inline-flex; width: 2.5rem; height: 2.5rem; padding: 0 !important; align-items: center; justify-content: center;
+        border-radius: 0.75rem; background: var(--tmm-soft) !important; border: 1px solid var(--tmm-line); color: var(--tmm-muted) !important; flex: none;
+    }
+    body[data-page="team"] #tm-bell i { font-size: 1.05rem; }
+    body[data-page="team"] #tm-bell-menu { position: fixed !important; left: 0.75rem; right: 0.75rem !important; top: 4.25rem; width: auto !important; }
+    body[data-tmm-tab="profile"] #tm-bell-wrap { display: none; }
+    body[data-tmm-tab="profile"] #tmm-out { display: inline-flex; }
+
+    /* ---------- bottom navbar (3 tabs) ---------- */
+    #tmm-bnav {
+        display: grid; grid-template-columns: repeat(3, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+        height: calc(var(--tmm-nav-h) + env(safe-area-inset-bottom, 0px)); padding: 0.4rem 1.5rem env(safe-area-inset-bottom, 0px);
+        background: var(--tmm-bar); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+        border-top: 1px solid var(--tmm-line); box-shadow: 0 -6px 20px rgba(15, 23, 42, .05);
+    }
+    #tmm-bnav button { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; background: none; border: 0; padding: 0; color: var(--tmm-subtle); font: 500 11.5px/1.2 "Kanit", sans-serif; -webkit-tap-highlight-color: transparent; }
+    #tmm-bnav .ic { position: relative; width: 3.5rem; height: 2rem; border-radius: 1rem; display: flex; align-items: center; justify-content: center; }
+    #tmm-bnav .ic i { font-size: 1.15rem; }
+    #tmm-bnav button.on { color: var(--tmm-blue); font-weight: 600; }
+    #tmm-bnav button.on .ic { background: var(--tmm-blue-soft); }
+    #tmm-bnav .badge { position: absolute; top: -0.15rem; left: calc(50% + 0.35rem); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--tmm-red); color: #fff; font: 700 10.5px/18px "Nunito", sans-serif; text-align: center; box-shadow: 0 0 0 2px var(--tmm-card); }
+    body[data-page="team"] #tab-team, body[data-page="team"] #tab-mailbox, body[data-page="team"] #tab-profile {
+        padding: 1.1rem 1rem calc(var(--tmm-nav-h) + 1.5rem + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    /* shared card look */
+    body[data-page="team"] #tm-code-bar, body[data-page="team"] .tm-card, body[data-page="team"] #tab-profile .bg-white.rounded-2xl,
+    body[data-page="team"] #tm-mailbox [data-mb-row], #tmm-code-card ~ * .divide-y {
+        background: var(--tmm-card) !important; border: 1px solid var(--tmm-line) !important; border-radius: 1.25rem !important; box-shadow: var(--tmm-shadow) !important;
+    }
+
+    /* ---------- ทีม ---------- */
+    body[data-page="team"] #tab-team > div.items-start > p { display: none; }   /* the hint moves under the cards */
+    body[data-page="team"] #tab-team > div.items-start { margin: 0.75rem 0 0 !important; }
+    body[data-page="team"] #tab-team > div.items-start > div:last-child { display: grid !important; grid-template-columns: 1fr 1fr; gap: 0.6rem !important; width: 100%; margin: 0 !important; }
+    body[data-page="team"] #tm-build-btn, body[data-page="team"] #tm-leave-btn {
+        width: 100%; min-height: 3rem !important; justify-content: center; border-radius: 1rem !important; font: 600 14px/1.2 "Kanit", sans-serif !important; padding: 0.5rem 0.75rem !important;
+    }
+    body[data-page="team"] #tm-leave-btn { background: var(--tmm-card) !important; border: 1px solid var(--tmm-line) !important; color: var(--tmm-red) !important; }
+    /* invite code card */
+    body[data-page="team"] #tm-code-bar { display: grid !important; grid-template-columns: 2.75rem minmax(0, 1fr) auto; gap: 0.75rem 0.6rem !important; padding: 0.9rem !important; margin: 0 !important; align-items: center; }
+    body[data-page="team"] #tm-code-bar > span:first-child { width: 2.75rem !important; height: 2.75rem !important; border-radius: 0.875rem !important; background: var(--tmm-blue-soft) !important; color: #3B82F6 !important; }
+    body[data-page="team"] #tm-code-bar > div { grid-column: 2 / -1; min-width: 0 !important; }
+    body[data-page="team"] #tm-code-bar > div > div:first-child { font: 700 15px "Kanit", sans-serif; color: var(--tmm-ink) !important; }
+    body[data-page="team"] #tm-code-bar > div > div:last-child { font-size: 12.5px !important; color: var(--tmm-subtle) !important; }
+    body[data-page="team"] #tm-code-input {
+        grid-column: 1 / 3; max-width: none !important; width: 100% !important; height: 2.75rem; border-radius: 0.75rem !important;
+        background: var(--tmm-soft) !important; border: 1px solid var(--tmm-line) !important; font: 700 15px "Nunito", sans-serif !important; letter-spacing: .06em;
+    }
+    body[data-page="team"] #tm-code-input + button { grid-column: 3; height: 2.75rem; padding: 0 1rem !important; border-radius: 0.875rem !important; font: 600 14px "Kanit", sans-serif !important; white-space: nowrap; }
+    body[data-page="team"] #tm-code-err { grid-column: 1 / -1; }
+    #tmm-teams-head { display: flex; align-items: center; justify-content: space-between; margin: 1.35rem 0.15rem 0.75rem; }
+    #tmm-teams-head h3 { font: 800 17px "Nunito", "Kanit", sans-serif; color: var(--tmm-ink); }
+    #tmm-teams-head span { color: var(--tmm-blue); font: 600 13.5px "Kanit", sans-serif; }
+    #tmm-hint { display: block; text-align: center; font-size: 12px; color: var(--tmm-subtle); margin-top: 0.75rem; }
+    /* team cards: logo tile · name + role · status pill (tap = details, where Enter is) */
+    body[data-page="team"] #tm-grid { display: flex !important; flex-direction: column; gap: 0.625rem !important; }
+    body[data-page="team"] .tm-card { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem !important; overflow: visible !important; }
+    body[data-page="team"] .tm-card > .tm-cover {
+        width: 2.75rem !important; height: 2.75rem !important; min-height: 0 !important; flex: 0 0 2.75rem !important; padding: 0 !important;
+        border-radius: 0.875rem !important; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative;
+    }
+    body[data-page="team"] .tm-card > .tm-cover::before, body[data-page="team"] .tm-card > .tm-cover::after { display: none !important; }
+    body[data-page="team"] .tm-card > .tm-cover > span:first-child { width: 100% !important; height: 100% !important; border-radius: 0 !important; background: transparent !important; color: #fff !important; font: 900 15px "Nunito", sans-serif !important; text-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
+    body[data-page="team"] .tm-card > .tm-cover > .tm-chip { display: none; }
+    body[data-page="team"] .tm-card > .p-4:not(.tm-cover) {
+        flex: 1 1 0 !important; min-width: 0; padding: 0 !important; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 0.5rem; align-items: center;
+    }
+    body[data-page="team"] .tm-card > .p-4:not(.tm-cover) > div:nth-child(1) { grid-column: 1; font: 600 15px/1.35 "IBM Plex Sans Thai", sans-serif !important; color: var(--tmm-ink) !important; }
+    body[data-page="team"] .tm-card > .p-4:not(.tm-cover) > div:nth-child(2) { grid-column: 1; grid-row: 2; margin: 0 !important; font-size: 12.5px !important; color: var(--tmm-subtle) !important; min-width: 0; }
+    body[data-page="team"] .tm-card > .p-4:not(.tm-cover) > div:nth-child(2) > i { display: none; }
+    body[data-page="team"] .tm-card > .p-4:not(.tm-cover) > div:nth-child(2) b { color: var(--tmm-muted) !important; font-weight: 600; }
+    body[data-page="team"] .tm-card > .p-4:not(.tm-cover) > div:nth-child(2) > span.ml-auto { margin-left: 0.35rem !important; }
+    body[data-page="team"] .tm-card > .p-4:not(.tm-cover) > div:nth-child(3) { grid-column: 2; grid-row: 1 / span 2; margin: 0 !important; flex-direction: column; align-items: flex-end !important; gap: 0.25rem !important; }
+    body[data-page="team"] .tm-card > .p-4:not(.tm-cover) > div:nth-child(3) .tm-chip { white-space: nowrap; max-width: 7.5rem; overflow: hidden; text-overflow: ellipsis; border-radius: 999px; }
+    body[data-page="team"] .tm-card > .p-4:not(.tm-cover) > div:nth-child(3) button { margin: 0 !important; font-size: 11.5px !important; }
+    body[data-page="team"] .tm-card > .p-4:not(.tm-cover) > div:nth-child(4) { display: none !important; }   /* Pending approval + Enter live in the details */
+    /* leave mode: the cards stay tappable (team.html's own handler asks which team to leave) */
+    body[data-page="team"] #tm-leave-banner { margin-top: 0.75rem; border-radius: 1rem !important; }
+
+    /* ---------- team details: full screen ---------- */
+    body[data-page="team"] #tm-detail-modal { padding: 0 !important; align-items: stretch !important; }
+    body[data-page="team"] #tm-detail-modal > div { max-width: none !important; max-height: none !important; height: 100dvh; border-radius: 0 !important; background: var(--tmm-bg) !important; }
+    body[data-page="team"] #tm-d-cover { min-height: 0 !important; height: auto !important; padding: 1rem 3.5rem 1rem 1rem !important; }
+    body[data-page="team"] #tm-d-ini { width: 2.75rem !important; height: 2.75rem !important; font-size: 15px !important; border-radius: 0.875rem !important; }
+    body[data-page="team"] #tm-d-name { font: 800 19px/1.25 "Nunito", "Kanit", sans-serif !important; }
+    body[data-page="team"] #tm-detail-modal .p-5.overflow-y-auto { padding: 1rem !important; flex: 1; }
+    #tmm-code-card { border-radius: 1.4rem; padding: 1rem; color: #fff; background: linear-gradient(135deg, #3B82F6, #1D4ED8); box-shadow: 0 14px 30px rgba(37, 99, 235, .3); }
+    #tmm-code-card > div:first-child { color: rgba(255, 255, 255, .85) !important; font: 500 13px "Kanit", sans-serif !important; text-transform: none !important; letter-spacing: 0 !important; margin: 0 !important; }
+    #tmm-code-card > div:last-child { display: grid !important; grid-template-columns: 1fr 1fr; gap: 0.6rem !important; }
+    #tmm-code-card #tm-d-code { grid-column: 1 / -1; background: none !important; padding: 0 !important; color: #fff !important; font: 900 30px "Nunito", sans-serif !important; letter-spacing: .08em; margin: 0 0 0.35rem; }
+    #tmm-code-card #tm-d-copy, #tmm-code-card #tm-d-link { justify-content: center; height: 2.6rem; border-radius: 0.875rem !important; border: 0 !important; font: 600 14px "Kanit", sans-serif !important; }
+    #tmm-code-card #tm-d-copy { background: #fff !important; color: #1D4ED8 !important; }
+    #tmm-code-card #tm-d-link { background: rgba(255, 255, 255, .16) !important; color: #fff !important; }
+    #tmm-code-card #tm-d-note { grid-column: 1 / -1; color: #DBEAFE !important; }
+    #tmm-code-card #tm-d-copy.hidden, #tmm-code-card #tm-d-link.hidden { display: none !important; }
+    body[data-page="team"] #tm-detail-modal .p-5.overflow-y-auto > div.flex.items-center.mt-6 { margin: 1.35rem 0.15rem 0.6rem !important; }
+    body[data-page="team"] #tm-detail-modal .p-5.overflow-y-auto > div.flex.items-center.mt-6 > div { font: 800 17px "Nunito", "Kanit", sans-serif !important; color: var(--tmm-ink) !important; text-transform: none !important; letter-spacing: 0 !important; }
+    body[data-page="team"] #tm-d-members { background: var(--tmm-card); border: 1px solid var(--tmm-line); border-radius: 1.25rem; box-shadow: var(--tmm-shadow); padding: 0.15rem 0.875rem; }
+    body[data-page="team"] #tm-d-members img { width: 2.5rem !important; height: 2.5rem !important; }
+    body[data-page="team"] #tm-detail-modal > div > div:last-child { padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px)) !important; background: var(--tmm-card) !important; border-color: var(--tmm-line) !important; }
+    body[data-page="team"] #tm-d-enter { height: 2.75rem; padding: 0 1.25rem !important; border-radius: 0.875rem !important; }
+    /* the other small windows sit at the bottom like sheets */
+    body[data-page="team"] .tm-modal:not(#tm-detail-modal) { align-items: flex-end !important; padding: 0 !important; }
+    body[data-page="team"] .tm-modal:not(#tm-detail-modal) > * { max-width: none !important; border-radius: 1.5rem 1.5rem 0 0 !important; padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)) !important; }
+
+    /* ---------- Mailbox ---------- */
+    #tmm-mb-chips { display: flex; gap: 0.5rem; overflow-x: auto; scrollbar-width: none; margin-bottom: 0.875rem; }
+    #tmm-mb-chips::-webkit-scrollbar { display: none; }
+    #tmm-mb-chips button { padding: 0.5rem 0.875rem; border-radius: 999px; border: 1px solid var(--tmm-line); background: var(--tmm-card); font: 500 13.5px "Kanit", sans-serif; color: var(--tmm-muted); white-space: nowrap; }
+    #tmm-mb-chips button.on { background: #2563EB; border-color: #2563EB; color: #fff; }
+    #tmm-mb-chips button b { font-family: "Nunito", sans-serif; margin-left: 0.25rem; opacity: .75; }
+    #tmm-mb-chips button b:empty { display: none; }
+    #tmm-mb-note { display: flex; gap: 0.6rem; padding: 0.75rem 0.875rem; margin: 0 0 0.875rem !important; border-radius: 0.875rem; background: var(--tmm-tint); color: var(--tmm-blue) !important; font-size: 12.5px !important; line-height: 1.5 !important; }
+    #tmm-mb-note::before { content: "\f0e0"; font: 400 15px "Font Awesome 6 Free"; flex: none; margin-top: 1px; }
+    body[data-page="team"] #tm-mailbox { background: transparent !important; border: 0 !important; border-radius: 0 !important; overflow: visible !important; flex: none !important; }
+    body[data-page="team"] #tm-mailbox > .divide-y { display: flex; flex-direction: column; gap: 0.625rem; }
+    body[data-page="team"] #tm-mailbox > .divide-y > * { border-top: 0 !important; }
+    body[data-page="team"] #tm-mailbox [data-mb-row] { padding: 0.875rem !important; }
+    body[data-page="team"] #tm-mailbox [data-mb-row] .mt-3 { display: grid !important; grid-template-columns: 1fr 1fr; }
+    body[data-page="team"] #tm-mailbox [data-mb-row] .mt-3 > button { order: 2; justify-content: center; height: 2.5rem; border-radius: 0.875rem !important; }
+    body[data-page="team"] #tm-mailbox [data-mb-row] .mt-3 > button[data-mb-decline] { order: 1; background: var(--tmm-card); }
+    body[data-page="team"] #tm-mailbox > div:not(.divide-y) { background: var(--tmm-card); border: 1px solid var(--tmm-line); border-radius: 1.25rem; margin-bottom: 0.625rem; }
+    #tmm-mb-empty { text-align: center; color: var(--tmm-subtle); font-size: 13px; padding: 2rem 0; }
+
+    /* ---------- โปรไฟล์ ---------- */
+    body[data-page="team"] #tab-profile { max-width: none !important; }
+    body[data-page="team"] #tab-profile > div:first-child { padding: 1rem !important; gap: 0.875rem !important; }
+    body[data-page="team"] #tm-p-avatar { width: 4rem !important; height: 4rem !important; }
+    body[data-page="team"] #tm-p-name { font: 700 17px "Kanit", sans-serif !important; color: var(--tmm-ink) !important; }
+    body[data-page="team"] #tab-profile > div:first-child > button { display: none !important; }   /* sign out is in the top bar */
+    #tmm-seg { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--tmm-card); border: 1px solid var(--tmm-line); border-radius: 0.875rem; padding: 0.25rem; margin: 0.875rem 0 0; }
+    #tmm-seg button { padding: 0.5rem 0; border-radius: 0.625rem; font: 500 13px "Kanit", sans-serif; color: var(--tmm-muted); background: none; border: 0; white-space: nowrap; }
+    #tmm-seg button.on { background: var(--tmm-blue-soft); color: var(--tmm-blue); font-weight: 600; }
+    /* only the chosen segment; การแสดงผล always shows */
+    #tab-profile[data-tmm-seg] [data-seg]:not([data-seg="display"]) { display: none !important; }
+    #tab-profile[data-tmm-seg="personal"] [data-seg="personal"][data-seg],
+    #tab-profile[data-tmm-seg="teams"] [data-seg="teams"][data-seg],
+    #tab-profile[data-tmm-seg="account"] [data-seg="account"][data-seg] { display: block !important; }
+    #tab-profile[data-tmm-seg="personal"] div[data-seg="personal"][data-seg].flex { display: flex !important; }
+    body[data-page="team"] #tab-profile > h2 { margin: 1.35rem 0.15rem 0.6rem !important; font: 800 17px "Nunito", "Kanit", sans-serif !important; color: var(--tmm-ink) !important; text-transform: none !important; letter-spacing: 0 !important; }
+    body[data-page="team"] #tab-profile > div.flex.items-center.mt-8 { margin: 0.875rem 0 0 !important; padding: 0.875rem 1rem 0; background: var(--tmm-card); border: 1px solid var(--tmm-line); border-bottom: 0; border-radius: 1.25rem 1.25rem 0 0; }
+    body[data-page="team"] #tab-profile > div.flex.items-center.mt-8 > h2 { font: 700 15px "Kanit", sans-serif !important; color: var(--tmm-ink) !important; text-transform: none !important; letter-spacing: 0 !important; }
+    body[data-page="team"] #tm-pi-card { border-top: 0 !important; border-radius: 0 0 1.25rem 1.25rem !important; box-shadow: var(--tmm-shadow) !important; }
+    body[data-page="team"] #tab-profile .tm-row { padding: 0.8rem 1rem !important; gap: 0.75rem !important; }
+    body[data-page="team"] #tab-profile .tm-ico { width: 2.25rem !important; height: 2.25rem !important; border-radius: 0.7rem !important; }
+    body[data-page="team"] #tab-profile .tm-seg { flex-shrink: 0; }
+}
+
+/* dark theme: img/logo.png is transparent, so no white box behind it (all screen sizes) */
+html.dark body[data-page="team"] #app-sidebar > a:first-child > span:first-child {
+    background: transparent !important; box-shadow: none !important;
+}

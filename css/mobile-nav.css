@@ -1,0 +1,188 @@
+/* ConWork: phone layout from the "ConWork · Mobile Web App" frames (js/mobile-nav.js adds the parts).
+   Phones only (≤640px), app.html only. Loaded last, after css/mobile-stitch.css, and uses its --st-* colours (light + dark).
+   Bottom navbar instead of the ☰ side menu · logo / page name in the top bar · compact stat cards · เพิ่มเติม page. */
+
+#cwm-bnav, #cwm-head, #cwm-calbtn { display: none; }
+
+@media (max-width: 640px) {
+    body[data-page="app"] {
+        --cwm-indigo: #6366F1; --cwm-indigo-soft: #E0E7FF;
+        --cwm-blue: #3B82F6; --cwm-blue-soft: #DBEAFE;
+        --cwm-green: #22C55E; --cwm-green-soft: #DCFCE7;
+        --cwm-orange: #F97316; --cwm-orange-soft: #FFEDD5;
+        --cwm-sun: #F59E0B; --cwm-sun-soft: #FEF3C7;
+        --cwm-red: #EF4444; --cwm-red-soft: #FEE2E2;
+        --cwm-nav-h: 4.5rem;
+    }
+    html.dark body[data-page="app"] {
+        --cwm-indigo-soft: rgba(99, 102, 241, 0.2); --cwm-blue-soft: rgba(59, 130, 246, 0.2);
+        --cwm-green-soft: rgba(34, 197, 94, 0.16); --cwm-orange-soft: rgba(249, 115, 22, 0.16);
+        --cwm-sun-soft: rgba(245, 158, 11, 0.16); --cwm-red-soft: rgba(239, 68, 68, 0.16);
+    }
+
+    /* ---------- the ☰ side menu is replaced by the bottom navbar ---------- */
+    body[data-page="app"] #sidebar-toggle,
+    body[data-page="app"] #app-sidebar.w-64 > :not(#sidebar-logo-btn) { display: none !important; }
+    body[data-page="app"] #app-sidebar.w-64 { width: 0 !important; box-shadow: none !important; background: transparent !important; }
+
+    /* ---------- top bar ---------- */
+    body[data-page="app"] main > header { padding-left: 1rem !important; padding-right: 1rem !important; background: var(--st-card) !important; }
+    body[data-page="app"] #sidebar-logo-btn { left: 1rem !important; width: auto !important; justify-content: flex-start !important; gap: 0.55rem !important; }
+    body[data-page="app"] #sidebar-logo-btn > a {
+        /* sized by the logo (img/logo.png keeps its own shape: never squeezed into a square) */
+        width: auto !important; max-width: none !important; height: 2.25rem; padding: 0 0.4rem !important; border-radius: 0.65rem !important; border: 1px solid var(--st-border);
+        background: #FFFFFF !important; display: flex !important; align-items: center; justify-content: center; overflow: visible !important;
+    }
+    body[data-page="app"] #sidebar-logo-btn .cw-logo { height: 24px !important; width: auto !important; max-width: none !important; }
+    body[data-page="app"] #sidebar-logo-btn > h2.sidebar-text { display: block !important; opacity: 1 !important; width: auto !important; font-size: 20px !important; color: var(--st-ink) !important; }
+    body[data-page="app"] #sidebar-logo-btn > h2.sidebar-text .cw-mtitle,
+    body[data-page="app"] #sidebar-logo-btn > i { display: none !important; }
+    /* other pages: page name (+ a line under it) instead of the logo */
+    body[data-page="app"]:not([data-cwm-view="home"]) #sidebar-logo-btn { display: none !important; }
+    body[data-page="app"]:not([data-cwm-view="home"]) #cwm-head { display: flex !important; align-items: center; gap: 0.25rem; min-width: 0; }
+    body[data-page="app"] main > header > div:first-child { min-width: 0 !important; flex: 1 1 auto; }
+    body[data-page="app"] main > header > div:first-child > :not(#cwm-head) { display: none !important; }
+    #cwm-head .back { display: none; width: 2rem; height: 2.5rem; margin-left: -0.5rem; align-items: center; justify-content: center; color: var(--st-text); font-size: 1rem; }
+    body[data-cwm-view="sub"] #cwm-head .back { display: inline-flex; }
+    #cwm-head .tt { min-width: 0; line-height: 1.2; }
+    #cwm-head .tt b { display: block; font: 800 19px/1.25 "Nunito", "Kanit", sans-serif; letter-spacing: -0.01em; color: var(--st-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #cwm-head .tt small { display: block; font-size: 12px; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+    #cwm-head .tt small:empty { display: none; }
+
+    body[data-page="app"] main > header > div:last-child { gap: 0.5rem !important; flex-shrink: 0; }
+    body[data-page="app"] #header-switch-team { display: none !important; }
+    /* จบงาน (team owners) moves to the เพิ่มเติม page on phones: the top bar keeps only calendar, bell and profile */
+    body[data-page="app"] #ta-finish { display: none !important; }
+    body[data-page="app"] #cwm-calbtn,
+    body[data-page="app"] #notification-container > button {
+        display: inline-flex; width: 2.5rem; height: 2.5rem; padding: 0 !important; align-items: center; justify-content: center;
+        border-radius: 0.75rem; background: var(--st-soft) !important; border: 1px solid var(--st-border); color: var(--st-text) !important;
+    }
+    body[data-page="app"] #cwm-calbtn i,
+    body[data-page="app"] #notification-container > button i { font-size: 1.05rem; }
+    body[data-page="app"] #cwm-calbtn.on { background: var(--cwm-blue-soft) !important; color: var(--st-primary) !important; border-color: transparent; }
+    /* on the other pages the design keeps only the bell (and the calendar on its own page) */
+    body[data-page="app"]:not([data-cwm-view="home"]) #cwm-calbtn:not(.on) { display: none; }
+    body[data-page="app"]:not([data-cwm-view="home"]) #cw-mprofile { display: none !important; }
+    #cw-mprofile span { display: none !important; }
+    #cw-mprofile img { box-shadow: none !important; width: 2.5rem !important; height: 2.5rem !important; }
+
+    /* ---------- bottom navbar ---------- */
+    #cwm-bnav {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+        height: calc(var(--cwm-nav-h) + env(safe-area-inset-bottom, 0px));
+        padding: 0.4rem 0.4rem env(safe-area-inset-bottom, 0px);
+        background: var(--st-glass); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+        border-top: 1px solid var(--st-border); box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.05);
+    }
+    #cwm-bnav button {
+        display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 0.2rem;
+        background: none; border: 0; padding: 0; color: var(--st-muted); font: 500 11.5px/1.2 "Kanit", "IBM Plex Sans Thai", sans-serif;
+        -webkit-tap-highlight-color: transparent; min-width: 0;
+    }
+    #cwm-bnav .ic { position: relative; width: 3.5rem; height: 2rem; border-radius: 1rem; display: flex; align-items: center; justify-content: center; transition: background-color .2s; }
+    #cwm-bnav .ic i { font-size: 1.15rem; }
+    #cwm-bnav .lb { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    #cwm-bnav button.on { color: var(--st-primary); font-weight: 600; }
+    #cwm-bnav button.on .ic { background: var(--cwm-blue-soft); }
+    #cwm-bnav button:active .ic { transform: scale(0.94); }
+    #cwm-bnav .badge {
+        position: absolute; top: -0.15rem; left: calc(50% + 0.35rem); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+        background: var(--cwm-red); color: #fff; font: 700 10.5px/18px "Nunito", sans-serif; text-align: center; box-shadow: 0 0 0 2px var(--st-card);
+    }
+    /* room for the navbar under every page and above floating buttons */
+    body[data-page="app"] .view-section { padding-bottom: calc(var(--cwm-nav-h) + 2rem + env(safe-area-inset-bottom, 0px)) !important; }
+    body[data-page="app"] #view-messages { padding-bottom: calc(var(--cwm-nav-h) + env(safe-area-inset-bottom, 0px)) !important; }
+    body[data-page="app"] main { padding-bottom: 0 !important; }
+
+    /* ---------- dashboard: stat cards with the icon on the left, the trend under them ---------- */
+    body[data-page="app"] #view-dashboard > div:nth-child(2) { gap: 0.75rem !important; }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) > div { padding: 0.75rem !important; border-radius: 1.1rem !important; }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) > div > div {
+        display: grid !important; grid-template-columns: 2.5rem minmax(0, 1fr); column-gap: 0.65rem; row-gap: 0; align-items: center;
+    }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) > div > div > div:first-child {
+        grid-row: 1 / span 2; width: 2.5rem !important; height: 2.5rem !important; font-size: 1.05rem !important; border-radius: 0.75rem !important;
+    }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) > div > div > div:last-child { display: contents; }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) h3 { grid-column: 2; margin: 0 !important; font-size: 13px !important; line-height: 1.3 !important; color: var(--st-muted) !important; }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) .text-3xl { grid-column: 2; font: 800 24px/1.1 "Nunito", sans-serif !important; color: var(--st-ink) !important; }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) .text-3xl .text-sm { font: 500 13px "Kanit", sans-serif !important; }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) .text-3xl ~ div { grid-column: 1 / -1; margin-top: 0.5rem !important; font-size: 11.5px !important; }
+    /* the 5th card (due soon) is one row: icon · label + number · "within 3 days" pill */
+    body[data-page="app"] #view-dashboard > div:nth-child(2) > div:nth-child(5) > div { grid-template-columns: 2.5rem minmax(0, 1fr) auto; }
+    body[data-page="app"] #view-dashboard > div:nth-child(2) > div:nth-child(5) .text-3xl ~ div {
+        grid-column: 3; grid-row: 1 / span 2; margin-top: 0 !important; padding: 0.25rem 0.65rem; border-radius: 999px;
+        background: var(--cwm-red-soft); color: #DC2626 !important; font-size: 12px !important;
+    }
+    html.dark body[data-page="app"] #view-dashboard > div:nth-child(2) > div:nth-child(5) .text-3xl ~ div { color: #F87171 !important; }
+    /* greeting: plain text on the page (no card), date range in a white box under it */
+    body[data-page="app"] #view-dashboard > div:first-child {
+        background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0.25rem 0.125rem 0 !important; margin-bottom: 1rem !important;
+    }
+    body[data-page="app"] #view-dashboard > div:first-child h2 { font-size: calc(23px * var(--cw-fs, 1)) !important; }
+    body[data-page="app"] #view-dashboard > div:first-child > div:last-child {
+        background: var(--st-card) !important; border: 1px solid var(--st-border) !important; border-radius: 0.875rem !important; box-shadow: none !important;
+    }
+
+    /* ---------- เพิ่มเติม page ---------- */
+    #view-more { padding: 1.1rem 1rem calc(var(--cwm-nav-h) + 1.5rem + env(safe-area-inset-bottom, 0px)) !important; }
+    .cwm-more { display: flex; flex-direction: column; gap: 0.875rem; }
+    .cwm-more button, .cwm-more a { font: inherit; color: inherit; text-align: left; -webkit-tap-highlight-color: transparent; }
+    .cwm-more .cwm-prof, .cwm-more .mi, .cwm-more .cwm-list {
+        background: var(--st-card); border: 1px solid var(--st-border); border-radius: 1.25rem; box-shadow: var(--st-shadow-1);
+    }
+    .cwm-more .cwm-prof { display: flex; align-items: center; gap: 0.875rem; padding: 1rem; color: var(--st-muted); }
+    .cwm-more .cwm-prof img { width: 3.5rem; height: 3.5rem; border-radius: 50%; object-fit: cover; flex: none; background: var(--st-soft); }
+    .cwm-more .cwm-prof .who { flex: 1; min-width: 0; }
+    .cwm-more .cwm-prof b { display: block; font: 700 17px/1.3 "Kanit", sans-serif; color: var(--st-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cwm-more .cwm-prof small { display: block; font-size: 13px; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cwm-more .cwm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .cwm-more .mi { display: flex; flex-direction: column; align-items: flex-start; gap: 0.6rem; padding: 0.875rem; min-width: 0; }
+    .cwm-more .mi b { font: 600 14.5px/1.2 "Kanit", sans-serif; color: var(--st-ink); }
+    .cwm-more .mi small { font-size: 12px; color: var(--st-muted); margin-top: -0.45rem; }
+    .cwm-more .tile { width: 2.75rem; height: 2.75rem; border-radius: 0.875rem; display: flex; align-items: center; justify-content: center; flex: none; font-size: 1.1rem; }
+    .cwm-more .t-indigo { background: var(--cwm-indigo-soft); color: var(--cwm-indigo); }
+    .cwm-more .t-blue { background: var(--cwm-blue-soft); color: var(--cwm-blue); }
+    .cwm-more .t-green { background: var(--cwm-green-soft); color: var(--cwm-green); }
+    .cwm-more .t-orange { background: var(--cwm-orange-soft); color: var(--cwm-orange); }
+    .cwm-more .t-sun { background: var(--cwm-sun-soft); color: var(--cwm-sun); }
+    .cwm-more .t-red { background: var(--cwm-red-soft); color: var(--cwm-red); }
+    .cwm-more .cwm-danger > span:not(.tile):not(.r) { color: var(--cwm-red); font-weight: 600; }
+    .cwm-more .cwm-danger small { display: block; font: 400 12px "IBM Plex Sans Thai", sans-serif; color: var(--st-muted); }
+    .cwm-more .cwm-list { overflow: hidden; }
+    .cwm-more .li {
+        display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.8rem 1rem; border: 0; background: none;
+        border-bottom: 1px solid var(--st-border); font: 500 14.5px "Kanit", sans-serif; color: var(--st-ink); text-decoration: none;
+    }
+    .cwm-more .li:last-child { border-bottom: 0; }
+    .cwm-more .li .tile { width: 2.25rem; height: 2.25rem; border-radius: 0.7rem; font-size: 0.95rem; }
+    .cwm-more .li > span:not(.tile):not(.r) { flex: 1; min-width: 0; }
+    .cwm-more .li .r { margin-left: auto; display: flex; align-items: center; gap: 0.35rem; color: var(--st-muted); font: 400 13px "IBM Plex Sans Thai", sans-serif; }
+    .cwm-more .li .r em { font-style: normal; max-width: 8.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cwm-more .li .r > i { font-size: 0.8rem; }
+    .cwm-more .tg { width: 2.9rem; height: 1.75rem; border-radius: 1rem; background: var(--st-border-2); position: relative; transition: background-color .2s; flex: none; }
+    .cwm-more .tg::after { content: ""; position: absolute; left: 3px; top: 3px; width: 1.375rem; height: 1.375rem; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .2); transition: left .2s; }
+    .cwm-more .tg.on { background: #2563EB; }
+    .cwm-more .tg.on::after { left: calc(100% - 1.375rem - 3px); }
+    .cwm-more .cwm-lbl { margin: 0.25rem 0.25rem -0.4rem; font: 600 13px "Kanit", sans-serif; color: var(--st-muted); }
+    .cwm-more .cwm-out {
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem; height: 3.1rem; border-radius: 1rem;
+        border: 1px solid var(--cwm-red-soft); background: var(--st-card); color: var(--cwm-red) !important; font: 600 15px "Kanit", sans-serif !important;
+    }
+}
+
+/* dashboard date range on one line: 📅 start – end [ล้าง] */
+@media (max-width: 640px) {
+    body[data-page="app"] #view-dashboard > div:first-child > div:last-child { flex-wrap: nowrap !important; align-items: center; gap: 0.35rem !important; padding: 0.45rem 0.5rem 0.45rem 0.75rem !important; }
+    body[data-page="app"] #view-dashboard > div:first-child > div:last-child input:not([type="date"]) {
+        flex: 1 1 0 !important; min-width: 0 !important; width: 0; font: 600 13.5px "Nunito", sans-serif !important; border: 0 !important; padding: 0 !important; height: auto !important; background: transparent !important; box-shadow: none !important;
+    }
+    body[data-page="app"] #view-dashboard > div:first-child > div:last-child button { margin-left: auto; flex: none; padding: 0.3rem 0.7rem !important; border-radius: 0.6rem; }
+}
+
+/* dark theme: img/logo.png is transparent, so no white box behind it (all screen sizes) */
+html.dark body[data-page="app"] #sidebar-logo-btn > a {
+    background: transparent !important; box-shadow: none !important; border-color: transparent !important;
+}
