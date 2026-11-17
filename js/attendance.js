@@ -46,6 +46,12 @@
         'ไม่ได้เลือกใครให้แชร์': 'not shared with anyone',
         'เบราว์เซอร์บล็อกแท็บใหม่ กดปุ่มด้านล่างเพื่อเปิด': 'the browser blocked the new tab, use the button below',
         'ชื่อ': 'Name', 'วันเวลา': 'When', 'หมายเหตุ': 'Note', 'บันทึกจาก ConWork': 'Saved from ConWork',
+        'สรุปชั่วโมงทำงาน (หัวหน้า)': 'Work hours summary (leads)',
+        'ชั่วโมงทำงานของแต่ละคนในทีม ตามที่ลงเวลาเข้า–ออกงาน · เห็นเฉพาะหัวหน้า รองหัวหน้า และหัวหน้างาน': 'Hours each team member logged · visible to team leads only',
+        'เดือน': 'Month', 'ดาวน์โหลด CSV': 'Download CSV', 'พนักงาน': 'Member', 'วันทำงาน': 'Days worked',
+        'ชั่วโมงรวม': 'Total hours', 'เฉลี่ย/วัน': 'Avg / day', 'รวมทั้งทีม': 'Team total',
+        'ยังไม่มีใครลงเวลาในเดือนนี้': 'No time logged this month', 'ล่าสุด': 'Last entry',
+        'คนที่ยังไม่ลงเวลาเลยในเดือนนี้': 'Not logged this month',
         'เข้างาน': 'In', 'ออกงาน': 'Out', 'น.': '', 'รวม': 'Total', 'ชม.': 'h', 'นาที': 'min'
     };
     EN[NEED_SQL] = 'The database has no time & leave table yet · run conwork-attendance.sql in the Neon SQL Editor (saved on this device for now)';
@@ -279,8 +285,18 @@
             + '<p id="at-local" class="hidden mx-5 mb-3 text-xs rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2"></p>'
             + '<div id="at-list" class="px-5 pb-5 divide-y divide-gray-100"></div>'
             + '</section>'
+            /* ---- leads only: hours per person ---- */
+            + '<section id="at-sum" class="hidden xl:col-span-2 bg-white border border-gray-200 rounded-2xl shadow-sm min-w-0">'
+            + '<div class="px-5 pt-5 pb-3 flex flex-wrap items-end justify-between gap-3"><div class="min-w-0"><h3 class="font-bold text-gray-800"><i class="fa-solid fa-user-tie text-blue-600 mr-1"></i> ' + T('สรุปชั่วโมงทำงาน (หัวหน้า)') + '</h3>'
+            + '<p class="text-xs text-gray-500 mt-0.5">' + T('ชั่วโมงทำงานของแต่ละคนในทีม ตามที่ลงเวลาเข้า–ออกงาน · เห็นเฉพาะหัวหน้า รองหัวหน้า และหัวหน้างาน') + '</p></div>'
+            + '<div class="flex items-center gap-2"><label class="flex items-center gap-2 text-xs font-semibold text-gray-500">' + T('เดือน') + '<input id="at-sum-month" type="month" class="bg-gray-50 border border-gray-200 rounded-lg py-1.5 px-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"></label>'
+            + '<button type="button" id="at-sum-csv" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50"><i class="fa-solid fa-download"></i> ' + T('ดาวน์โหลด CSV') + '</button></div></div>'
+            + '<div id="at-sum-body" class="px-5 pb-5"></div>'
+            + '</section>'
             + '</div>';
         cal.parentNode.insertBefore(v, cal);
+        /* leads see the hours summary first */
+        var grid = v.firstChild, sum = $('at-sum'); grid.insertBefore(sum, grid.firstChild);
         bind();
     }
 
@@ -372,6 +388,8 @@
         ['at-from', 'at-to'].forEach(function (id) { $(id).addEventListener('change', syncLeave); });
         $('at-period').addEventListener('change', syncLeave);
         $('at-form').addEventListener('submit', submit);
+        $('at-sum-month').addEventListener('change', drawSummary);
+        $('at-sum-csv').addEventListener('click', downloadCsv);
         $('at-done-new').addEventListener('click', function () { $('at-done').classList.add('hidden'); $('at-form').classList.remove('hidden'); $('at-note').value = ''; });
         $('at-done-copy').addEventListener('click', function () {
             var list = (state.last && state.last.guest_emails) || [];
@@ -417,7 +435,7 @@
                 + (n ? (isEn() ? n + ' email(s) added as guests in Google Calendar. Press "Save" and then "Send" there to email everyone.' : 'เชิญ ' + n + ' อีเมลใน Google Calendar แล้ว กด "บันทึก" และ "ส่ง" ในหน้านั้นเพื่อส่งอีเมลถึงทุกคน') : T('ไม่ได้เลือกใครให้แชร์'))
                 + (win === null ? ' (' + T('เบราว์เซอร์บล็อกแท็บใหม่ กดปุ่มด้านล่างเพื่อเปิด') + ')' : '');
             var A = app(); if (A && A._showToast) A._showToast(isEn() ? KIND[k].label + ' saved' : 'บันทึก' + KIND[k].label + 'แล้ว', 'success');
-            refresh();
+            refresh().then(drawSummary);
         }).catch(function (er) {
             btn.disabled = false;
             msg(T('บันทึกไม่สำเร็จ: ') + (er && er.message || er));
@@ -428,7 +446,7 @@
         var id = b.getAttribute('data-at-del');
         if (!window.confirm(T('ลบรายการนี้? (นัดใน Google Calendar ต้องลบเองในปฏิทิน)'))) return;
         b.disabled = true;
-        remove(id).then(refresh).catch(function (er) { b.disabled = false; alert(T('ลบไม่สำเร็จ: ') + (er.message || er)); });
+        remove(id).then(refresh).then(drawSummary).catch(function (er) { b.disabled = false; alert(T('ลบไม่สำเร็จ: ') + (er.message || er)); });
     }
 
     function drawStats() {
@@ -487,6 +505,119 @@
         });
     }
 
+    // ---------- leads: hours per person ----------
+    /* หัวหน้า / รองหัวหน้า (js/teamAdmin.js tier 1, 2), หัวหน้างาน and the CEO role, system Admins */
+    function isLead() {
+        var tier = window.TeamAdmin && TeamAdmin.tier ? TeamAdmin.tier() : 0;
+        if (tier === 1 || tier === 2) return true;
+        var A = app(), u = (A && A.state && A.state.currentUser) || {};
+        if (u.isSystemAdmin) return true;
+        if (['super_admin', 'company_admin', 'manager'].indexOf(u.companyRole) >= 0) return true;
+        return ['admin', 'reviewer1', 'reviewer2'].indexOf(u.role) >= 0;
+    }
+    var mins = function (r) {
+        var a = hm(r.time_in), b = hm(r.time_out);
+        if (!a || !b) return 0;
+        return Math.max(0, (+b.slice(0, 2) * 60 + +b.slice(3, 5)) - (+a.slice(0, 2) * 60 + +a.slice(3, 5)));
+    };
+    var hrs = function (m) { return Math.round(m / 6) / 10; }; // minutes → hours, 1 decimal
+    /* leave days that fall inside [from, to] */
+    function leaveDaysIn(r, from, to) {
+        if (r.period !== 'full') return r.start_date >= from && r.start_date <= to ? 0.5 : 0;
+        var a = r.start_date > from ? r.start_date : from, b = r.end_date < to ? r.end_date : to;
+        return b < a ? 0 : Math.round((parseYmd(b) - parseYmd(a)) / 864e5) + 1;
+    }
+    var sumRows = [];
+    function loadMonth(teamId, from, to) {
+        var sb = client();
+        var inMonth = function (x) { return String(x.company_id) === String(teamId) && x.start_date <= to && x.end_date >= from; };
+        if (!sb || teamId === 'none' || usingLocal) return Promise.resolve(readLS(LKEY, []).filter(inMonth));
+        return sb.from('attendance_records').select('*').eq('company_id', teamId).lte('start_date', to).gte('end_date', from).limit(5000)
+            .then(function (r) {
+                if (r.error) { if (NOTABLE.test((r.error.code || '') + ' ' + r.error.message)) return readLS(LKEY, []).filter(inMonth); throw r.error; }
+                return r.data || [];
+            });
+    }
+    function drawSummary() {
+        var box = $('at-sum'); if (!box) return;
+        var lead = isLead();
+        box.classList.toggle('hidden', !lead);
+        if (!lead) return;
+        var mi = $('at-sum-month');
+        if (!mi.value) { var d = new Date(); mi.value = d.getFullYear() + '-' + pad(d.getMonth() + 1); }
+        var y = +mi.value.slice(0, 4), m = +mi.value.slice(5, 7);
+        var from = mi.value + '-01', to = ymd(new Date(y, m, 0));
+        var body = $('at-sum-body');
+        body.innerHTML = '<p class="text-sm text-gray-400 py-4 text-center"><i class="fa-solid fa-spinner fa-spin mr-1"></i> ' + T('กำลังโหลด…') + '</p>';
+        loadMonth(team().id, from, to).then(function (rows) {
+            var people = {}, order = [];
+            var add = function (id, name, email) {
+                id = String(id || name || '?');
+                if (!people[id]) { people[id] = { id: id, name: name || T('สมาชิก'), email: email || '', days: {}, mins: 0, personal: 0, sick: 0, last: '' }; order.push(id); }
+                else if (name && people[id].name === T('สมาชิก')) people[id].name = name;
+                return people[id];
+            };
+            members().forEach(function (mb) { add(mb.id, mb.name, mb.email); });
+            rows.forEach(function (r) {
+                var p = add(r.user_id, r.user_name);
+                if (r.kind === 'work') {
+                    if (r.start_date < from || r.start_date > to) return;
+                    p.days[r.start_date] = 1; p.mins += mins(r);
+                    if (r.start_date > p.last) p.last = r.start_date;
+                } else if (r.kind === 'personal_leave') p.personal += leaveDaysIn(r, from, to);
+                else if (r.kind === 'sick_leave') p.sick += leaveDaysIn(r, from, to);
+            });
+            sumRows = order.map(function (id) {
+                var p = people[id], n = Object.keys(p.days).length;
+                return { name: p.name, email: p.email, days: n, hours: hrs(p.mins), avg: n ? hrs(p.mins / n) : 0, personal: p.personal, sick: p.sick, last: p.last };
+            }).sort(function (a, b) { return b.hours - a.hours || String(a.name).localeCompare(String(b.name), 'th'); });
+            var logged = sumRows.filter(function (r) { return r.days || r.personal || r.sick; });
+            var idle = sumRows.filter(function (r) { return !(r.days || r.personal || r.sick); });
+            var tot = logged.reduce(function (a, r) { a.days += r.days; a.hours += r.hours; a.personal += r.personal; a.sick += r.sick; return a; }, { days: 0, hours: 0, personal: 0, sick: 0 });
+            var num = function (v) { return v ? String(Math.round(v * 10) / 10) : '<span class="text-gray-300">–</span>'; };
+            var th = function (t, right) { return '<th class="py-2 px-3 font-semibold text-xs text-gray-500 whitespace-nowrap ' + (right ? 'text-right' : 'text-left') + '">' + t + '</th>'; };
+            var td = function (v, cls) { return '<td class="py-2.5 px-3 text-sm text-right tabular-nums whitespace-nowrap ' + (cls || 'text-gray-700') + '">' + v + '</td>'; };
+            body.innerHTML = !logged.length ? '<p class="text-sm text-gray-400 py-6 text-center">' + T('ยังไม่มีใครลงเวลาในเดือนนี้') + '</p>' + idleNote(idle)
+                : '<div class="overflow-x-auto -mx-5 px-5"><table class="w-full min-w-[40rem]"><thead class="border-b border-gray-200"><tr>'
+                + th(T('พนักงาน')) + th(T('วันทำงาน'), 1) + th(T('ชั่วโมงรวม'), 1) + th(T('เฉลี่ย/วัน'), 1) + th(T('ลากิจ'), 1) + th(T('ลาป่วย'), 1) + th(T('ล่าสุด'), 1)
+                + '</tr></thead><tbody class="divide-y divide-gray-100">'
+                + logged.map(function (r) {
+                    return '<tr><td class="py-2.5 px-3 min-w-0"><div class="text-sm font-semibold text-gray-800 truncate max-w-[14rem]" data-no-i18n>' + esc(r.name) + '</div>'
+                        + (r.email ? '<div class="text-xs text-gray-400 truncate max-w-[14rem]" data-no-i18n>' + esc(r.email) + '</div>' : '') + '</td>'
+                        + td(num(r.days)) + td(r.hours ? '<b class="text-blue-700">' + r.hours + '</b> ' + T('ชม.') : num(0)) + td(r.avg ? r.avg + ' ' + T('ชม.') : num(0))
+                        + td(num(r.personal), 'text-amber-700') + td(num(r.sick), 'text-rose-700') + td(r.last ? esc(thDate(r.last)) : num(0), 'text-gray-500 text-xs');
+                }).join('')
+                + '</tbody><tfoot class="border-t-2 border-gray-200"><tr><td class="py-2.5 px-3 text-sm font-bold text-gray-800">' + T('รวมทั้งทีม') + '</td>'
+                + td('<b>' + tot.days + '</b>') + td('<b>' + (Math.round(tot.hours * 10) / 10) + '</b> ' + T('ชม.')) + td('') + td('<b>' + tot.personal + '</b>', 'text-amber-700') + td('<b>' + tot.sick + '</b>', 'text-rose-700') + td('')
+                + '</tr></tfoot></table></div>' + idleNote(idle);
+        }).catch(function (er) {
+            body.innerHTML = '<p class="text-sm text-red-600 py-4">' + T('โหลดรายการไม่สำเร็จ: ') + esc(er && er.message || er) + '</p>';
+        });
+    }
+    function idleNote(idle) {
+        if (!idle.length) return '';
+        return '<p class="text-xs text-gray-500 mt-3"><span class="font-semibold">' + T('คนที่ยังไม่ลงเวลาเลยในเดือนนี้') + ' (' + idle.length + '):</span> <span data-no-i18n>'
+            + idle.map(function (r) { return esc(r.name); }).join(', ') + '</span></p>';
+    }
+    function downloadCsv() {
+        var mi = $('at-sum-month'); if (!sumRows.length) return;
+        var q = function (v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+        var head = isEn() ? ['Name', 'Email', 'Days worked', 'Total hours', 'Avg hours/day', 'Personal leave (days)', 'Sick leave (days)', 'Last entry']
+            : ['ชื่อ', 'อีเมล', 'วันทำงาน', 'ชั่วโมงรวม', 'เฉลี่ยชั่วโมง/วัน', 'ลากิจ (วัน)', 'ลาป่วย (วัน)', 'ลงเวลาล่าสุด'];
+        var lines = [head.map(q).join(',')].concat(sumRows.map(function (r) {
+            return [r.name, r.email, r.days, r.hours, r.avg, r.personal, r.sick, r.last].map(q).join(',');
+        }));
+        /* the BOM makes Excel read Thai correctly */
+        var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'conwork-work-hours-' + (team().name || 'team').replace(/[\\/:*?"<>|\s]+/g, '-') + '-' + mi.value + '.csv';
+        document.body.appendChild(a); a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    }
+    /* the role is known a moment after the page opens (js/teamAdmin.js): show or hide the summary then */
+    document.addEventListener('conwork:tier', function () { if ($('view-attendance') && !$('view-attendance').classList.contains('hidden')) drawSummary(); });
+
     function onShow() {
         /* built in the app's language: rebuild after the language was switched */
         var old = $('view-attendance');
@@ -499,7 +630,7 @@
         if (!$('at-from').value) { $('at-from').value = today; $('at-to').value = today; }
         setKind(state.kind);
         drawGuests();
-        refresh();
+        refresh().then(drawSummary);
     }
 
     function open() {
