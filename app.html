@@ -7,7 +7,14 @@
     <title>ConWork - Enterprise Management</title>
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="img/logo.png">
-    <link rel="apple-touch-icon" href="img/logo.png">
+    <link rel="apple-touch-icon" href="img/icons/apple-touch-icon.png">
+    <!-- installable app (PWA): js/pwa.js, sw.js -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ConWork">
     <!-- Fonts -->
     <link
         href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Kanit:wght@500;600;700&family=Nunito:wght@600;700;800;900&family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -5698,6 +5705,8 @@
     <!-- phones: bottom navbar + เพิ่มเติม page (ConWork · Mobile Web App frames) -->
     <link rel="stylesheet" href="css/mobile-nav.css?v=4">
     <script src="js/mobile-nav.js?v=3"></script>
+    <!-- installable app + system notifications (all screen sizes) -->
+    <script src="js/pwa.js?v=2"></script>
 </body>
 
 </html>

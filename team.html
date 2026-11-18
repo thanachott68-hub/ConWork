@@ -7,7 +7,14 @@
     <title>ConWork - Teams</title>
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="img/logo.png">
-    <link rel="apple-touch-icon" href="img/logo.png">
+    <link rel="apple-touch-icon" href="img/icons/apple-touch-icon.png">
+    <!-- installable app (PWA): js/pwa.js, sw.js -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ConWork">
     <!-- Fonts -->
     <link
         href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Kanit:wght@500;600;700&family=Nunito:wght@600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap"
@@ -1948,6 +1955,8 @@
     <!-- phones: bottom navbar (ทีม · Mailbox · โปรไฟล์) and the "team.html · Mobile" look -->
     <link rel="stylesheet" href="css/team-mobile.css?v=2">
     <script src="js/team-mobile.js?v=1"></script>
+    <!-- installable app + system notifications (all screen sizes) -->
+    <script src="js/pwa.js?v=2"></script>
 </body>
 
 </html>

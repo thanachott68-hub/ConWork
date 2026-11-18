@@ -1,0 +1,112 @@
+{
+  "id": "/app.html",
+  "name": "ConWork",
+  "short_name": "ConWork",
+  "description": "ConWork: projects, tasks, accounting and team chat in one place",
+  "lang": "th",
+  "dir": "ltr",
+  "start_url": "app.html?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "img/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "img/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "img/icons/badge-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "monochrome"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "แดชบอร์ด",
+      "short_name": "แดชบอร์ด",
+      "url": "app.html?view=dashboard",
+      "icons": [
+        {
+          "src": "img/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "โปรเจกต์",
+      "short_name": "โปรเจกต์",
+      "url": "app.html?view=projects",
+      "icons": [
+        {
+          "src": "img/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "ข้อความ",
+      "short_name": "ข้อความ",
+      "url": "app.html?view=messages",
+      "icons": [
+        {
+          "src": "img/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "ลงเวลา / ลางาน",
+      "short_name": "ลงเวลา",
+      "url": "app.html?view=attendance",
+      "icons": [
+        {
+          "src": "img/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Mailbox ทีม",
+      "short_name": "Mailbox",
+      "url": "team.html#mailbox",
+      "icons": [
+        {
+          "src": "img/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
