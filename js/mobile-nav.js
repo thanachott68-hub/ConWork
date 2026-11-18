@@ -37,7 +37,7 @@
     var isTab = function (v) { return TABS.some(function (t) { return t[0] === v; }); };
     var SUB = {
         projects: 'โปรเจกต์และงานทั้งหมด', accounting: 'รายรับ–รายจ่าย และงบประมาณ', messages: 'แชทกับเพื่อนร่วมงาน',
-        more: 'เมนูอื่น ๆ และการตั้งค่า', calendar: 'งานและกำหนดส่งของคุณ', team: 'สมาชิกในทีม', 'work-report': 'รายงานการทำงาน'
+        more: 'เมนูอื่น ๆ และการตั้งค่า', calendar: 'งานและกำหนดส่งของคุณ', team: 'สมาชิกในทีม', 'work-report': 'รายงานการทำงาน', attendance: 'เข้า–ออกงาน ลากิจ ลาป่วย'
     };
     var TITLE = { more: 'เพิ่มเติม', accounting: 'บัญชี' };
     /* a menu the side menu hides from this person (permissions) is hidden here too */
@@ -103,6 +103,7 @@
         var grid = [
             ['work-report', 'indigo', 'fa-solid fa-file-lines', 'สร้างรายงาน', 'รายงานการทำงาน', 'data-view="work-report"'],
             ['calendar', 'green', 'fa-regular fa-calendar-days', 'ปฏิทิน', 'งานและกำหนดส่งของคุณ', 'data-view="calendar"'],
+            ['attendance', 'sun', 'fa-solid fa-user-clock', 'ลงเวลา / ลางาน', 'เข้า–ออกงาน ลากิจ ลาป่วย', 'data-view="attendance"'],
             ['team', 'orange', 'fa-solid fa-users', 'ทีมงาน', 'สมาชิกในทีม', 'data-view="team"'],
             ['', 'blue', 'fa-solid fa-gear', 'ตั้งค่า', 'บัญชีและการใช้งาน', 'data-act="settings"']
         ].filter(function (g) { return !g[0] || allowed(g[0]); });
